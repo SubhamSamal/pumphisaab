@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 15 System states</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}.sec{min-height:60px;padding:8px 16px}.gh span{font-size:13px}</style>
+</helmet>
+<div class="board th" style="width:3118px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 15</div>
+<h2>System states</h2>
+<span class="who">Manager and Owner</span>
+<p><b>Goal:</b> Every screen still makes sense when the network drops, something fails to load, a list is empty, or the phone is in dark mode. Typed numbers are never lost.</p>
+<div class="ids"><span class="id">F2</span><span class="id">Offline</span><span class="id">Error</span><span class="id">Empty</span><span class="id">Success</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift B readings</div><div class="lbl c2">2 PM to 10 PM</div></div><span class="lbl neg b6"><i class="ic s i-off" style="vertical-align:-3px"></i> Offline</span></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="bn w" style="padding:8px 12px"><i class="ic i-off"></i><div class="tx" style="font-size:14px;line-height:20px"><b>No internet. Keep typing.</b>Your numbers are kept on this phone and sent when the internet is back.</div></div>
+<div class="gh hsd"><span style="width:88px">HSD · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<div class="nr"><div class="id"><b>HSD-A</b><span><i class="ic s i-lock"></i>48,210.00</span></div><div class="cl">48,890.00</div><div class="sl">680.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>HSD-B</b><span><i class="ic s i-lock"></i>31,455.50</span></div><div class="cl f">32,265.50</div><div class="sl">810.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>HSD-C</b><span><i class="ic s i-lock"></i>52,904.00</span></div><div class="cl pl">Type here</div><div class="sl cm">—<small>L</small></div></div>
+</div>
+<div class="sb"><button class="bt x">Type 6 more closing readings</button></div>
+</div>
+<p class="ann"><b>Offline.</b> Says "keep typing" first, so nobody stops work. The header shows Offline instead of Saved.<i>F2</i></p>
+</div>
+<div class="ar"><span>Load fails</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="fx"><div class="t-title">Sales</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><button class="bell" aria-label="Alerts"><i class="ic n i-bell"></i></button></div>
+<div class="bd" style="gap:12px;justify-content:center">
+<div class="bn e"><i class="ic i-err"></i><div class="tx"><b>Couldn't load sales</b>Check the internet. Nothing you typed is lost.<button class="bt m"><i class="ic i-retry"></i>Try again</button></div></div>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#" class="on"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Error.</b> What happened, one button, and a promise that typed numbers are safe.<i>Error</i></p>
+</div>
+<div class="ar"><span>Saved</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="fx"><div class="t-head">Shree Lokanath Filling Station</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><button class="bell" aria-label="Alerts"><i class="ic n i-bell"></i></button></div>
+<div class="bd" style="gap:10px">
+<div class="rw8"><span class="pchip hsd">HSD ₹90.00</span><span class="pchip ms">MS ₹101.00</span><span class="fx"></span><span class="lbl okc b6"><i class="ic s i-check" style="vertical-align:-3px"></i> Confirmed</span></div>
+<div class="rwb"><span class="pi dr">Not submitted</span><span class="lbl c2">1 of 8 done</span></div>
+<div class="pg"><i style="width:13%"></i></div>
+<div class="sec"><div class="sic"><div class="tick"><i class="ic i-check"></i></div></div><div class="fx"><div class="tt">Opening dip</div><div class="st">Done · 2 tanks</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot t"></div></div><div class="fx"><div class="tt">Tanker</div><div class="st">To do · Add receipt or No tanker</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot t"></div></div><div class="fx"><div class="tt">Shift A readings</div><div class="st">To do · 6 AM to 2 PM</div></div><i class="ic i-r"></i></div>
+</div>
+<div class="sb"><button class="bt x">Finish 7 more sections to submit</button></div>
+<div class="nav"><a href="#" class="on"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+<div class="toast"><i class="ic i-check"></i><span class="fx">Opening dip done</span></div>
+</div>
+<p class="ann"><b>Done.</b> Green tick on the card, the bar moves, and a short toast. No pop-up to close.<i>Success</i></p>
+</div>
+<div class="ar"><span>Nothing yet</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Credit sales</div></div>
+<div class="bd" style="align-items:center;justify-content:center;text-align:center;padding:40px 32px;gap:12px">
+<div style="width:64px;height:64px;border-radius:50%;background:var(--auto);display:flex;align-items:center;justify-content:center;color:var(--t2)"><i class="ic l i-plus"></i></div>
+<div class="t-head">No credit slips yet</div>
+<div class="c2">When a company vehicle fills on credit, add its slip here. If there were none today, tap "No credit today".</div>
+</div>
+<div class="sb"><button class="bt"><i class="ic i-plus"></i>Add credit slip</button><button class="bt s m" style="width:100%">No credit today</button></div>
+</div>
+<p class="ann"><b>Empty list.</b> Says what goes here and offers "none today", so an empty type can still count as done. XtraPower and Bank transfer get the same.<i>Empty</i></p>
+</div>
+<div class="ar"><span>Night</span></div>
+
+<div class="scr">
+<div class="ph th dark">
+<div class="hd"><div class="fx"><div class="t-title">Sales</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><button class="bell" aria-label="Alerts, 2 new"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:10px">
+<div class="sg"><span class="on">By type</span><span>By shift</span></div>
+<div class="rwb"><span class="c2">Received so far</span><span class="num">₹7,68,030</span></div>
+<div class="ty"><div class="fx"><div class="nm">Cash</div><div class="sp">A ₹1,40,280 · B ₹1,48,600 · C —</div></div><div class="am">₹2,88,880</div><i class="ic i-r c2"></i></div>
+<div class="ty"><div class="fx"><div class="nm">PhonePe (UPI)</div><div class="sp">A ₹1,21,600 · B ₹1,32,400 · C —</div></div><div class="am">₹2,54,000</div><i class="ic i-r c2"></i></div>
+<div class="ty"><div class="fx"><div class="nm">POS (card)</div><div class="sp">A ₹64,000 · B ₹58,700 · C —</div></div><div class="am">₹1,22,700</div><i class="ic i-r c2"></i></div>
+<div class="ty"><div class="fx"><div class="nm">XtraPower</div><div class="sp">A ₹26,000 · B ₹22,000 · C —</div></div><div class="am">₹48,000</div><i class="ic i-r c2"></i></div>
+<div class="ty"><div class="fx"><div class="nm">Credit</div><div class="sp">3 slips · A 1 · B 2</div></div><div class="am">₹54,450</div><i class="ic i-r c2"></i></div>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#" class="on"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Dark mode.</b> Same parts, dark colours, for night-shift eyes. Flags keep their icons and words.<i>Theme</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":3118,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

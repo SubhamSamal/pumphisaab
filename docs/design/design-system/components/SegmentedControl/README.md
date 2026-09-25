@@ -1,0 +1,1 @@
+Use instead of a dropdown for 3 or fewer options. 44px thumbs inside a 4px track (hit area 48px+). The selected segment gets a tick, `primary` text and a 1.5px `primary` border, so selection never depends on colour alone.

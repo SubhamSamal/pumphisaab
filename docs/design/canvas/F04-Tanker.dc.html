@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 4 Tanker receipt</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="board th" style="width:2608px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 4</div>
+<h2>Tanker receipt</h2>
+<span class="who">Manager</span>
+<p><b>Goal:</b> Copy the challan into the app: litres ordered and litres short. Price and margin come from the last receipt, and every total is worked out.</p>
+<div class="ids"><span class="id">F5</span><span class="id">S6</span><span class="id">F2</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="ttl">Tanker</div><button class="bell" aria-label="Alerts, 2 new"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:8px"><div class="rwb"><div><div class="t-head">No tanker today</div><div class="hp">Turn on if no tanker came on 01 Oct</div></div><div class="sw off"><i></i></div></div></div>
+<div class="lbl c2" style="padding-top:8px">Today · 01 Oct</div>
+<div class="cd" style="gap:8px">
+<div class="rwb"><b class="t-head">OD02CD9087</b><span class="pi wr"><i class="ic s i-flag"></i>1 flag</span></div>
+<div class="rw8"><span class="pchip hsd">HSD 11,980 L</span><span class="pchip ms">MS 3,980 L</span></div>
+<div class="rwb"><span class="hp">Received, after short</span><i class="ic i-r"></i></div>
+</div>
+<div class="lbl c2" style="padding-top:8px">Earlier</div>
+<div class="cd" style="gap:8px">
+<div class="rwb"><b class="t-head">OD11AB4410</b><span class="hp">28 Sep</span></div>
+<div class="rw8"><span class="pchip hsd">HSD 8,000 L</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt"><i class="ic i-plus"></i>Add tanker</button></div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#" class="on"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Tanker tab.</b> Add button in the thumb zone (was a small + in the corner). "No tanker today" is what ticks the Today card on days nothing comes.<i>F5 · F2</i></p>
+</div>
+<div class="ar"><span>Add tanker</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add tanker</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:14px">
+<div class="fl"><label class="lb">Tanker number</label><div class="in"><span class="v tx" style="font-size:22px;letter-spacing:.5px">OD02CD9087</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">Invoice date</label><div class="in"><span class="v tx">30 Sep 2026</span><i class="ic i-cal c2"></i></div></div>
+<div class="fl"><label class="lb">Unloaded on</label><div class="in"><span class="v tx">01 Oct 2026</span><i class="ic i-cal c2"></i></div></div>
+</div>
+<div class="cd" style="gap:12px">
+<div class="rw8"><span class="tg hsd">HSD</span><b>Diesel</b></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">Ordered</label><div class="in f"><span class="v">12,000</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Short</label><div class="in"><span class="v">20</span><span class="u">L</span></div></div>
+</div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Received <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">11,980 L</span></div>
+<div class="rwb"><span class="hp">Price ₹86.20/L · margin ₹3.80/L<br>From last tanker. Matches invoice?</span><span class="lbl pri b6" style="min-height:48px;display:flex;align-items:center">Change</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt s">Next: Petrol</button></div>
+</div>
+<p class="ann"><b>Diesel part.</b> Only 2 numbers to type: ordered and short. Price and margin are prefilled from the last tanker and shown as a line to check, not 2 more boxes.<i>F5</i></p>
+</div>
+<div class="ar"><span>Petrol, then totals</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add tanker</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:12px">
+<div class="rw8"><span class="tg ms">MS</span><b>Petrol</b></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">Ordered</label><div class="in"><span class="v">4,000</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Short</label><div class="in"><span class="v">20</span><span class="u">L</span></div></div>
+</div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Received <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">3,980 L</span></div>
+<div class="rwb"><span class="hp">Price ₹96.10/L · margin ₹4.90/L<br>From last tanker. Matches invoice?</span><span class="lbl pri b6" style="min-height:48px;display:flex;align-items:center">Change</span></div>
+<div class="flg"><i class="ic i-flag"></i><span>Short is 20 L out of 4,000 L. <b>More than usual.</b> The owner will see this.</span></div>
+</div>
+<div class="rc" style="gap:8px">
+<div class="kv"><span class="k">Invoice amount</span><span class="v">₹14,18,800</span></div>
+<div class="kv"><span class="k">Short amount</span><span class="v neg">−₹3,646</span></div>
+<div class="kv"><span class="k">To pay</span><span class="v b6">₹14,15,154</span></div>
+<div class="kv"><span class="k">Margin earned</span><span class="v">₹65,026</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt">Save tanker</button></div>
+</div>
+<p class="ann"><b>Petrol part and totals.</b> The short flag is information, not a gate: Save stays on. Totals use the words on the IOCL invoice.<i>F5 · S6</i></p>
+</div>
+<div class="ar"><span>Saved</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">OD02CD9087</div><button class="ha" aria-label="Edit"><i class="ic n i-edit"></i></button></div>
+<div class="bd" style="gap:12px">
+<div class="c2">Unloaded 01 Oct 2026 · invoice 30 Sep</div>
+<div class="rc" style="gap:8px">
+<div class="rw8"><span class="tg hsd">HSD</span><span class="lbl c2 fx">12,000 ordered · 20 short</span><span class="numi">11,980 L</span></div>
+<div class="rw8"><span class="tg ms">MS</span><span class="lbl c2 fx">4,000 ordered · 20 short</span><span class="numi">3,980 L</span></div>
+<div class="sep"></div>
+<div class="kv big"><span class="k">To pay</span><span class="v">₹14,15,154</span></div>
+</div>
+<div class="t-head" style="margin-top:4px">Dip check after unloading <span class="hp" style="font-weight:400">(optional)</span></div>
+<div class="cd" style="gap:8px">
+<div class="rwb"><span class="tg hsd">HSD</span><span class="numi">Tank went up 11,975 L</span></div>
+<div class="rwb"><span class="hp">Challan says 11,980 L</span><span class="vc z"><i class="ic s i-check"></i>OK</span></div>
+<div class="sep"></div>
+<div class="rwb"><span class="tg ms">MS</span><span class="numi">Tank went up 3,970 L</span></div>
+<div class="rwb"><span class="hp">Challan says 3,980 L</span><span class="vc z"><i class="ic s i-check"></i>OK</span></div>
+</div>
+<div class="hp">Uses the dips taken just before and just after unloading.</div>
+</div>
+</div>
+<p class="ann"><b>Saved tanker.</b> The optional dip check is named for what it does ("did the tank go up by what the challan says?") instead of "decantation gain".<i>F5</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2608,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

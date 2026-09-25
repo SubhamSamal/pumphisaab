@@ -1,0 +1,1 @@
+Top of **Today**. Line 1: pump name (`label`) over the date as `title` (`01 Oct 2026`), day status pill at the right. Line 2: MS and HSD price chips in product tints + "Edit prices" ghost link (hidden when Locked). Sticks on scroll with a 1px `border`, no shadow.

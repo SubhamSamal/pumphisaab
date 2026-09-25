@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 7 Expenses</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="board th" style="width:2098px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 7 · Separated</div>
+<h2>Expenses</h2>
+<span class="who">Manager</span>
+<p><b>Goal:</b> Note every rupee paid out, and from where. Its own section on Today, apart from Sales. Cash taken from a shift's drawer is counted back in that shift.</p>
+<div class="ids"><span class="id">F8</span><span class="id">S9</span><span class="id">F10</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Expenses</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:4px">
+<div class="li"><div class="fx"><div class="tt">Salary</div><div class="st">Paid by owner</div></div><span class="numi">₹18,000</span></div>
+<div class="li"><div class="fx"><div class="tt">Tiffin</div><div class="st">From Shift B cash</div></div><span class="numi">₹450</span></div>
+<div class="li" style="min-height:88px"><div class="fx"><div class="tt">Bakshis</div><div class="st">From Shift B cash</div><div class="rw8 pos" style="margin-top:4px;font-size:14px;line-height:20px;font-weight:500"><i class="ic s i-flag"></i>More than the ₹300 daily limit</div></div><span class="numi">₹500</span></div>
+<div class="li"><div class="fx"><div class="tt">Generator repair</div><div class="st">Other · From Shift B cash</div></div><span class="numi">₹2,000</span></div>
+<div class="rc" style="gap:8px;margin-top:12px">
+<div class="kv"><span class="k">From shift cash</span><span class="v">₹2,950</span></div>
+<div class="kv"><span class="k">Paid by owner or bank</span><span class="v">₹18,000</span></div>
+<div class="sep"></div>
+<div class="kv big"><span class="k">Total today</span><span class="v">₹20,950</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt"><i class="ic i-plus"></i>Add expense</button></div>
+</div>
+<p class="ann"><b>Expenses list.</b> Where the money came from is the second line of every row, because that decides the shift maths. Over-limit is an amber flag for the owner, nothing to fill.<i>F8 · S9</i></p>
+</div>
+<div class="ar"><span>Add</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add expense</div></div>
+<div class="bd" style="gap:16px">
+<div class="fl"><label class="lb">What for</label><div class="chs"><span class="ch sm">Salary</span><span class="ch sm">Tiffin</span><span class="ch sm">Bakshis</span><span class="ch on sm"><i class="ic s i-check"></i>Other</span></div></div>
+<div class="fl"><label class="lb">Write what it was</label><div class="in"><span class="v tx">Generator repair</span></div></div>
+<div class="fl"><label class="lb">Amount</label><div class="in f"><span class="v">2,000</span><span class="u">₹</span></div></div>
+<div class="fl"><label class="lb">Paid from</label><div class="in"><span class="v tx">Shift B cash</span><i class="ic i-d c2"></i></div></div>
+<div class="hp">Date is today. Fixed or variable is set by the type.</div>
+</div>
+<div class="sb"><button class="bt">Save expense</button></div>
+</div>
+<p class="ann"><b>Add expense.</b> Four things. Types are chips instead of a dropdown. "Fixed / Variable" and the date are set by the app, not asked.<i>F8</i></p>
+</div>
+<div class="ar"><span>Paid from</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add expense</div></div>
+<div class="bd" style="gap:16px">
+<div class="fl"><label class="lb">Amount</label><div class="in"><span class="v">2,000</span><span class="u">₹</span></div></div>
+</div>
+<div class="scrim"></div>
+<div class="sheet" style="gap:8px">
+<div class="hn"></div>
+<div class="t-head">Where did the money come from?</div>
+<div class="li" style="min-height:56px"><span class="fx">Shift A cash drawer</span></div>
+<div class="li" style="min-height:56px;color:var(--primary-hover);font-weight:600"><span class="fx">Shift B cash drawer</span><i class="ic i-check"></i></div>
+<div class="li" style="min-height:56px"><span class="fx">Shift C cash drawer</span></div>
+<div class="li" style="min-height:56px"><span class="fx">Owner paid</span></div>
+<div class="li" style="min-height:56px;border-bottom:0"><span class="fx">Bank</span></div>
+<div class="bn i"><i class="ic i-info"></i><div class="tx">Money from a shift's drawer is added back to that shift's sales, so the shift won't show as short.</div></div>
+</div>
+</div>
+<p class="ann"><b>Paid from.</b> Says "cash drawer" in plain words and explains, once, why this choice matters.<i>F8 · F10</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2098,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

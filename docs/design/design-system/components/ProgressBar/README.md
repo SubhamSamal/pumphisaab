@@ -1,0 +1,1 @@
+8px pill track (`auto-field-bg`, 1px `border`) with a `primary` fill. Label above: bold "7 of 10 done" left, next step right. Always a number, never a bare bar. At 10 of 10 the right label reads "Ready to submit".

@@ -1,0 +1,1 @@
+Sticky bottom bar: `bg`, 1px `border` top, `shadow-sticky` (one of only two shadows). 16px gutters, 56px primary button, safe-area padding underneath. Above the button sits a single line: the save indicator, or the reason the button is disabled. Content scrolls behind it with 96px bottom padding so the last field is never covered.

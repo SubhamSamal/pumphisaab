@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 12 Owner dashboard</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="board th" style="width:2098px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 12</div>
+<h2>Owner dashboard</h2>
+<span class="who own">Owner</span>
+<p><b>Goal:</b> See at a glance whether days are closing matched. The 30-day strip is the North Star; tap any day to see what was off.</p>
+<div class="ids"><span class="id">F13</span><span class="id">F10</span><span class="id">F14</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="fx"><div class="t-title">Dashboard</div><div class="lbl c2">Shree Lokanath</div></div><button class="bell" aria-label="Alerts, 2"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:8px;padding:12px">
+<div class="rwb"><b class="t-head">01 Oct</b><span class="pi nm"><i class="ic s i-x"></i>Not matched</span></div>
+<div class="rw8"><span class="tg hsd">HSD</span><span class="vc n"><i class="ic s i-warn"></i>−42 L</span><span class="tg ms">MS</span><span class="vc z"><i class="ic s i-check"></i>OK</span></div>
+<div class="rwb"><span class="c2">Money</span><span class="vc n"><i class="ic s i-warn"></i>Short −₹950</span></div>
+</div>
+<div class="rwb"><b class="t-head">Last 30 days</b><span class="lbl c2">22 of 30 matched</span></div>
+<div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+<div class="calg">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="32">
+<div class="cell {{d.c}}"><span>{{d.d}}</span><i class="ic {{d.i}}"></i></div>
+</sc-for>
+</div>
+<div class="leg"><span class="okc"><i class="ic s i-check"></i>Matched</span><span class="pos"><i class="ic s i-clock"></i>Matched late</span><span class="neg"><i class="ic s i-x"></i>Not matched</span><span><i class="ic s i-minus"></i>Not sent</span></div>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#" class="on"><span class="np"><i class="ic n i-dash"></i></span>Dashboard</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Dashboard.</b> Latest day first, then the 30-day strip. The alert list moved to the bell, so the calendar gets the room. Cells carry an icon, not just a colour.<i>F13</i></p>
+</div>
+<div class="ar"><span>Tap 27 Sep</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Sun, 27 Sep</div></div><span class="pi lk"><i class="ic s i-lock"></i>Locked</span></div>
+<div class="bd" style="gap:12px">
+<div class="rwb"><span class="pi nm"><i class="ic s i-x"></i>Not matched</span><span class="hp">Sent on time</span></div>
+<div class="cd" style="gap:8px">
+<div class="rwb"><span class="tg hsd">HSD</span><span class="vc z"><i class="ic s i-check"></i>Matched</span></div>
+<div class="rwb"><span class="tg ms">MS</span><span class="vc z"><i class="ic s i-check"></i>Matched</span></div>
+<div class="sep"></div>
+<div class="rwb"><b>Shift A</b><span class="vc z"><i class="ic s i-check"></i>Matched</span></div>
+<div class="rwb"><b>Shift B</b><span class="vc n"><i class="ic s i-warn"></i>Short −₹420</span></div>
+<div class="rwb"><b>Shift C</b><span class="vc z"><i class="ic s i-check"></i>Matched</span></div>
+</div>
+<div class="cd" style="gap:6px"><div class="lbl c2">Your note on that day</div><div>Called Ramesh. Card slip missed at handover; Suresh to pay back.</div><div class="hp">You · 28 Sep, 9:15 AM</div></div>
+</div>
+<div class="sb"><button class="bt s">Open full day</button></div>
+</div>
+<p class="ann"><b>One day.</b> Same summary as the manager's review, read-only. The owner's own note records what was agreed on the phone.<i>F13 · F14</i></p>
+</div>
+<div class="ar"><span>Night</span></div>
+
+<div class="scr">
+<div class="ph th dark">
+<div class="hd"><div class="fx"><div class="t-title">Dashboard</div><div class="lbl c2">Shree Lokanath</div></div><button class="bell" aria-label="Alerts, 2"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:8px;padding:12px">
+<div class="rwb"><b class="t-head">01 Oct</b><span class="pi nm"><i class="ic s i-x"></i>Not matched</span></div>
+<div class="rw8"><span class="tg hsd">HSD</span><span class="vc n"><i class="ic s i-warn"></i>−42 L</span><span class="tg ms">MS</span><span class="vc z"><i class="ic s i-check"></i>OK</span></div>
+<div class="rwb"><span class="c2">Money</span><span class="vc n"><i class="ic s i-warn"></i>Short −₹950</span></div>
+</div>
+<div class="rwb"><b class="t-head">Last 30 days</b><span class="lbl c2">22 of 30 matched</span></div>
+<div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+<div class="calg">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="32">
+<div class="cell {{d.c}}"><span>{{d.d}}</span><i class="ic {{d.i}}"></i></div>
+</sc-for>
+</div>
+<div class="leg"><span class="okc"><i class="ic s i-check"></i>Matched</span><span class="pos"><i class="ic s i-clock"></i>Matched late</span><span class="neg"><i class="ic s i-x"></i>Not matched</span><span><i class="ic s i-minus"></i>Not sent</span></div>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#" class="on"><span class="np"><i class="ic n i-dash"></i></span>Dashboard</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Dark theme.</b> Follows the phone by default. Every colour has a dark version, so contrast holds at night.<i>Theme</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2098,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ic = { m: 'i-check', l: 'i-clock', n: 'i-x', u: 'i-minus', b: 'i-minus' };
+    const odd = { 5: 'l', 9: 'n', 14: 'l', 16: 'u', 19: 'n', 25: 'l', 27: 'n' };
+    const days = [{ c: 'b', d: '', i: ic.b }, { c: 'b', d: '', i: ic.b }];
+    for (let d = 2; d <= 30; d++) {
+      const s = odd[d] || 'm';
+      days.push({ c: s, d: String(d), i: ic[s] });
+    }
+    days.push({ c: 'n t', d: '1', i: ic.n });
+    return { days: days };
+  }
+}
+</script>
+</body>
+</html>

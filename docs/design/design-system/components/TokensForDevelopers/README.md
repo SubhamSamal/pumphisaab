@@ -1,0 +1,1 @@
+Copy `tokens.dev.json` (in the brand book section "Tokens for developers") into `tailwind.config.js` → `theme.extend`. Colours are exposed as CSS variables per theme (`--color-<name>`), so `bg-primary`, `text-danger`, `border-border-strong` work in Tailwind and switch with the device theme. NativeWind: read the `color.light` / `color.dark` maps and pick by `useColorScheme()`.

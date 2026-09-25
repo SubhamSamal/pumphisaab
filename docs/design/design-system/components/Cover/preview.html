@@ -1,0 +1,30 @@
+<!-- @dsCard height=288 -->
+<!doctype html><html><head><link rel="stylesheet" href="../../tokens.css"><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:var(--color-bg)}svg{display:block}
+.ground{fill:var(--color-bg)}.teal{fill:var(--color-primary)}.tint{fill:var(--color-primary-subtle)}.ink{fill:var(--color-text-primary)}.saf{fill:var(--color-saffron)}.lt{fill:var(--color-bg)}
+.slab{rx:var(--radius-lg)}
+.nm{font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:64px;letter-spacing:-.03em;fill:var(--color-text-primary)}
+.tg{font-family:Inter,system-ui,sans-serif;font-weight:500;font-size:14px;fill:var(--color-text-muted)}
+</style></head><body>
+<svg width="960" height="288" viewBox="0 0 960 288" xmlns="http://www.w3.org/2000/svg">
+<!-- derivation
+ blocks: color-primary 208x184 (top-left of stack) + color-text-primary 120x240 bleeding off bottom + color-primary-subtle 208x88 and 120x136 bleeding off right + color-saffron disc r=20 (logo accent, small)
+ arrangement: staggered slabs right of x=480; one tall ink slab, teal slab bleeding off the top, tints bleeding off the right edge
+ pattern: literal motif, the fuel drop from the logo built from radii, small grid inside the tints; chosen because a drop is the one shape only PumpHisaab owns
+ scales: radius-lg 16 on slabs, steps 8/16/24/40, drop pitch 24
+-->
+<defs><symbol id="d" viewBox="0 0 64 64"><path d="M32 5C32 5 13 27 13 41a19 19 0 0 0 38 0C51 27 32 5 32 5Z"/></symbol></defs>
+<rect class="ground" width="960" height="288"/>
+<rect class="teal slab" x="496" y="-16" width="208" height="200"/>
+<rect class="ink slab" x="720" y="48" width="120" height="256"/>
+<rect class="tint slab" x="496" y="200" width="208" height="88"/>
+<rect class="tint slab" x="856" y="-16" width="120" height="152"/>
+<rect class="tint slab" x="856" y="152" width="120" height="152"/>
+<circle class="saf" cx="700" cy="196" r="20"/>
+<g class="lt"><use href="#d" x="512" y="16" width="24" height="24"/><use href="#d" x="512" y="40" width="24" height="24"/><use href="#d" x="536" y="16" width="24" height="24"/><use href="#d" x="536" y="40" width="24" height="24"/><use href="#d" x="560" y="16" width="24" height="24"/><use href="#d" x="560" y="40" width="24" height="24"/><use href="#d" x="584" y="16" width="24" height="24"/><use href="#d" x="584" y="40" width="24" height="24"/><use href="#d" x="608" y="16" width="24" height="24"/><use href="#d" x="608" y="40" width="24" height="24"/><use href="#d" x="632" y="16" width="24" height="24"/><use href="#d" x="632" y="40" width="24" height="24"/><use href="#d" x="656" y="16" width="24" height="24"/><use href="#d" x="656" y="40" width="24" height="24"/></g>
+<g class="teal"><use href="#d" x="872" y="168" width="24" height="24"/><use href="#d" x="872" y="192" width="24" height="24"/><use href="#d" x="872" y="216" width="24" height="24"/><use href="#d" x="872" y="240" width="24" height="24"/><use href="#d" x="896" y="168" width="24" height="24"/><use href="#d" x="896" y="192" width="24" height="24"/><use href="#d" x="896" y="216" width="24" height="24"/><use href="#d" x="896" y="240" width="24" height="24"/><use href="#d" x="920" y="168" width="24" height="24"/><use href="#d" x="920" y="192" width="24" height="24"/><use href="#d" x="920" y="216" width="24" height="24"/><use href="#d" x="920" y="240" width="24" height="24"/><use href="#d" x="944" y="168" width="24" height="24"/><use href="#d" x="944" y="192" width="24" height="24"/><use href="#d" x="944" y="216" width="24" height="24"/><use href="#d" x="944" y="240" width="24" height="24"/></g>
+<g class="teal"><use href="#d" x="512" y="216" width="24" height="24"/><use href="#d" x="512" y="240" width="24" height="24"/><use href="#d" x="536" y="216" width="24" height="24"/><use href="#d" x="536" y="240" width="24" height="24"/><use href="#d" x="560" y="216" width="24" height="24"/><use href="#d" x="560" y="240" width="24" height="24"/><use href="#d" x="584" y="216" width="24" height="24"/><use href="#d" x="584" y="240" width="24" height="24"/><use href="#d" x="608" y="216" width="24" height="24"/><use href="#d" x="608" y="240" width="24" height="24"/><use href="#d" x="632" y="216" width="24" height="24"/><use href="#d" x="632" y="240" width="24" height="24"/><use href="#d" x="656" y="216" width="24" height="24"/><use href="#d" x="656" y="240" width="24" height="24"/><use href="#d" x="680" y="216" width="24" height="24"/><use href="#d" x="680" y="240" width="24" height="24"/></g>
+<text class="nm" x="32" y="216">PumpHisaab</text>
+<text class="tg" x="34" y="244">Sara hisaab ek jagah</text>
+</svg></body></html>

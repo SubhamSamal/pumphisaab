@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 14 Web layouts</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}.sec{min-height:60px;padding:8px 16px}</style>
+</helmet>
+<div class="board th" style="width:3368px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 14</div>
+<h2>Web, 1024px and wider</h2>
+<span class="who">Manager and Owner</span>
+<p><b>Goal:</b> Same app on the office PC. Bottom bar becomes an 88px left rail, the bell stays top right, entry stays 480px wide, and the spare width shows the live match.</p>
+<div class="ids"><span class="id">F2</span><span class="id">F10</span><span class="id">F13</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr" style="width:1280px">
+<div class="web th" style="width:1280px;height:844px">
+<div class="rail">
+<div class="lg" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px"><i class="ic i-drop" style="width:28px;height:28px"></i><b style="left:12px;right:12px;bottom:8px"></b></div>
+<a href="#" class="on"><span class="np"><i class="ic n i-today"></i></span>Today</a>
+<a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a>
+<a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a>
+<a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a>
+</div>
+<div class="wmain">
+<div class="wbar"><div class="fx"><div class="t-head">Shree Lokanath Filling Station</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><span class="pchip hsd">HSD ₹90.00</span><span class="pchip ms">MS ₹101.00</span><span class="lbl okc b6"><i class="ic s i-check" style="vertical-align:-3px"></i> Confirmed</span><button class="bell" style="margin-right:-8px" aria-label="Alerts, 2 new"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="wbody">
+<div class="wcol">
+<div class="rwb"><span class="pi dr">Not submitted</span><span class="lbl c2">4 of 8 done · <i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="pg"><i style="width:50%"></i></div>
+<div class="sec"><div class="sic"><div class="tick"><i class="ic i-check"></i></div></div><div class="fx"><div class="tt">Opening dip</div><div class="st">Done · 2 tanks</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="tick"><i class="ic i-check"></i></div></div><div class="fx"><div class="tt">Tanker</div><div class="st">Done · OD02CD9087</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="tick"><i class="ic i-check"></i></div></div><div class="fx"><div class="tt">Shift A readings</div><div class="st">Done · 3,979 L sold</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot a"></div></div><div class="fx"><div class="tt">Shift B readings</div><div class="st">6 of 8 nozzles</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot t"></div></div><div class="fx"><div class="tt">Shift C readings</div><div class="st">To do · 10 PM to 6 AM</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot a"></div></div><div class="fx"><div class="tt">Sales</div><div class="st">Shift A matched · Shift B open</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="tick"><i class="ic i-check"></i></div></div><div class="fx"><div class="tt">Expenses</div><div class="st">Done · ₹20,950</div></div><i class="ic i-r"></i></div>
+<div class="sec"><div class="sic"><div class="dot t"></div></div><div class="fx"><div class="tt">Closing dip</div><div class="st">To do · at day end</div></div><i class="ic i-r"></i></div>
+<button class="bt x">Finish 4 more sections to submit</button>
+</div>
+<div class="fx col" style="gap:16px">
+<div class="t-title">How today is matching</div>
+<div class="cd" style="gap:8px"><b>Money by shift</b>
+<div class="rwb"><span>Shift A</span><span class="vc z"><i class="ic s i-check"></i>Matched</span></div>
+<div class="rwb"><span>Shift B</span><span class="hp">2 meter readings to go</span></div>
+<div class="rwb"><span class="c2">Shift C</span><span class="hp">Not started</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+<div class="cd" style="gap:8px"><div class="rw8"><span class="tg hsd">HSD</span><b>Tank vs meters</b></div><div class="hp">Shows after closing dip</div></div>
+<div class="cd" style="gap:8px"><div class="rw8"><span class="tg ms">MS</span><b>Tank vs meters</b></div><div class="hp">Shows after closing dip</div></div>
+</div>
+<div class="flg"><i class="ic i-flag"></i><span><b>1 flag so far:</b> Petrol tanker short 20 L. The owner will see it.</span></div>
+</div>
+</div>
+</div>
+</div>
+<p class="ann"><b>Manager Today, web.</b> The 480px list is the same as the phone. The right side fills in as the day goes; tank vs meters waits for the closing dip instead of showing a half-day number.<i>F2 · F10</i></p>
+</div>
+<div class="ar"><span>Owner</span></div>
+
+<div class="scr" style="width:1280px">
+<div class="web th" style="width:1280px;height:844px">
+<div class="rail">
+<div class="lg" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px"><i class="ic i-drop" style="width:28px;height:28px"></i><b style="left:12px;right:12px;bottom:8px"></b></div>
+<a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a>
+<a href="#"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a>
+<a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a>
+<a href="#" class="on"><span class="np"><i class="ic n i-dash"></i></span>Dashboard</a>
+<a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a>
+</div>
+<div class="wmain">
+<div class="wbar"><div class="fx t-head">Dashboard</div><span class="lbl c2">Shree Lokanath Filling Station</span><button class="bell" style="margin-right:-8px" aria-label="Alerts, 2"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="wbody">
+<div class="fx col" style="gap:20px">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+<div class="cd" style="gap:8px"><div class="lbl c2">01 Oct</div><span class="pi nm" style="align-self:flex-start"><i class="ic s i-x"></i>Not matched</span><div class="hp">5 flags · 1 needs approval</div></div>
+<div class="cd" style="gap:8px"><div class="lbl c2">Diesel, tank vs meters</div><div class="num neg">−42 L</div><div class="hp">Short · about ₹3,780</div></div>
+<div class="cd" style="gap:8px"><div class="lbl c2">Money, whole day</div><div class="num neg">−₹950</div><div class="hp">Shift B −₹1,250 · Shift C +₹300</div></div>
+</div>
+<div class="cd" style="gap:12px">
+<div class="rwb"><b class="t-head">Last 30 days</b><span class="lbl c2">22 of 30 matched the same day</span></div>
+<div style="display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:6px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="30">
+<div class="cell {{d.c}}"><span>{{d.d}}</span><i class="ic {{d.i}}"></i></div>
+</sc-for>
+</div>
+<div class="leg"><span class="okc"><i class="ic s i-check"></i>Matched same day</span><span class="pos"><i class="ic s i-clock"></i>Matched late</span><span class="neg"><i class="ic s i-x"></i>Not matched</span><span><i class="ic s i-minus"></i>Not sent</span></div>
+</div>
+</div>
+<div style="width:360px;flex:none" class="col12">
+<div class="rwb"><b class="t-head">Needs your answer</b><span class="bgc">2</span></div>
+<div class="li" style="min-height:76px"><i class="ic pri i-unlock"></i><div class="fx"><div class="tt">Unlock 01 Oct?</div><div class="st">Ramesh asked · 11:20 AM</div></div></div>
+<div class="li" style="min-height:76px"><i class="ic pos i-gauge"></i><div class="fx"><div class="tt">Meter change on MS-A</div><div class="st">Approve or reject</div></div></div>
+<div class="rwb" style="padding-top:12px"><b class="t-head">Flags</b><span class="lbl c2">5 open</span></div>
+<div class="li" style="min-height:64px"><i class="ic neg i-flag"></i><div class="fx"><div class="tt">Diesel short 42 L</div></div></div>
+<div class="li" style="min-height:64px"><i class="ic neg i-flag"></i><div class="fx"><div class="tt">Shift B short ₹1,250</div></div></div>
+</div>
+</div>
+</div>
+</div>
+<p class="ann"><b>Owner dashboard, web.</b> Wide screens have room, so the bell's list is also shown in a side column: answers needed first, flags below.<i>F13</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":3368,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ic = { m: 'i-check', l: 'i-clock', n: 'i-x', u: 'i-minus' };
+    const odd = { 5: 'l', 9: 'n', 14: 'l', 16: 'u', 19: 'n', 25: 'l', 27: 'n' };
+    const days = [];
+    for (let d = 2; d <= 30; d++) {
+      const s = odd[d] || 'm';
+      days.push({ c: s, d: String(d), i: ic[s] });
+    }
+    days.push({ c: 'n t', d: '1', i: ic.n });
+    return { days: days };
+  }
+}
+</script>
+</body>
+</html>

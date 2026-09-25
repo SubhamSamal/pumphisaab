@@ -1,0 +1,1 @@
+See the **Formatting rules** section of the brand book. Every number is formatted by ONE shared helper (`fmtRupees`, `fmtLitres`, `fmtDip`, `fmtVariance`) so screens never disagree.

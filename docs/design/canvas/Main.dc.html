@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design principles applied</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.pg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;width:100%}
+.pc{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.pc .n{font-size:14px;line-height:20px;font-weight:600;color:#0F766E;letter-spacing:.4px}
+.pc h3{margin:0;font-size:22px;line-height:28px;font-weight:600;color:#0F172A}
+.pc p{margin:0;font-size:16px;line-height:24px;color:#475569}
+.pc .src{font-size:14px;line-height:20px;color:#475569}
+.pc .src a{color:#115E59;text-decoration:underline}
+.pc .wh{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.pc .wh a{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#E6F4F2;color:#115E59;font-size:14px;line-height:20px;font-weight:600;text-decoration:none}
+.key{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:24px;display:flex;gap:32px;width:100%;align-items:center;flex-wrap:wrap}
+.key .k{display:flex;align-items:center;gap:8px;font-size:16px;line-height:24px;color:#0F172A}
+</style>
+</helmet>
+<div class="board th" style="width:1920px;height:1440px;flex-direction:column;gap:32px">
+
+<div style="display:flex;flex-direction:column;gap:12px;max-width:1300px">
+<div style="font-size:14px;line-height:20px;font-weight:600;color:#0F766E;letter-spacing:.4px;text-transform:uppercase">PumpHisaab v1 · Screen flows</div>
+<div style="font-size:48px;line-height:56px;font-weight:600;color:#0F172A">Design principles applied</div>
+<div style="font-size:20px;line-height:30px;color:#475569">Version 2. Twelve rules from form-design research, Indian small-business apps, audit-trail practice and your feedback. Each one points to the flows below where you can see it in use. Sample data throughout: Shree Lokanath Filling Station, 01 Oct 2026, HSD ₹90.00, MS ₹101.00.</div>
+</div>
+
+<div class="pg3">
+
+<div class="pc"><div class="n">01</div><h3>One column, big numbers, unit inside the box</h3><p>Short label above, number in 24px, unit (₹, L, cm) inside the box. Only the boxes that change are boxes.</p><div class="src">Baymard form design · Wroblewski mobile forms</div><div class="wh"><a href="F03-Dips.dc.html">Flow 3 · Dips</a><a href="F06-Sales.dc.html">Flow 6 · Sales</a><a href="F07-Expenses.dc.html">Flow 7 · Expenses</a></div></div>
+
+<div class="pc"><div class="n">02</div><h3>Right keypad, Next moves on</h3><p>Every number opens the number pad. Next walks from one closing reading to the next, and one shift box to the next.</p><div class="src">Baymard keyboard cheat sheet · inputmode</div><div class="wh"><a href="F05-Shifts.dc.html">Flow 5 · Readings</a><a href="F06-Sales.dc.html">Flow 6 · Per shift</a></div></div>
+
+<div class="pc"><div class="n">03</div><h3>Fill in anything already known</h3><p>Opening = last closing, price = the owner's price, tanker price and margin = last tanker. Worked-out numbers are grey with a lock.</p><div class="src">No mental maths</div><div class="wh"><a href="F05-Shifts.dc.html">Flow 5 · Sale</a><a href="F04-Tanker.dc.html">Flow 4 · Prefill</a><a href="F02-Today.dc.html">Flow 2 · Price</a></div></div>
+
+<div class="pc"><div class="n">04</div><h3>Stop impossible numbers at the box</h3><p>Chips and toggles for short choices. Red only for numbers that can't be true (closing below opening, dip beyond the tank, same slip twice).</p><div class="src">NN/g on preventing user errors</div><div class="wh"><a href="F05-Shifts.dc.html">H1 · Flow 5</a><a href="F06-Sales.dc.html">H7 · Flow 6</a><a href="F03-Dips.dc.html">H3 · Flow 3</a></div></div>
+
+<div class="pc"><div class="n">05</div><h3>Check when the box is left, not while typing</h3><p>An error appears under the box once you move on, in one plain sentence that suggests the fix.</p><div class="src">Baymard inline validation testing</div><div class="wh"><a href="F03-Dips.dc.html">Flow 3 · Closing dip</a><a href="F05-Shifts.dc.html">Flow 5 · Closing low</a></div></div>
+
+<div class="pc"><div class="n">06</div><h3>Flag, don't question</h3><p>Anything outside the limit becomes an amber flag that goes to the owner. The manager is never asked for a reason; the owner calls if needed.</p><div class="src">NN/g on hostile error messages · your feedback</div><div class="wh"><a href="F03-Dips.dc.html">Flow 3 · Flag</a><a href="F08-Review.dc.html">Flow 8 · Flags</a><a href="F11-Alerts.dc.html">Flow 11 · Detail</a></div></div>
+
+<div class="pc"><div class="n">07</div><h3>Make the day feel short</h3><p>One price tap, 8 sections, grey "to do" circles, a progress bar, visible autosave, and a Submit button that says what's left.</p><div class="src">Checklist and task-completion patterns</div><div class="wh"><a href="F02-Today.dc.html">Flow 2 · Today</a><a href="F08-Review.dc.html">Flow 8 · All done</a></div></div>
+
+<div class="pc"><div class="n">08</div><h3>History: who, what, old to new, when</h3><p>An amber "Changed" tag and history button on the number itself. The history can't be edited by anyone.</p><div class="src">Tally and Bill.com audit-trail practice</div><div class="wh"><a href="F10-OwnerReview.dc.html">Flow 10 · History</a><a href="F09-AfterSubmit.dc.html">Flow 9 · Change</a></div></div>
+
+<div class="pc"><div class="n">09</div><h3>Outdoor, one hand, budget Android</h3><p>Key numbers at 7:1 contrast, 16px minimum, 48px taps, main button at the bottom in thumb reach, alerts behind one bell.</p><div class="src">Design-system tokens · sunlight legibility</div><div class="wh"><a href="F04-Tanker.dc.html">Flow 4 · Add button</a><a href="F15-States.dc.html">Flow 15 · Dark</a></div></div>
+
+<div class="pc"><div class="n">10</div><h3>Pump words, not accountant words</h3><p>Like Khatabook: one job per screen and the words people already say. Opening, closing, short, excess, should have, received.</p><div class="src">Khatabook vs OkCredit · manager walkthrough</div><div class="wh"><a href="Audit.dc.html">Audit · Words</a><a href="F08-Review.dc.html">Flow 8 · Review</a></div></div>
+
+<div class="pc"><div class="n">11</div><h3>Colour is never the only signal</h3><p>Every difference has a sign, an icon and a word: Short −₹1,250, Excess +₹300, Matched. Calendar cells add an icon.</p><div class="src">Design-system rule · accessibility</div><div class="wh"><a href="F06-Sales.dc.html">Flow 6 · By shift</a><a href="F12-Dashboard.dc.html">Flow 12 · Calendar</a></div></div>
+
+<div class="pc"><div class="n">12</div><h3>Money in one place, split two ways</h3><p>All payment types in one Sales tab, each entered per shift. View by type to fill, by shift to see if it matched.</p><div class="src">Your feedback · shift handover practice</div><div class="wh"><a href="F06-Sales.dc.html">Flow 6 · Sales</a><a href="F07-Expenses.dc.html">Flow 7 · Expenses apart</a></div></div>
+
+</div>
+
+<div class="key">
+<div style="font-size:16px;line-height:24px;font-weight:600;color:#0F172A">Reading the flows</div>
+<div class="k"><span class="vc n"><i class="ic s i-warn"></i>Short −₹1,250</span>a loss is negative and red</div>
+<div class="k"><span class="vc p"><i class="ic s i-warn"></i>Excess +₹300</span>an excess is positive and amber</div>
+<div class="k"><span class="flg" style="padding:4px 10px"><i class="ic s i-flag"></i>Flag</span>goes to the owner, nothing to fill</div>
+<div class="k"><span class="vc z"><i class="ic s i-check"></i>Matched</span>zero is green</div>
+<div class="k"><span class="tg hsd">HSD</span><span class="tg ms">MS</span>product tints</div>
+<div class="k"><span class="tg au"><i class="ic s i-lock"></i>auto</span>calculated, never editable</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1440}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

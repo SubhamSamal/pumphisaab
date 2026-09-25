@@ -1,0 +1,3 @@
+Font: **Inter** (400 / 500 / 600) with **tabular figures on for all numbers** (`font-variant-numeric: tabular-nums`, RN: `fontVariant: ['tabular-nums']`). Vehicle numbers additionally use slashed zero.
+
+Minimum size for anything to read or tap is **16px** (`body`, `number-inline`). `label` 14 is for field labels, helper text and pills. `caption` 12 is only for non-critical hints: unit text, "auto" tag, opening-reading caption, nav-tab labels. **Values, errors and alert actions are never below 16px.**

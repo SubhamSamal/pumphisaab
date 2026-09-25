@@ -1,0 +1,1 @@
+The North Star view: a 44px+ square per day. State is **fill + border + icon**: green tick (matched same day), amber clock (matched late), red alert (not matched), grey dash (not submitted), today = 2px `primary` outline with a halo, no fill. The day number is always shown. Tap opens that day's summary.

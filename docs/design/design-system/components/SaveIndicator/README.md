@@ -1,0 +1,1 @@
+Small status text in the sticky bar or top bar; icon + word. **Saved** (green), **Saving…** (neutral, spinner), **Offline, will retry** (amber). v1 keeps drafts locally only, so the offline state is a light indicator plus one banner, not a sync queue.

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 5 Shift meter readings</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}.gh span{font-size:13px}</style>
+</helmet>
+<div class="board th" style="width:3628px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 5</div>
+<h2>Shift meter readings, A / B / C</h2>
+<span class="who">Manager</span>
+<p><b>Goal:</b> Type 8 closing readings, one after another, with the number pad. The app works out litres sold and what the shift should have in rupees. Money goes in the Sales tab.</p>
+<div class="ids"><span class="id">F6</span><span class="id">F10</span><span class="id">H1</span><span class="id">H2</span><span class="id">H8</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift B readings</div><div class="lbl c2">2 PM to 10 PM</div></div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="fl"><label class="lb">Who worked this shift</label><div class="chs"><span class="ch on sm"><i class="ic s i-check"></i>Ramesh</span><span class="ch on sm"><i class="ic s i-check"></i>Suresh</span><span class="ch sm">Bikash</span></div></div>
+<div class="gh hsd"><span style="width:88px">HSD · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<sc-for list="{{b1Hsd}}" as="r" hint-placeholder-count="4">
+<div class="nr"><div class="id"><b>{{r.n}}</b><span><i class="ic s {{r.oic}}"></i>{{r.open}}</span></div><div class="cl {{r.cls}}">{{r.close}}</div><div class="sl {{r.scls}}">{{r.sales}}<small>L</small></div></div>
+</sc-for>
+<div class="gh ms"><span style="width:88px">MS · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<sc-for list="{{b1Ms}}" as="r" hint-placeholder-count="4">
+<div class="nr"><div class="id"><b>{{r.n}}</b><span><i class="ic s {{r.oic}}"></i>{{r.open}}</span></div><div class="cl {{r.cls}}">{{r.close}}</div><div class="sl {{r.scls}}">{{r.sales}}<small>L</small></div></div>
+</sc-for>
+</div>
+<div class="sb"><button class="bt x">Type 2 more closing readings</button></div>
+</div>
+<p class="ann"><b>Readings.</b> Column labels now say which box to type in ("Closing reading"). Opening comes from the last shift and is locked. The keypad's Next jumps to the next empty box.<i>F6</i></p>
+</div>
+<div class="ar"><span>Typo</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift B readings</div><div class="lbl c2">2 PM to 10 PM</div></div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="gh hsd"><span style="width:88px">HSD · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<div class="nr"><div class="id"><b>HSD-A</b><span><i class="ic s i-lock"></i>48,210.00</span></div><div class="cl">48,890.00</div><div class="sl">680.00<small>L</small></div></div>
+<div class="nr" style="border-bottom:0"><div class="id"><b>HSD-B</b><span><i class="ic s i-lock"></i>31,455.50</span></div><div class="cl e">31,265.50</div><div class="sl cm">—<small>L</small></div></div>
+<div class="er" style="margin-top:-4px"><i class="ic i-err"></i><span>Closing can't be less than opening (31,455.50). Check the meter again.</span></div>
+<div class="nr"><div class="id"><b>HSD-C</b><span><i class="ic s i-lock"></i>52,904.00</span></div><div class="cl">53,809.00</div><div class="sl">905.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>HSD-D</b><span><i class="ic s i-lock"></i>27,318.25</span></div><div class="cl">28,103.25</div><div class="sl">785.00<small>L</small></div></div>
+<div class="gh ms"><span style="width:88px">MS · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<div class="nr"><div class="id"><b>MS-A</b><span><i class="ic s i-lock"></i>19,884.00</span></div><div class="cl">20,204.00</div><div class="sl">320.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>MS-B</b><span><i class="ic s i-lock"></i>22,140.50</span></div><div class="cl">22,405.50</div><div class="sl">265.00<small>L</small></div></div>
+</div>
+<div class="sb"><button class="bt x">Fix the red box to continue</button></div>
+</div>
+<p class="ann"><b>Closing below opening, H1.</b> Shows the moment the box is left, under the row, with the number it must beat. Sale shows a dash, never a minus.<i>H1</i></p>
+</div>
+<div class="ar"><span>Meter changed</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift B readings</div><div class="lbl c2">2 PM to 10 PM</div></div></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="gh ms"><span style="width:88px">MS · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<div class="nr"><div class="id"><b>MS-A</b><span class="pos"><i class="ic s i-edit"></i>19,850.00</span></div><div class="cl">20,204.00</div><div class="sl">354.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>MS-B</b><span><i class="ic s i-lock"></i>22,140.50</span></div><div class="cl">22,405.50</div><div class="sl">265.00<small>L</small></div></div>
+</div>
+<div class="scrim"></div>
+<div class="sheet" style="gap:12px">
+<div class="hn"></div>
+<div class="t-head">Change MS-A opening?</div>
+<div class="rc" style="gap:4px"><div class="kv"><span class="k">Shift A closed at</span><span class="v">19,884.00</span></div><div class="kv"><span class="k">You typed</span><span class="v">19,850.00</span></div></div>
+<div class="c2">Only do this if the meter was replaced or repaired. The owner has to approve it. You can keep working until then.</div>
+<button class="bt">Send to owner</button>
+<button class="bt s">Keep 19,884.00</button>
+</div>
+</div>
+<p class="ann"><b>Opening change, H2.</b> Tapping the locked opening opens this sheet. No reason to type: old and new numbers go to the owner, who approves or calls.<i>H2</i></p>
+</div>
+<div class="ar"><span>Testing</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift A readings</div><div class="lbl c2">6 AM to 2 PM · Testing</div></div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:14px">
+<div class="rwb" style="min-height:48px"><div><div class="t-head">Testing done this shift?</div><div class="hp">5 L measure check</div></div><div class="sw"><i></i></div></div>
+<div class="cd" style="gap:12px">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">Nozzle</label><div class="in"><span class="v tx">HSD-B</span><i class="ic i-d c2"></i></div></div>
+<div class="fl"><label class="lb">Litres tested</label><div class="in f"><span class="v">5.00</span><span class="u">L</span></div></div>
+</div>
+</div>
+<button class="bt s"><i class="ic i-plus"></i>Add another nozzle</button>
+<div class="bn i"><i class="ic i-info"></i><div class="tx">Tested fuel is taken off the sale, so it isn't counted as money due. Pour it back into the tank.</div></div>
+</div>
+<div class="sb"><button class="bt">Done</button></div>
+</div>
+<p class="ann"><b>Testing, simplified.</b> Just nozzle and litres. The 2 extra dip readings are gone: a 0.1 cm dip step is about 11 L, so they could not check a 5 L test.<i>F6 · H8</i></p>
+</div>
+<div class="ar"><span>All 8 typed</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift B readings</div><div class="lbl c2">2 PM to 10 PM</div></div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="gh ms"><span style="width:88px">MS · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<div class="nr"><div class="id"><b>MS-C</b><span><i class="ic s i-lock"></i>17,562.00</span></div><div class="cl">17,872.00</div><div class="sl">310.00<small>L</small></div></div>
+<div class="nr"><div class="id"><b>MS-D</b><span><i class="ic s i-lock"></i>20,731.75</span></div><div class="cl">20,986.75</div><div class="sl">255.00<small>L</small></div></div>
+<div class="rwb" style="min-height:48px"><span>Testing this shift</span><span class="lbl pri b6">None · Add</span></div>
+<div class="rc" style="gap:8px">
+<div class="t-head">Shift B meter sale</div>
+<div class="eq"><span class="k"><span class="tg hsd">HSD</span> 3,180 L × ₹90.00</span><span class="numi">₹2,86,200</span></div>
+<div class="eq"><span class="k"><span class="tg ms">MS</span> 1,150 L × ₹101.00</span><span class="numi">₹1,16,150</span></div>
+<div class="sep"></div>
+<div class="kv big"><span class="k">Should have</span><span class="v">₹4,02,350</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt">Done · Next: Shift B sales</button></div>
+</div>
+<p class="ann"><b>Shift finished.</b> The manager sees litres × price = rupees, the exact sum they used to do on paper. The button takes them to the Sales tab on Shift B.<i>F6 · F10</i></p>
+</div>
+<div class="ar"><span>Night shift</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="fx"><div class="t-title">Shift C readings</div><div class="lbl c2">10 PM to 6 AM</div></div><span class="pi sm">Ends 02 Oct</span></div>
+<div class="bd" style="padding:12px 16px;gap:8px">
+<div class="hp">Counts in 01 Oct's day. Ends at 6 AM on 02 Oct.</div>
+<div class="fl"><label class="lb">Who worked this shift</label><div class="chs"><span class="ch sm">Ramesh</span><span class="ch on sm"><i class="ic s i-check"></i>Suresh</span><span class="ch on sm"><i class="ic s i-check"></i>Bikash</span></div></div>
+<div class="gh hsd"><span style="width:88px">HSD · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<sc-for list="{{cHsd}}" as="r" hint-placeholder-count="4">
+<div class="nr"><div class="id"><b>{{r.n}}</b><span><i class="ic s {{r.oic}}"></i>{{r.open}}</span></div><div class="cl {{r.cls}}">{{r.close}}</div><div class="sl {{r.scls}}">{{r.sales}}<small>L</small></div></div>
+</sc-for>
+<div class="gh ms"><span style="width:88px">MS · Opening</span><span class="fx">Closing reading</span><span style="width:76px;text-align:right">Sale</span></div>
+<sc-for list="{{cMs}}" as="r" hint-placeholder-count="3">
+<div class="nr"><div class="id"><b>{{r.n}}</b><span><i class="ic s {{r.oic}}"></i>{{r.open}}</span></div><div class="cl {{r.cls}}">{{r.close}}</div><div class="sl {{r.scls}}">{{r.sales}}<small>L</small></div></div>
+</sc-for>
+</div>
+<div class="sb"><button class="bt">Done · Next: Shift C sales</button></div>
+</div>
+<p class="ann"><b>Shift C crosses midnight.</b> It stays on the day it started. The pill and one plain line say so, so slips dated 02 Oct aren't a surprise.<i>F6</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":3628,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const r = (n, o, c, s, cls, scls, oic) => ({ n: n, open: o, close: c, sales: s, cls: cls || '', scls: scls || '', oic: oic || 'i-lock' });
+    return {
+      b1Hsd: [
+        r('HSD-A', '48,210.00', '48,890.00', '680.00'),
+        r('HSD-B', '31,455.50', '32,265.50', '810.00'),
+        r('HSD-C', '52,904.00', '53,809.00', '905.00'),
+        r('HSD-D', '27,318.25', '28,103.25', '785.00')
+      ],
+      b1Ms: [
+        r('MS-A', '19,884.00', '20,204.00', '320.00'),
+        r('MS-B', '22,140.50', '22,405.50', '265.00'),
+        r('MS-C', '17,562.00', '', '—', 'f', 'cm'),
+        r('MS-D', '20,731.75', 'Type here', '—', 'pl', 'cm')
+      ],
+      cHsd: [
+        r('HSD-A', '48,890.00', '49,300.00', '410.00'),
+        r('HSD-B', '32,265.50', '32,720.50', '455.00'),
+        r('HSD-C', '53,809.00', '54,329.00', '520.00'),
+        r('HSD-D', '28,103.25', '28,605.25', '502.00')
+      ],
+      cMs: [
+        r('MS-A', '20,204.00', '20,409.00', '205.00'),
+        r('MS-B', '22,405.50', '22,595.50', '190.00'),
+        r('MS-C', '17,872.00', '18,087.00', '215.00')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

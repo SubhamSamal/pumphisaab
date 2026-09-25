@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 6 Sales tab</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="board th" style="width:3628px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 6 · New</div>
+<h2>Sales tab: all money in one place</h2>
+<span class="who">Manager</span>
+<p><b>Goal:</b> Every way money comes in (Cash, PhonePe, POS, XtraPower, Bank, Credit) in one tab, entered per shift. Two views: by type of sale, and by shift to see if the shift matched.</p>
+<div class="ids"><span class="id">F6</span><span class="id">F7</span><span class="id">F10</span><span class="id">H7</span><span class="id">H9</span><span class="id">S2</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="fx"><div class="t-title">Sales</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><button class="bell" aria-label="Alerts, 2 new"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:10px">
+<div class="sg"><span class="on">By type</span><span>By shift</span></div>
+<div class="rwb"><span class="c2">Received so far</span><span class="num">₹7,68,030</span></div>
+<sc-for list="{{types}}" as="t" hint-placeholder-count="6">
+<div class="ty"><div class="fx"><div class="nm">{{t.nm}}</div><div class="sp">{{t.sp}}</div></div><div class="am {{t.cl}}">{{t.am}}</div><i class="ic i-r c2"></i></div>
+</sc-for>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#" class="on"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Sales, by type.</b> One row per way of payment, each showing the day total and the split by shift. Expenses are not here: they are not sales.<i>F6 · F7</i></p>
+</div>
+<div class="ar"><span>Tap PhonePe</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">PhonePe (UPI)</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:16px">
+<div class="c2">Type each shift's total from the PhonePe Business app.</div>
+<div class="fl"><label class="lb"><span class="okc"><i class="ic s i-check" style="vertical-align:-3px"></i></span> Shift A · 6 AM to 2 PM</label><div class="in"><span class="v">1,21,600</span><span class="u">₹</span></div></div>
+<div class="fl"><label class="lb">Shift B · 2 PM to 10 PM</label><div class="in f"><span class="v">1,32,400</span><span class="u">₹</span></div></div>
+<div class="fl"><label class="lb">Shift C · 10 PM to 6 AM</label><div class="in"><span class="v pl">After the shift ends</span><span class="u">₹</span></div></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:12px"><span class="c2">PhonePe today <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">₹2,54,000</span></div>
+<div class="hp">Cash, POS, XtraPower and Bank transfer work the same way: one box per shift.</div>
+</div>
+<div class="sb"><button class="bt">Done · Next: POS (card)</button></div>
+</div>
+<p class="ann"><b>One payment type, three shifts.</b> The screen mirrors how PhonePe and POS reports are read: a total per shift. The box for a shift not yet over says so.<i>F6</i></p>
+</div>
+<div class="ar"><span>Tap Credit</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Credit sales</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:6px">
+<div class="rwb"><span class="lbl c2">Shift A · 1 slip</span><span class="numi">₹18,000</span></div>
+<div class="li"><div class="fx"><div class="tt">Jindal Steel</div><div class="st">OD09KL5521 · Slip 4463 · HSD 200 L</div></div><span class="numi">₹18,000</span></div>
+<div class="rwb" style="padding-top:12px"><span class="lbl c2">Shift B · 2 slips</span><span class="numi">₹36,450</span></div>
+<div class="li"><div class="fx"><div class="tt">Mahanadi Coalfields</div><div class="st">OD05AB1234 · Slip 4471 · HSD 320 L</div></div><span class="numi">₹28,800</span></div>
+<div class="li"><div class="fx"><div class="tt">Sahu Transport</div><div class="st">OD33K7788 · Slip 4472 · HSD 85 L</div></div><span class="numi">₹7,650</span></div>
+<div class="rwb" style="padding-top:12px"><span class="lbl c2">Shift C</span><span class="numi cm">No slips yet</span></div>
+<div class="rc" style="gap:4px;margin-top:12px"><div class="kv big"><span class="k">Credit today</span><span class="v">₹54,450</span></div></div>
+</div>
+<div class="sb"><button class="bt"><i class="ic i-plus"></i>Add credit slip</button></div>
+</div>
+<p class="ann"><b>Credit slips.</b> Grouped by shift, like a slip book. Each shift's total is counted in that shift's money automatically.<i>F7</i></p>
+</div>
+<div class="ar"><span>Add slip</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add credit slip</div></div>
+<div class="bd" style="padding:12px 16px;gap:12px">
+<div class="fl"><label class="lb">Shift</label><div class="sg"><span>A</span><span class="on">B</span><span>C</span></div></div>
+<div class="fl"><label class="lb">Company</label><div class="in"><i class="ic c2 i-search"></i><span class="v tx">Mahanadi Coalfields</span><i class="ic i-d c2"></i></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">Vehicle number</label><div class="in"><span class="v tx" style="letter-spacing:.4px">OD05AB1234</span></div></div>
+<div class="fl"><label class="lb">Slip number</label><div class="in"><span class="v tx">4471</span></div></div>
+</div>
+<div class="fl"><label class="lb">Fuel</label><div class="sg"><span class="on">HSD</span><span>MS</span></div></div>
+<div class="fl"><label class="lb">Litres</label><div class="in f"><span class="v">320</span><span class="u">L</span></div></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:12px"><span class="c2">320 L × ₹90.00 <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">₹28,800</span></div>
+<div class="hp">Date is today. Rate is today's price.</div>
+</div>
+<div class="sb"><button class="bt">Save slip</button></div>
+</div>
+<p class="ann"><b>Add slip.</b> Six things to fill, top to bottom as they appear on the slip. Date and rate are not boxes any more; the amount shows its own sum.<i>F7</i></p>
+</div>
+<div class="ar"><span>Slip used twice</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Add credit slip</div></div>
+<div class="bd" style="padding:12px 16px;gap:12px">
+<div class="fl"><label class="lb">Shift</label><div class="sg"><span>A</span><span class="on">B</span><span>C</span></div></div>
+<div class="fl"><label class="lb">Company</label><div class="in"><i class="ic c2 i-search"></i><span class="v tx">Sahu Transport</span><i class="ic i-d c2"></i></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start">
+<div class="fl"><label class="lb">Vehicle number</label><div class="in"><span class="v tx" style="letter-spacing:.4px">OD33K7788</span></div></div>
+<div class="fl"><label class="lb">Slip number</label><div class="in e"><span class="v tx">4471</span></div></div>
+</div>
+<div class="er"><i class="ic i-err"></i><span>Slip 4471 is already saved for Mahanadi Coalfields. Check the slip number.</span></div>
+<div class="fl"><label class="lb">Fuel</label><div class="sg"><span class="on">HSD</span><span>MS</span></div></div>
+<div class="fl"><label class="lb">Litres</label><div class="in"><span class="v">85</span><span class="u">L</span></div></div>
+</div>
+<div class="sb"><button class="bt x">Fix the red box to save</button></div>
+</div>
+<p class="ann"><b>Same slip twice, H7.</b> Says which company already has that slip number, so the manager knows which paper to look at.<i>H7</i></p>
+</div>
+<div class="ar"><span>By shift</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><div class="fx"><div class="t-title">Sales</div><div class="lbl c2">Thu, 01 Oct 2026</div></div><button class="bell" aria-label="Alerts, 2 new"><i class="ic n i-bell"></i><b>2</b></button></div>
+<div class="bd" style="gap:10px">
+<div class="sg"><span>By type</span><span class="on">By shift</span></div>
+<div class="cd" style="padding:12px;gap:4px"><div class="rwb"><b class="t-head">Shift A</b><span class="vc z"><i class="ic s i-check"></i>Matched</span></div></div>
+<div class="cd" style="padding:12px;gap:6px;border-color:var(--dng)">
+<div class="rwb"><b class="t-head">Shift B</b><span class="vc n"><i class="ic s i-warn"></i>Short −₹1,250</span></div>
+<div class="eq"><span class="k">Should have (meters)</span><span class="numi">₹4,02,350</span></div>
+<div class="sep"></div>
+<div class="eq s"><span class="k">Cash</span><span>₹1,48,600</span></div>
+<div class="eq s"><span class="k">PhonePe</span><span>₹1,32,400</span></div>
+<div class="eq s"><span class="k">POS</span><span>₹58,700</span></div>
+<div class="eq s"><span class="k">XtraPower</span><span>₹22,000</span></div>
+<div class="eq s"><span class="k">Credit slips</span><span>₹36,450</span></div>
+<div class="eq s"><span class="k">Cash paid out (expenses)</span><span>₹2,950</span></div>
+<div class="eq"><span class="k b6" style="color:var(--t1)">Received</span><span class="numi">₹4,01,100</span></div>
+</div>
+<div class="cd" style="padding:12px;gap:4px"><div class="rwb"><b class="t-head">Shift C</b><span class="hp">Readings not done</span></div></div>
+</div>
+<div class="nav"><a href="#"><span class="np"><i class="ic n i-today"></i></span>Today</a><a href="#" class="on"><span class="np"><i class="ic n i-rupee"></i></span>Sales</a><a href="#"><span class="np"><i class="ic n i-truck"></i></span>Tanker</a><a href="#"><span class="np"><i class="ic n i-user"></i></span>Profile</a></div>
+</div>
+<p class="ann"><b>Sales, by shift.</b> The old shift-result card, now with every line visible. Cash spent on expenses is shown as a line, so the short isn't a mystery.<i>F10 · S2</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":3628,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      types: [
+        { nm: 'Cash', sp: 'A ₹1,40,280 · B ₹1,48,600 · C —', am: '₹2,88,880', cl: '' },
+        { nm: 'PhonePe (UPI)', sp: 'A ₹1,21,600 · B ₹1,32,400 · C —', am: '₹2,54,000', cl: '' },
+        { nm: 'POS (card)', sp: 'A ₹64,000 · B ₹58,700 · C —', am: '₹1,22,700', cl: '' },
+        { nm: 'XtraPower', sp: 'A ₹26,000 · B ₹22,000 · C —', am: '₹48,000', cl: '' },
+        { nm: 'Bank transfer', sp: 'None today', am: '₹0', cl: 'cm' },
+        { nm: 'Credit', sp: '3 slips · A 1 · B 2', am: '₹54,450', cl: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

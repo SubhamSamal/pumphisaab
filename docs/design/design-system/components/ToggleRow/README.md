@@ -1,0 +1,1 @@
+The whole row is the tap target (min 64px), not just the switch. Label at 16px, one-line helper at 14px. Switch 52x32; on = `primary`, off = `border-strong`. Turning **Testing** on reveals the test rows directly below.

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow 3 Opening and closing dip</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="board th" style="width:2608px;height:1110px">
+
+<div class="tc">
+<div class="fn">Flow 3</div>
+<h2>Opening and closing dip</h2>
+<span class="who">Manager</span>
+<p><b>Goal:</b> Type the dip in cm and see litres straight away. If it doesn't agree with the IOCL stock, the app flags it for the owner and lets the manager carry on.</p>
+<div class="ids"><span class="id">F4</span><span class="id">F9</span><span class="id">S3</span><span class="id">S7</span><span class="id">H3</span></div>
+</div>
+<div class="ar"></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Opening dip</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:12px">
+<div class="rwb"><div class="rw8"><span class="tg hsd">HSD</span><b>Diesel tank HSD-1</b></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">IOCL report stock</label><div class="in"><span class="v">14,850</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Dip reading</label><div class="in"><span class="v">128.5</span><span class="u">cm</span></div></div>
+</div>
+<div class="hp">Last night's closing dip: 128.5 cm</div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">14,820 L</span></div>
+<div class="rwb"><span class="c2">Difference from IOCL</span><span class="vc z"><i class="ic s i-check"></i>OK · 30 L</span></div>
+</div>
+<div class="cd" style="gap:12px">
+<div class="rwb"><div class="rw8"><span class="tg ms">MS</span><b>Petrol tank MS-1</b></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">IOCL report stock</label><div class="in"><span class="v">8,200</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Dip reading</label><div class="in f"><span class="v">96.2</span><span class="u">cm</span></div></div>
+</div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">8,235 L</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt">Done · Next: Tanker</button></div>
+</div>
+<p class="ann"><b>Opening dip, all fine.</b> Two white boxes to type, one grey result. Last night's dip is shown so a wrong dip is obvious. The button says where it goes next.<i>F4</i></p>
+</div>
+<div class="ar"><span>Doesn't match</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Opening dip</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:12px">
+<div class="rwb"><div class="rw8"><span class="tg hsd">HSD</span><b>Diesel tank HSD-1</b></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">IOCL report stock</label><div class="in"><span class="v">14,900</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Dip reading</label><div class="in"><span class="v">128.5</span><span class="u">cm</span></div></div>
+</div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">14,820 L</span></div>
+<div class="rwb"><span class="c2">Difference from IOCL</span><span class="vc n"><i class="ic s i-warn"></i>Short −80 L</span></div>
+<div class="flg"><i class="ic i-flag"></i><span>Dip is 80 L less than the IOCL report. <b>Check the dip once more.</b> If it's right, carry on. The owner will see this.</span></div>
+</div>
+<div class="cd" style="gap:12px">
+<div class="rwb"><div class="rw8"><span class="tg ms">MS</span><b>Petrol tank MS-1</b></div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+<div class="fl"><label class="lb">IOCL report stock</label><div class="in"><span class="v">8,200</span><span class="u">L</span></div></div>
+<div class="fl"><label class="lb">Dip reading</label><div class="in"><span class="v">96.2</span><span class="u">cm</span></div></div>
+</div>
+</div>
+</div>
+<div class="sb"><button class="bt">Done · Next: Tanker</button></div>
+</div>
+<p class="ann"><b>Flag, no questions.</b> The amber note says what's off and what to do (check again). No reason form: the flag goes to the owner, who sorts it out directly.<i>S3</i></p>
+</div>
+<div class="ar"><span>End of day</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Closing dip</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:10px">
+<div class="rw8"><span class="tg hsd">HSD</span><b>Diesel tank HSD-1</b></div>
+<div class="fl"><label class="lb">Closing dip reading</label><div class="in f"><span class="v">171.4</span><span class="u">cm</span></div></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">18,681 L</span></div>
+<div class="rwb"><span class="c2">Sold today as per tank</span><span class="numi b6">8,119 L</span></div>
+<div class="hp">Opening 14,820 + tanker 11,980 − closing 18,681</div>
+</div>
+<div class="cd" style="gap:10px">
+<div class="rw8"><span class="tg ms">MS</span><b>Petrol tank MS-1</b></div>
+<div class="fl"><label class="lb">Closing dip reading</label><div class="in"><span class="v">103.9</span><span class="u">cm</span></div></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">9,303 L</span></div>
+<div class="rwb"><span class="c2">Sold today as per tank</span><span class="numi b6">2,912 L</span></div>
+<div class="hp">Opening 8,235 + tanker 3,980 − closing 9,303</div>
+</div>
+</div>
+<div class="sb"><button class="bt">Done · Next: Review</button></div>
+</div>
+<p class="ann"><b>Closing dip.</b> The sum behind "sold as per tank" is written out in plain numbers, so the manager can check it by hand if they doubt it.<i>F9 · F10</i></p>
+</div>
+<div class="ar"><span>Typo</span></div>
+
+<div class="scr">
+<div class="ph th">
+<div class="hd"><button class="bk" aria-label="Back"><i class="ic n i-l"></i></button><div class="ttl">Closing dip</div><span class="lbl c2"><i class="ic s i-check" style="vertical-align:-3px"></i> Saved</span></div>
+<div class="bd" style="gap:12px">
+<div class="cd" style="gap:10px">
+<div class="rw8"><span class="tg hsd">HSD</span><b>Diesel tank HSD-1</b></div>
+<div class="fl"><label class="lb">Closing dip reading</label><div class="in e"><span class="v">1714</span><span class="u">cm</span></div></div>
+<div class="er"><i class="ic i-err"></i><span>This tank only goes up to 195.0 cm. Did you mean 171.4?</span></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num cm">—</span></div>
+</div>
+<div class="cd" style="gap:10px">
+<div class="rw8"><span class="tg ms">MS</span><b>Petrol tank MS-1</b></div>
+<div class="fl"><label class="lb">Closing dip reading</label><div class="in"><span class="v">103.9</span><span class="u">cm</span></div></div>
+<div class="rwb" style="background:var(--auto);border-radius:8px;padding:10px 12px"><span class="c2">Dip in litres <span class="tg au" style="margin-left:4px"><i class="ic s i-lock"></i>auto</span></span><span class="num">9,303 L</span></div>
+</div>
+</div>
+<div class="sb"><button class="bt x">Fix the red box to continue</button></div>
+</div>
+<p class="ann"><b>Wrong number, H3.</b> Red is only for numbers that can't be true. The message suggests the likely fix (a missed decimal point).<i>H3</i></p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2608,"height":1110}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

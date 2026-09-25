@@ -1,0 +1,3 @@
+Three rows, `number-input` values right-aligned so digits line up. Rows 1-2 on `surface`, **Variance** row on `bg` with the `VarianceValue`. The footer states the next action in plain words and, when needed, offers **Add reason**. Green footers say "Nothing to do."
+
+**Money:** Expected / Collected / Variance (₹, no decimals). **Stock:** Tank L / Nozzle L / Variance L, litres to 2 decimals with the percent.

@@ -1,0 +1,3 @@
+Dip pair: the manager types **cm** (1 decimal), the app shows **litres** from the tank chart in an AUTO field on the same row. Ratio about 1 : 1.15 so 5-digit litres fit at 24px.
+
+**Consumer provides:** tank label, cm value, computed litres (or `—` when cm is invalid). If cm is outside the chart the litres field shows `—` and the cm field goes to error state with "Dip is outside the tank chart. Check the reading."

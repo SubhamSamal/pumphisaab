@@ -1,0 +1,172 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1440,
+      "title": "Design principles applied"
+    },
+    "Audit.dc.html": {
+      "x": 0,
+      "y": 1560,
+      "w": 2400,
+      "h": 3000,
+      "title": "Manager walkthrough and audit (v2)"
+    },
+    "F01-Signin.dc.html": {
+      "x": 0,
+      "y": 4680,
+      "w": 2608,
+      "h": 1110,
+      "title": "Flow 1 · Sign in and first run"
+    },
+    "F02-Today.dc.html": {
+      "x": 0,
+      "y": 5910,
+      "w": 2608,
+      "h": 1110,
+      "title": "Flow 2 · Start the day"
+    },
+    "F03-Dips.dc.html": {
+      "x": 0,
+      "y": 7140,
+      "w": 2608,
+      "h": 1110,
+      "title": "Flow 3 · Opening and closing dip"
+    },
+    "F04-Tanker.dc.html": {
+      "x": 0,
+      "y": 8370,
+      "w": 2608,
+      "h": 1110,
+      "title": "Flow 4 · Tanker receipt"
+    },
+    "F05-Shifts.dc.html": {
+      "x": 0,
+      "y": 9600,
+      "w": 3628,
+      "h": 1110,
+      "title": "Flow 5 · Shift meter readings"
+    },
+    "F06-Sales.dc.html": {
+      "x": 0,
+      "y": 10830,
+      "w": 3628,
+      "h": 1110,
+      "title": "Flow 6 · Sales tab (new)"
+    },
+    "F07-Expenses.dc.html": {
+      "x": 0,
+      "y": 12060,
+      "w": 2098,
+      "h": 1110,
+      "title": "Flow 7 · Expenses"
+    },
+    "F08-Review.dc.html": {
+      "x": 0,
+      "y": 13290,
+      "w": 3118,
+      "h": 1110,
+      "title": "Flow 8 · Review and submit"
+    },
+    "F09-AfterSubmit.dc.html": {
+      "x": 0,
+      "y": 14520,
+      "w": 3118,
+      "h": 1110,
+      "title": "Flow 9 · After submit"
+    },
+    "F10-OwnerReview.dc.html": {
+      "x": 0,
+      "y": 15750,
+      "w": 4138,
+      "h": 1110,
+      "title": "Flow 10 · Owner review and lock"
+    },
+    "F11-Alerts.dc.html": {
+      "x": 0,
+      "y": 16980,
+      "w": 2608,
+      "h": 1110,
+      "title": "Flow 11 · Alerts from the bell"
+    },
+    "F12-Dashboard.dc.html": {
+      "x": 0,
+      "y": 18210,
+      "w": 2098,
+      "h": 1110,
+      "title": "Flow 12 · Owner dashboard"
+    },
+    "F13-Settings.dc.html": {
+      "x": 0,
+      "y": 19440,
+      "w": 4648,
+      "h": 1110,
+      "title": "Flow 13 · Profile and pump settings"
+    },
+    "F14-Web.dc.html": {
+      "x": 0,
+      "y": 20670,
+      "w": 3368,
+      "h": 1110,
+      "title": "Flow 14 · Web"
+    },
+    "F15-States.dc.html": {
+      "x": 0,
+      "y": 21900,
+      "w": 3118,
+      "h": 1110,
+      "title": "Flow 15 · System states"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-25T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/code/artifact/89b94d06-b0d4-4f45-b78e-636987cac7ea",
+      "copiedAt": "2026-09-25T12:00:00Z",
+      "namespace": "pumphisaab",
+      "title": "PumpHisaab",
+      "version": "1790335244-ae03"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 1920,
+      "text": "PumpHisaab v2 screen flows",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Audit.dc.html",
+    "F01-Signin.dc.html",
+    "F02-Today.dc.html",
+    "F03-Dips.dc.html",
+    "F04-Tanker.dc.html",
+    "F05-Shifts.dc.html",
+    "F06-Sales.dc.html",
+    "F07-Expenses.dc.html",
+    "F08-Review.dc.html",
+    "F09-AfterSubmit.dc.html",
+    "F10-OwnerReview.dc.html",
+    "F11-Alerts.dc.html",
+    "F12-Dashboard.dc.html",
+    "F13-Settings.dc.html",
+    "F14-Web.dc.html",
+    "F15-States.dc.html"
+  ],
+  "pages": [],
+  "title": "PumpHisaab v1 screen flows"
+}

@@ -1,0 +1,1 @@
+Composition test at web width: 88px **rail** replaces the bottom nav (same 5 destinations, icon + label, active = `primary-subtle` block, badge on Alerts). Entry screens still cap at **480px** and centre; summaries and the dashboard may use the wide grid. This board only proves the components hold together; full screens come later.

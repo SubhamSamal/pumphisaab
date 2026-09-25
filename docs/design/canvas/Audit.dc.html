@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Manager walkthrough and audit</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ph.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.au{width:2400px;height:3000px;box-sizing:border-box;background:#EEF2F6;padding:64px;display:flex;flex-direction:column;gap:40px;font-family:"Inter",system-ui,sans-serif;color:#0F172A}
+.au h1{margin:0;font-size:48px;line-height:56px;font-weight:600}
+.au h2{margin:0;font-size:28px;line-height:36px;font-weight:600}
+.au .ey{font-size:14px;line-height:20px;font-weight:600;color:#0F766E;letter-spacing:.4px;text-transform:uppercase}
+.au .lead{font-size:20px;line-height:30px;color:#475569;max-width:1400px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.fb{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px}
+.fb .q{font-size:16px;line-height:24px;color:#475569}
+.fb .a{font-size:18px;line-height:26px;font-weight:600;color:#0F172A}
+.fb .w{font-size:14px;line-height:20px;font-weight:600;color:#115E59}
+.fd{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px}
+.fd .top{display:flex;align-items:center;gap:8px}
+.fd .sv{height:24px;padding:0 8px;border-radius:8px;font-size:12px;line-height:24px;font-weight:600}
+.sv.h{background:#FEF2F2;color:#991B1B;border:1px solid #991B1B}
+.sv.m{background:#FFF7E6;color:#92400E;border:1px solid #92400E}
+.sv.l{background:#F1F5F9;color:#475569;border:1px solid #8494A8}
+.fd .t{font-size:18px;line-height:24px;font-weight:600}
+.fd .p{font-size:16px;line-height:24px;color:#475569}
+.fd .f{font-size:16px;line-height:24px;color:#0F172A}
+.fd .f b{color:#115E59}
+.fd .w{font-size:14px;line-height:20px;font-weight:600;color:#115E59}
+.tb{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:20px 24px;display:flex;flex-direction:column;gap:0}
+.tr{display:grid;grid-template-columns:1fr 32px 1fr;gap:8px;align-items:center;min-height:40px;border-bottom:1px solid #E2E8F0;font-size:16px;line-height:24px}
+.tr:last-child{border-bottom:0}
+.tr .o{color:#991B1B;text-decoration:line-through}
+.tr .n{font-weight:600}
+.lst{background:#FFFFFF;border:1px solid #CBD5E1;border-radius:12px;padding:20px 24px;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:24px;color:#0F172A}
+.lst div{display:flex;gap:10px}
+.lst div::before{content:"";width:6px;height:6px;border-radius:50%;background:#0F766E;margin-top:9px;flex:none}
+</style>
+</helmet>
+<div class="au">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div class="ey">Version 2 · after your feedback</div>
+<h1>Manager walkthrough and audit</h1>
+<div class="lead">I went through a full day as Ramesh, the pump manager: open the app at 6 AM, dips, tanker, three shifts, money, expenses, submit, then fix what the owner asked. Below: your 6 points, the 20 problems I found, and the words I changed.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<h2>Your feedback, and what changed</h2>
+<div class="g3">
+<div class="fb"><div class="q">1 · Don't ask reasons in the app</div><div class="a">All 8 reason forms removed. Flags go to the owner by themselves; the "why" is sorted on a call.</div><div class="w">Flows 3, 4, 5, 8, 9, 10</div></div>
+<div class="fb"><div class="q">2 · Price isn't entered daily</div><div class="a">Prices section gone. One Confirm button on Today. Only the owner changes price, in Profile › Fuel prices.</div><div class="w">Flows 2, 13</div></div>
+<div class="fb"><div class="q">3 · Credit and Expenses separate</div><div class="a">Credit is a type of sale, inside Sales. Expenses stay a section on Today, not in Sales.</div><div class="w">Flows 6, 7</div></div>
+<div class="fb"><div class="q">4 · PhonePe, XtraPower, POS, Cash per shift, like credit</div><div class="a">Each payment type has its own screen with one box per shift.</div><div class="w">Flow 6</div></div>
+<div class="fb"><div class="q">5 · All sales in one tab</div><div class="a">New Sales tab with two views: By type and By shift (did the shift match).</div><div class="w">Flow 6</div></div>
+<div class="fb"><div class="q">6 · Nav and alerts</div><div class="a">Today · Sales · Tanker · Profile (owner adds Dashboard). Alerts moved to a bell, top right. Shift readings stay in Today.</div><div class="w">All flows</div></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<h2>20 problems found walking the day, and the fix</h2>
+<div class="g4">
+<sc-for list="{{finds}}" as="x" hint-placeholder-count="20">
+<div class="fd"><div class="top"><span class="sv {{x.s}}">{{x.sl}}</span><span class="t">{{x.t}}</span></div><div class="p">{{x.p}}</div><div class="f"><b>Fix:</b> {{x.f}}</div><div class="w">{{x.w}}</div></div>
+</sc-for>
+</div>
+</div>
+
+<div class="g2">
+<div style="display:flex;flex-direction:column;gap:16px">
+<h2>Words changed</h2>
+<div class="tb">
+<sc-for list="{{words}}" as="w" hint-placeholder-count="12">
+<div class="tr"><span class="o">{{w.o}}</span><i class="ic i-arrow" style="color:#8494A8"></i><span class="n">{{w.n}}</span></div>
+</sc-for>
+</div>
+<div style="font-size:16px;line-height:24px;color:#475569">Kept as is, because pump staff already use them: Opening, Closing, Dip, Short, Excess, Matched, HSD, MS, Testing, Credit, Slip.</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<h2>PRD needs these updates</h2>
+<div class="lst">
+<div>F2: Prices card removed, price is a Confirm strip. 8 sections. "Not started" is grey, not red.</div>
+<div>F3: Only the owner sets price, with a start date. Add Fuel prices to F1 setup.</div>
+<div>F6: Shift = attendants, meter readings, testing. Collections move to the new Sales tab.</div>
+<div>F6.3 and S5: drop the testing dips and the 2 L test-return limit.</div>
+<div>F11: soft checks "save and flag to owner", no reason. H2 keeps owner approval, no reason.</div>
+<div>F12 to F14: submit is blocked only by empty sections or hard errors. Unlock needs no reason; still logged.</div>
+<div>UI scope: nav Today · Sales · Tanker · Profile (+ Dashboard); Alerts behind a bell.</div>
+</div>
+<h2 style="margin-top:8px">Open questions for you</h2>
+<div class="lst">
+<div>Does the pump have more than one POS machine or PhonePe QR? Then each shift needs one box per machine.</div>
+<div>Cash: total only (as drawn), or a note count (₹500 × 40...)?</div>
+<div>To mark Sales done, must every type be filled (₹0 allowed), or only the ones used today?</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2400,"height":3000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const H = (t, p, f, w) => ({ s: 'h', sl: 'High', t: t, p: p, f: f, w: w });
+    const M = (t, p, f, w) => ({ s: 'm', sl: 'Medium', t: t, p: p, f: f, w: w });
+    const L = (t, p, f, w) => ({ s: 'l', sl: 'Low', t: t, p: p, f: f, w: w });
+    return {
+      finds: [
+        H('Day starts with 10 red dots', 'At 6 AM every section showed a red dot. It looks like 10 mistakes before any work is done.', 'Grey circle and "To do". Red only for things that block.', 'Flow 2'),
+        H('A shift’s money was in 3 places', 'Collections in the shift card, credit in its own section, expenses added in silently. Ramesh can’t see why Shift B is short.', 'Sales › By shift lists every line, including cash paid out for expenses.', 'Flow 6'),
+        H('Accountant words', 'Variance, Expected, Collected, Tolerance, Decantation, Draft, Soft alert. None of these are said at a pump.', 'Pump words (see the table below).', 'All flows'),
+        H('Nozzle list: where do I type?', 'Opening was a tiny grey caption and the columns had no labels. A new manager could type in the wrong place.', 'Column labels "Opening · Closing reading · Sale"; empty box says "Type here".', 'Flow 5'),
+        H('Testing dips could never pass', 'Each test asked for 2 dip readings. One 0.1 cm dip step is about 11 L, so a 5 L test can’t be checked and would flag every time.', 'Nozzle and litres only.', 'Flow 5'),
+        H('Submit blocked by a missing reason', 'A manager with everything typed still could not submit.', 'Only an empty section or an impossible number blocks submit.', 'Flow 8'),
+        M('Tanker asked price and margin every time', 'Managers don’t always know the margin per litre, and it rarely changes.', 'Prefilled from the last tanker, shown as a line to check against the invoice.', 'Flow 4'),
+        M('"Save & next" though it autosaves', 'Suggests work is lost if you press Back.', '"Done · Next: Tanker". Header always shows Saved.', 'All entry screens'),
+        M('No sum when a shift ends', 'The paper register shows litres × price. The app only showed a total.', '"3,180 L × ₹90.00 = ₹2,86,200" per fuel.', 'Flow 5'),
+        M('Credit form had 9 boxes', 'Date and rate never change but were still boxes.', 'Shown as a line. 6 things to fill, in slip order.', 'Flow 6'),
+        M('Expense form asked Fixed/Variable', 'A manager doesn’t think about that.', 'Set by expense type. Types are chips. 4 things to fill.', 'Flow 7'),
+        M('Add buttons out of thumb reach', 'Small + icons at the top right.', 'Full-width button in the bottom bar.', 'Flows 4, 6, 7'),
+        M('Locked day showed only lock icons', 'Easy to miss that nothing can be changed.', '"View only" written on every card.', 'Flow 9'),
+        M('Flag detail had nothing to show', 'Without reasons, the old detail screen was empty.', 'Shows the numbers behind the flag, with who typed them and when.', 'Flow 11'),
+        M('Review showed only %', '"0.52%" means little on the forecourt.', 'Litres, rupees and the limit: "−42 L, about ₹3,780, limit 40 L".', 'Flow 8'),
+        L('Half-day tank number on web', 'Before the closing dip, tank vs meters looks like a big loss.', 'Waits for the closing dip.', 'Flow 14'),
+        L('Price edit was a small text link', 'Under 48 px and easy to hit by mistake.', 'One big Confirm; no edit for the manager.', 'Flow 2'),
+        L('Offline banner started with "Not saved"', 'Reads like data is lost.', '"No internet. Keep typing."', 'Flow 15'),
+        L('Dashboard repeated the alert list', 'Same list as the Alerts screen.', 'List lives behind the bell; the calendar gets the room.', 'Flow 12'),
+        L('Shift cards stay after they’re done', 'Today gets long by evening.', 'The 3 cards fold into one row once all are done.', 'Flow 8')
+      ],
+      words: [
+        { o: 'Draft', n: 'Not submitted' },
+        { o: 'Variance', n: 'Difference' },
+        { o: 'Tank sales', n: 'Sold as per tank (dip)' },
+        { o: 'Nozzle sales', n: 'Sold as per meters' },
+        { o: 'Expected', n: 'Should have' },
+        { o: 'Collected / Collections', n: 'Received / Sales' },
+        { o: 'Govt stock', n: 'IOCL report stock' },
+        { o: 'Decantation gain', n: 'Dip check after unloading' },
+        { o: 'Soft alert', n: 'Flag' },
+        { o: 'Tolerances', n: 'When to flag' },
+        { o: 'Profit per litre', n: 'Margin' },
+        { o: 'Save & next section', n: 'Done · Next: …' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
