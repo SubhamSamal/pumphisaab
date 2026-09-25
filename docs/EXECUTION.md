@@ -25,10 +25,10 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Node 22.23 / npm 10.9 / Git 2.50 installed
 - [x] Expo app scaffolded (SDK 57, Expo Router, TypeScript strict), blank shell; typecheck, lint, expo-doctor and web export pass
 - [x] Git repo initialised, first commit pushed to GitHub
+- [x] Expo account created; EAS project linked: @pumphisaab/pumphisaab (ID a7bd83b0-f5ee-4e8d-9437-ac1bd75f0c91)
 - [x] Draft PRD copy, old v1 canvas and design-system zip removed (decisions D1)
 
 ### Still open
-- [ ] Expo account: owner logs in (`npx eas-cli@latest login`), then Claude Code links EAS (`eas init`)
 - [ ] App opened on the owner's Android phone via Expo Go with no errors
 - [ ] Cash: note count vs one total per shift (decisions Q1; needed before Phase 6)
 - [ ] 1 week of real notebook data (photos) into `docs/data/notebook/` (needed for Phase 3, not Phase 0)
