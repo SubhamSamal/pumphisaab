@@ -29,7 +29,8 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Draft PRD copy, old v1 canvas and design-system zip removed (decisions D1)
 
 ### Still open
-- [ ] App opened on the owner's Android phone via Expo Go with no errors
+- [x] App opened on the owner's iPhone via Expo Go ("PumpHisaab: setup ready") and on web (localhost), no errors
+- [ ] Same check on the owner's Android phone (phone not charged on 25 Sep; do it at the start of Phase 1)
 - [ ] Cash: note count vs one total per shift (decisions Q1; needed before Phase 6)
 - [ ] 1 week of real notebook data (photos) into `docs/data/notebook/` (needed for Phase 3, not Phase 0)
 - Deferred (decisions D4): Sentry and PostHog → Phase 8; Cloudflare account + pumphisaab.com nameservers → Phase 9
