@@ -66,7 +66,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Digitise the dip chart (done)
 - **Exit:** PRD + CLAUDE.md + EXECUTION.md in the repo, Expo app scaffolded and pushed, EAS linked, dip chart and design tokens in `docs/`
 
-### Phase 1: App shell and design system in code (~4-5 days)
+### Phase 1: App shell and design system in code (~4-5 days) — built 26 Sep 2026, awaiting owner phone check
 - Import `design-tokens.json` into a Tailwind/NativeWind theme, with auto light/dark
 - Build every design-system component; add a hidden component gallery screen to check them against Claude Design
 - Role-based navigation: Today · Sales · Tanker · Profile for managers, + Dashboard for the owner, bell icon for alerts (not a tab)

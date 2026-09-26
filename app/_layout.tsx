@@ -9,6 +9,7 @@ import {
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { RoleProvider } from "@/features/session/RoleProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -25,7 +26,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <RoleProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="alerts" />
+          <Stack.Screen name="gallery" />
+        </Stack>
+      </RoleProvider>
     </ThemeProvider>
   );
 }

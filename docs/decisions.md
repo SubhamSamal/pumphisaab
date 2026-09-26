@@ -16,6 +16,16 @@ Why: login arrives in Phase 2; no extra surface in the real app.
 
 **D11. AsyncStorage added** (`@react-native-async-storage/async-storage`) to remember the theme choice; it will also hold offline drafts in Phase 5. Owner approved.
 
+**D12. Component geometry follows the canvas stylesheet exactly.** Screens may use only theme tokens (colours, type, the 4-40 px spacing scale, radii, sizes). Inside `src/components/ui/` only, a few exact measurements from `docs/design/canvas/ph.css` that aren't tokens are used as-is (e.g. 28 px pills, 10 px row padding, 92 | 1fr | 80 nozzle grid, 52 px calendar cells). Tailwind's default colours, font sizes, spacing and radii are removed, so a non-token class doesn't exist.
+
+**D13. Where the canvas and the design-system notes differ on components, the canvas wins** (extends D2):
+- Units trail the number in every input, including ₹ ("1,21,600 ₹"); values are left-aligned.
+- Short and Excess both use the warning-triangle icon; Matched uses a tick; "Not matched" pill uses an X; "Submitted" pill uses a send icon.
+- Section "not started" = grey outline circle; flags on a section = amber count; hard errors = red count.
+- A difference inside the owner's limit shows green "OK · 30 L" (the limit check itself belongs to the calc engine, Phase 3).
+
+**D14. Components built later, with the screen that first needs them:** searchable select and date field (Phase 4/6), payment-type row and equation lines (Phase 6), price Confirm strip (Phase 5), change-history list (Phase 7). Each is added to the gallery when built.
+
 ## 25 Sep 2026
 
 **D1. One PRD.** `docs/PRD-PumpHisaab-v1.1.md` is the only PRD. The draft copy that lived in the design canvas folder was deleted, along with the old v1 canvas and the design-system zip (duplicate of the folder).
