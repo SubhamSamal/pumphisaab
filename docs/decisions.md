@@ -14,6 +14,8 @@ Why: login arrives in Phase 2; no extra surface in the real app.
 
 **D10. Light / Dark / Auto switch in Profile is built in Phase 1.** Default Auto (follows the phone); the choice is remembered on that phone only.
 
+**D11. AsyncStorage added** (`@react-native-async-storage/async-storage`) to remember the theme choice; it will also hold offline drafts in Phase 5. Owner approved.
+
 ## 25 Sep 2026
 
 **D1. One PRD.** `docs/PRD-PumpHisaab-v1.1.md` is the only PRD. The draft copy that lived in the design canvas folder was deleted, along with the old v1 canvas and the design-system zip (duplicate of the folder).
