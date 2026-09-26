@@ -4,9 +4,9 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ---
 
-## Status snapshot (last updated 26 Sep 2026)
+## Status snapshot (last updated 26 Sep 2026, evening)
 
-**Where we are:** Phases 0, 1 and 2 done. Next: Phase 3 (foundations), plan to come; draft of what the database must store in `docs/plans/phase-3-schema-draft.md`.
+**Where we are:** Phases 0, 1 and 2 done. Next: Phase 3 (foundations), plan in `docs/plans/phase-3-foundations.md`, waiting for the owner's "go".
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -35,13 +35,15 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] All hard checks H1-H9 and soft checks S1-S4, S6, S7, S9, R1
 - [x] 28 golden case files incl. PRD 1-8, the canvas day and the real notebook day 15 Sep 2026; expected answers computed separately in Python
 - [x] Real notebook day understood (16 MCQs, decisions D21-D33); report in `docs/plans/phase-2-report.md`
-- [x] 65 tests green
+- [x] 65 tests green, CI green
+- [x] Project KT started: `docs/learnings.md` (how the pump and notebooks really work, product, build and process learnings); CLAUDE.md now requires keeping it updated
 
 ### Still open
 - [ ] Android phone check in Expo Go (same QR code)
 - [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
 - [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
+- [ ] Owner to confirm: cash counted includes opening drawer cash; machine totals include customers' dues payments
 - Deferred: Sentry → Phase 3; PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
 ---
@@ -90,7 +92,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3
 - **Exit:** 100% golden cases pass in Vitest; engine reviewed against the notebook numbers
 
-### Phase 3: Foundations (~5-6 days)
+### Phase 3: Foundations (~5-6 days) — detailed plan: `docs/plans/phase-3-foundations.md`
 - **Database safety net:** GitHub CI builds a throwaway Supabase from every migration on each push and runs pgTAP (RLS, triggers, constraints, golden cases through the SQL views). The live project is never touched by CI or Claude Code
 - **Migration ledger:** every migration ends by recording itself in a `schema_migrations_applied` table, so we can check the live database matches the repo
 - Core tables only: pumps, pump_members, dip_charts (versioned, never edited in place) + rows, tanks, nozzles, shift_templates, fuel_prices, staff, payment_types, cash_denominations, expense_categories, audit_log; audit trigger; RLS on every table; row version for conflict detection
