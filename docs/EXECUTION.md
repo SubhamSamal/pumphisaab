@@ -32,8 +32,8 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] App opened on the owner's iPhone via Expo Go ("PumpHisaab: setup ready") and on web (localhost), no errors
 - [ ] Same check on the owner's Android phone (phone not charged on 25 Sep; do it at the start of Phase 1)
 - [ ] Cash: note count vs one total per shift (decisions Q1; needed before Phase 6)
-- [ ] 1 week of real notebook data (photos) into `docs/data/notebook/` (needed for Phase 3, not Phase 0)
-- Deferred (decisions D4): Sentry and PostHog → Phase 8; Cloudflare account + pumphisaab.com nameservers → Phase 9
+- [ ] 1 week of real notebook data (photos) into `docs/data/notebook/` (needed for Phase 2, the calc engine — start transcribing now)
+- Deferred (decisions D4, D17): Sentry → Phase 3; PostHog → Phase 6; Cloudflare account + pumphisaab.com nameservers → Phase 7
 
 ---
 
@@ -66,64 +66,62 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Digitise the dip chart (done)
 - **Exit:** PRD + CLAUDE.md + EXECUTION.md in the repo, Expo app scaffolded and pushed, EAS linked, dip chart and design tokens in `docs/`
 
-### Phase 1: App shell and design system in code (~4-5 days) — built 26 Sep 2026, awaiting owner phone check
+### Phase 1: App shell and design system in code (~4-5 days) — built 26 Sep 2026, awaiting owner phone check and CI confirmation
 - Import `design-tokens.json` into a Tailwind/NativeWind theme, with auto light/dark
 - Build every design-system component; add a hidden component gallery screen to check them against Claude Design
 - Role-based navigation: Today · Sales · Tanker · Profile for managers, + Dashboard for the owner, bell icon for alerts (not a tab)
 - CI on GitHub: type check, lint, tests on every push
 - **Exit:** component gallery matches the design; nav works on Android + web
 
-### Phase 2: Database, login, and security (~4-5 days)
-- All tables via migration files (see the ERD and field tables in the PRD): pumps, pump_members, shift_templates, fuel_prices, tanks, dip_charts, dip_chart_rows, nozzles, staff, credit_customers, expense_categories, payment_types, cash_denominations, business_days, tank_readings, shifts, shift_attendants, nozzle_readings, nozzle_tests, shift_payments, cash_counts, credit_sales, tanker_receipts, receipt_lines, expenses, flags, unlock_requests, push_tokens, audit_log
-- Username + password login; owner creates manager accounts via a secure function
-- Row Level Security, with a test proving Pump X can't see Pump Y's data
-- Seed data for the pilot pump (tanks, nozzles, shifts, prices)
-- **Exit:** owner and manager can log in and see the right data in the Supabase dashboard; the audit log fills up as rows change
+> **Re-planned 26 Sep 2026** (decisions D15-D17). Old order: DB → calc → setup UI → Today → Sales/Tanker → flags → dashboard → hardening. New order below: maths first, daily entry in vertical slices, notebook comparison starts as soon as a full day can be submitted, full setup screens after the pilot starts.
 
-### Phase 3: Calculation engine (~3-4 days, no UI)
-- Dip cm to litres (linear interpolation using the chart), meter sales, testing deduction, tank sales, stock difference, shift money difference (with drawer expenses added back), tanker totals
-- 30+ golden test cases, including the ones already in the PRD's Acceptance Criteria, plus more from the owner's real notebook data once transcribed
-- **Exit:** 100% of golden cases pass in both the TypeScript engine and the Postgres views
+### Phase 2: Calculation engine + golden cases (~3-4 days, no UI, no database)
+- Pure TypeScript in `src/calc/` with decimal.js: dip cm → litres (linear interpolation on the real chart), meter sales, test deduction, sold as per tank, stock Difference and %, shift Should have / Received / Difference (drawer expenses added back), tanker totals, Matched decision against tolerances, hard checks H1-H9 and soft checks S1-S9/R1 as pure functions
+- `tests/golden/*.json`: every PRD acceptance case (1-8) plus the owner's notebook week once transcribed; 30+ cases. Same files will drive the SQL tests later
+- Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3
+- **Exit:** 100% golden cases pass in Vitest; engine reviewed against the notebook numbers
 
-### Phase 4: Owner setup — Profile > Pump settings (~4-5 days)
-- Pump, shifts (configurable, changes apply from the next business day only), tanks, dip chart upload with preview and validation, nozzles mapped to tanks, staff, credit customers, payment types, cash denominations, expense categories, tolerances, fuel prices with start date, users
-- **Exit:** the pilot pump is fully set up using its real dip chart and real tank/nozzle/shift layout
+### Phase 3: Foundations (~5-6 days)
+- **Database safety net:** GitHub CI builds a throwaway Supabase from every migration on each push and runs pgTAP (RLS, triggers, constraints, golden cases through the SQL views). The live project is never touched by CI or Claude Code
+- **Migration ledger:** every migration ends by recording itself in a `schema_migrations_applied` table, so we can check the live database matches the repo
+- Core tables only: pumps, pump_members, dip_charts (versioned, never edited in place) + rows, tanks, nozzles, shift_templates, fuel_prices, staff, payment_types, cash_denominations, expense_categories, audit_log; audit trigger; RLS on every table; row version for conflict detection
+- Username + password login; owner creates manager logins via Edge Function
+- Pilot pump seeded by migration (tanks, real dip chart, 8 nozzles, shifts A/B/C, payment types, prices)
+- Own development build of the app (EAS) replacing Expo Go; EAS Update channels for instant fixes; Sentry crash tracking
+- **Exit:** owner and manager log in on their phones; RLS test proves Pump X can't see Pump Y; CI green including pgTAP
 
-### Phase 5: Today — daily entry (~7-8 days, the core)
-- Day lifecycle (Draft to Submitted to Locked), price Confirm strip, 8 sections with grey/amber/green states
-- Opening and closing dips with auto litres, per-shift meter readings (opening auto-filled from previous closing), testing (nozzle + litres only), expenses with "paid from" a shift drawer
-- Autosave and draft recovery, hard checks inline, submit blocked only by an empty section or H1-H9
-- **Exit:** a full real day from the notebook can be entered in under 20 minutes and the totals match the notebook
+### Phase 4: Daily entry, slice by slice (~10-12 days)
+Each slice = its tables (migration) + SQL view part + screen + calc wiring + tests + tried on the owner's phone.
+- 4a Day lifecycle, price Confirm strip, opening stock and dip
+- 4b Shift meters (A/B/C) + testing, H1/H2/H8
+- 4c Tanker tab + receipts, feeding the day
+- 4d Sales tab: cash note count, other types per shift, credit slips, Done
+- 4e Expenses with "paid from" drawer
+- 4f Closing dip, Review (tank vs meters, money by shift, flags list), Submit, "yesterday first", autosave + local drafts
+- Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
+- **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook
 
-### Phase 6: Sales and Tanker tabs (~4-5 days)
-- Sales: cash by note count (auto-total), one total per other payment type per shift, credit sales (unique slip number), a "Done" button that fills empty types with ₹0, By type and By shift views
-- Tanker: receipts with price and margin prefilled from the last tanker, auto totals, feeding into the day
-- **Exit:** shift money match works end to end on real data
+### Phase 5: Notebook comparison starts + owner loop (~6-7 days, comparison runs 30+ days alongside)
+- **Parallel run begins:** app and notebooks side by side every day; differences investigated each evening
+- Flags table and soft checks raising flags (no reasons), edit-after-submit tracking, meter-change approval (H2), lock / unlock / unlock request, owner notes (D3), bell with alerts, change history
+- Android push notifications + "day not submitted" reminder
+- Backups decided and in place before real pilot data (decision pending: Pro plan or nightly copy)
+- **Exit:** every PRD flag fires in tests; owner gets a push within a minute
 
-### Phase 7: Flags, owner review, and alerts (~5-6 days)
-- Soft checks save and flag the owner (no reason prompts)
-- Meter-change (H2) owner approval, edit-after-submit tracking, lock/unlock and unlock requests (all logged, no reason)
-- Bell icon with flag list, change history ("who changed what, when")
-- Android push notifications, plus a scheduled "day not submitted" reminder
-- **Exit:** every flag in the PRD fires correctly in tests, and the owner gets a push within a minute
+### Phase 6: Owner settings screens, dashboard, tracking (~5-6 days)
+- Profile > Fuel prices, Logins, When to flag first; then tanks, dip chart upload with preview/validation, nozzles, staff, credit companies, payment types, expense types, shift timings (effective next business day)
+- Dashboard: today summary, 30-day matched calendar (North Star), open flags
+- PostHog events from the PRD
+- **Exit:** a second test pump can be fully set up from the app alone; North Star visible; events in PostHog
 
-### Phase 8: Owner dashboard v1 and tracking (~3-4 days)
-- Today summary, 30-day matched calendar (the North Star metric), open flags
-- PostHog events from the PRD, Sentry error tracking wired up
-- **Exit:** the North Star is visible in the app, and events show up in PostHog
+### Phase 7: Hardening and go-live (~1-2 weeks, overlapping the end of the parallel run)
+- Cheap Android phone, sunlight, slow network; edge cases (midnight shift, meter reset, missed day, price change on the boundary date, tanker mid-shift)
+- Backup **restore tested for real**; security re-check; internal APK distribution; web live on pumphisaab.com (Cloudflare)
+- **Exit:** 30 days where app and notebooks agree, zero data loss
 
-### Phase 9: Hardening and parallel run (~2 weeks)
-- **App and notebooks run side by side for at least 30 days.** Differences between them are compared every evening; every difference is investigated before trusting the app
-- Testing on a cheap Android phone, in sunlight, on a slow network
-- Edge cases: midnight shift, meter reset, a missed day, a price change on the boundary date, a tanker arriving mid-shift
-- Daily backups confirmed, a security re-check, internal APK distribution, web live on pumphisaab.com
-- **Exit:** 30 days where the app and notebooks agree, with zero data loss
-
-### Phase 10: Pilot and measure (30+ days, then v2 planning)
+### Phase 8: Pilot and measure (30+ days, then v2 planning)
 - Notebooks retired, tolerances tuned on real data, baseline leakage measured
-- v2 backlog: credit ledger and recovery, full owner dashboards, SaaS onboarding and billing, iOS, phone OTP login, other payment machines if the pilot shows a need
-
----
+- v2 backlog: credit ledger and recovery, full owner dashboards, SaaS onboarding and billing, iOS, phone OTP login
 
 ## Phase 0 exit criteria
 Phase 0 is done when every "Still open" item above (except the deferred ones, the cash question and the notebook photos) is checked off, the repo contains `CLAUDE.md`, `docs/PRD-PumpHisaab-v1.1.md`, `docs/EXECUTION.md` (this file), `docs/data/DipChart_20KL_MS1_HSD1.xlsx`, and `docs/design-tokens.json`, and the Expo app runs on the owner's Android phone via Expo Go with no errors.

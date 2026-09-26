@@ -26,6 +26,15 @@ Why: login arrives in Phase 2; no extra surface in the real app.
 
 **D14. Components built later, with the screen that first needs them:** searchable select and date field (Phase 4/6), payment-type row and equation lines (Phase 6), price Confirm strip (Phase 5), change-history list (Phase 7). Each is added to the gallery when built.
 
+**D15. Phases re-planned** (owner approved after a CTO review). Calc engine moves before the database (it's the riskiest part and defines what must be stored). Daily entry is built in vertical slices (tables + screen + tests per section) instead of all tables first. The 30-day notebook comparison starts as soon as a full day can be submitted. The pilot pump is seeded by migration; full setup screens move after the pilot starts (prices, logins and limits first). New order is in `docs/EXECUTION.md`.
+Why: less risk to live data, mistakes found in days not weeks, first real day on the phone ~2 weeks sooner.
+
+**D16. Database safety net: throwaway database in CI.** Every push builds a temporary Supabase from all migrations inside GitHub Actions and runs pgTAP. Each migration also records itself in a ledger table so the live database can be checked against the repo. Hard rule 1 unchanged: the live project is only ever changed by the owner pasting reviewed SQL.
+
+**D17. Robustness built in from Phase 3:** own development build + EAS Update for instant fixes (Expo Go can't receive Android push anyway); Sentry from the first real data (Phase 3), PostHog stays with the dashboard (Phase 6); idempotent saves; server time decides the business date; row versions to catch two people editing the same thing; dip charts versioned, never edited in place.
+
+**Open: backups** (Supabase Pro vs free plan + nightly copy). Owner chose "decide later"; must be settled before real pilot data (Phase 5). Note: the free plan pauses projects inactive for a week.
+
 ## 25 Sep 2026
 
 **D1. One PRD.** `docs/PRD-PumpHisaab-v1.1.md` is the only PRD. The draft copy that lived in the design canvas folder was deleted, along with the old v1 canvas and the design-system zip (duplicate of the folder).
