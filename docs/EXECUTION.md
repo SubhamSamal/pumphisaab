@@ -1,39 +1,41 @@
 # PumpHisaab: Execution Plan
 
-This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It has the full phase plan, what is done so far, and what Phase 0 still needs. **Verify the "Status" section against the real repo and environment before trusting it** — it was last updated by hand and may be stale.
+This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It has the full phase plan and what is done so far. **Verify the "Status" section against the real repo and environment before trusting it** — it was last updated by hand and may be stale.
 
 ---
 
-## Status snapshot (last updated 25 Sep 2026)
+## Status snapshot (last updated 26 Sep 2026)
 
-### Done
-- [x] Brand: PumpHisaab, tagline "Sara hisaab ek jagah", domain pumphisaab.com bought
-- [x] PRD v1.1 written: `docs/PRD-PumpHisaab-v1.1.md` (plus canvas additions in `docs/decisions.md` D3)
-- [x] CLAUDE.md written (repo root)
-- [x] Design system built in Claude Design (colour, type, spacing, all components)
-- [x] Design flow canvas built in Claude Design (full screen flows, static)
-- [x] GitHub repo created: https://github.com/SubhamSamal/pumphisaab.git
-- [x] Supabase project created — **single project, production data from day one, no staging**: `pumphisaab`, Mumbai region
-- [x] Dip chart digitised and cleaned: `docs/data/DipChart_20KL_MS1_HSD1.xlsx` (0-210cm, full tank = 21,628.93 L, not the nominal 20,000 L)
-- [x] Decision: skip Play Store for the pilot; direct-install APK via EAS Build (protects the owner's other venture's Play developer account, which was being considered for reuse)
-- [x] Decision: Cloudflare Pages for web hosting, not Vercel (Vercel's free tier is non-commercial only)
-- [x] Decision: Sentry (errors) + PostHog (product analytics) for monitoring
+**Where we are:** Phase 0 and Phase 1 done. Next: Phase 2 (calculation engine), plan in `docs/plans/phase-2-calc-engine.md`, waiting for the owner's "go".
 
-### Verified by Claude Code on 25 Sep 2026
-- [x] `docs/` populated: PRD, this file, `docs/data/DipChart_20KL_MS1_HSD1.xlsx`, `docs/design-tokens.json`, `docs/design/` (design system + v2 canvas), `docs/decisions.md`
-- [x] Dip chart checked: 211 rows, 0-210 cm, litres strictly increasing, 210 cm = 21,628.93 L, 123.4 cm = 13,215.37 L
-- [x] Node 22.23 / npm 10.9 / Git 2.50 installed
-- [x] Expo app scaffolded (SDK 57, Expo Router, TypeScript strict), blank shell; typecheck, lint, expo-doctor and web export pass
-- [x] Git repo initialised, first commit pushed to GitHub
-- [x] Expo account created; EAS project linked: @pumphisaab/pumphisaab (ID a7bd83b0-f5ee-4e8d-9437-ac1bd75f0c91)
-- [x] Draft PRD copy, old v1 canvas and design-system zip removed (decisions D1)
+### Phase 0: accounts, docs, repo (done 25 Sep 2026)
+- [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
+- [x] PRD v1.1 (`docs/PRD-PumpHisaab-v1.1.md`) + later additions in `docs/decisions.md`; CLAUDE.md at repo root
+- [x] Design system + v2 screen-flow canvas exported to `docs/design/`; tokens in `docs/design-tokens.json`
+- [x] Dip chart digitised and checked: `docs/data/DipChart_20KL_MS1_HSD1.xlsx` (211 rows, 0-210 cm, full = 21,628.93 L, 123.4 cm = 13,215.37 L)
+- [x] GitHub repo (public since 26 Sep): https://github.com/SubhamSamal/pumphisaab
+- [x] Supabase project `pumphisaab` (Mumbai), single live project; nothing created in it yet
+- [x] Expo account; EAS project @pumphisaab/pumphisaab linked
+- [x] Expo app scaffolded (SDK 57, Expo Router, TypeScript strict); checked on owner's iPhone (Expo Go) and web
+- [x] Decisions: direct-install APK (no Play Store for pilot), Cloudflare Pages for web, Sentry + PostHog for monitoring
+
+### Phase 1: app shell and design system (done 26 Sep 2026)
+- [x] Theme generated from the design tokens (`npm run theme`); a test fails if code and tokens drift; only token colours/sizes exist
+- [x] Inter font, tabular numbers; Light / Dark / Auto (remembered on the phone)
+- [x] 40+ design-system components in `src/components/ui/`, matched to the v2 canvas; developer-only gallery at `/gallery`
+- [x] Navigation: Today · Sales · Tanker · Profile (+ Dashboard for owner), bell → Alerts, left rail on web ≥ 1024 px; tabs show "arrives in Phase N"
+- [x] Shared formatting (`src/lib/format.ts`): ₹ Indian grouping, litres, meters, dip cm, dates, vehicle numbers, signed differences
+- [x] Business day (`src/lib/businessDay.ts`): 06:00 IST start, Shift C after midnight counts for the day before
+- [x] CI on GitHub: typecheck, lint, 30 tests on every push (green)
+- [x] Libraries approved: NativeWind, Tailwind 3, Inter, Lucide, Vitest, decimal.js, AsyncStorage (D7, D11)
+- [x] Phases re-planned: calc first, daily entry in slices, CI database safety net (D15-D17)
 
 ### Still open
-- [x] App opened on the owner's iPhone via Expo Go ("PumpHisaab: setup ready") and on web (localhost), no errors
-- [ ] Same check on the owner's Android phone (phone not charged on 25 Sep; do it at the start of Phase 1)
-- [ ] Cash: note count vs one total per shift (decisions Q1; needed before Phase 6)
-- [ ] 1 week of real notebook data (photos) into `docs/data/notebook/` (needed for Phase 2, the calc engine — start transcribing now)
-- Deferred (decisions D4, D17): Sentry → Phase 3; PostHog → Phase 6; Cloudflare account + pumphisaab.com nameservers → Phase 7
+- [ ] Android phone check in Expo Go (same QR code)
+- [ ] Notebook week: photos into `docs/data/notebook/` (Phase 2 uses them)
+- [ ] Cash: note count vs one total per shift (decisions Q1)
+- [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
+- Deferred: Sentry → Phase 3; PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
 ---
 
@@ -59,7 +61,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build → Verify → Exit check.** Claude Code does not start a phase's Build step until the MCQ round for that phase is explicitly closed by the owner.
 
-### Phase 0: Alignment and foundations (current phase)
+### Phase 0: Alignment and foundations — done 25 Sep 2026
 - Update the PRD with any decisions made along the way (done: v1.1)
 - Write CLAUDE.md (done)
 - Create accounts: GitHub, Supabase, Expo (Sentry, PostHog, Cloudflare deferred, see decisions D4)
@@ -75,7 +77,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 
 > **Re-planned 26 Sep 2026** (decisions D15-D17). Old order: DB → calc → setup UI → Today → Sales/Tanker → flags → dashboard → hardening. New order below: maths first, daily entry in vertical slices, notebook comparison starts as soon as a full day can be submitted, full setup screens after the pilot starts.
 
-### Phase 2: Calculation engine + golden cases (~3-4 days, no UI, no database)
+### Phase 2: Calculation engine + golden cases (~3-4 days, no UI, no database) — detailed plan: `docs/plans/phase-2-calc-engine.md`
 - Pure TypeScript in `src/calc/` with decimal.js: dip cm → litres (linear interpolation on the real chart), meter sales, test deduction, sold as per tank, stock Difference and %, shift Should have / Received / Difference (drawer expenses added back), tanker totals, Matched decision against tolerances, hard checks H1-H9 and soft checks S1-S9/R1 as pure functions
 - `tests/golden/*.json`: every PRD acceptance case (1-8) plus the owner's notebook week once transcribed; 30+ cases. Same files will drive the SQL tests later
 - Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3
