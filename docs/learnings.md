@@ -6,7 +6,7 @@ Anyone new to the project (a person, or Claude Code in a new session) should be 
 - **Decisions** (what we chose) live in `docs/decisions.md` (D1, D2 …). This file explains the **why** and the **how things really work**, and points to the decisions.
 - **Keep it growing:** every new notebook day, owner answer or surprise gets added here, newest learnings at the end of each section, with the date.
 
-Last updated: 26 Sep 2026
+Last updated: 26 Sep 2026 (Phase 3 build)
 
 ---
 
@@ -141,6 +141,13 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Expo Go can't receive Android push** notifications, so we switch to our own development build in Phase 3.
 - **Live database is never touched by code.** Every change is a migration file the owner pastes into the Supabase SQL editor (hard rule 1). CI tests migrations on a throwaway database (D16).
 - **Free Supabase plan pauses projects unused for a week** and has no self-service backups: decide backups before real pilot data (open).
+- **Database tests run in GitHub, not on the Mac** (no Docker here). For quick local checks Claude Code uses PGlite (an in-memory Postgres) with a small stand-in for Supabase's auth schema and pgTAP, in its scratch folder only. The truth is always the GitHub run on a real throwaway Supabase.
+- **Every migration guards itself:** it refuses to run twice or out of order, and writes its name to `schema_migrations_applied`. The owner pastes them; Claude Code never touches the live project (hard rule 1, D35).
+- **Golden cases also drive the database:** `npm run golden:sql` turns `tests/golden/cases` into `supabase/tests/03_golden.test.sql`; a test fails if it's out of date.
+- **Web must be a single-page app** (D41): pre-rendering on the server broke because saved logins need a real browser (`window`).
+- **NativeWind dark mode is "class"**: our ThemeProvider switches colours itself; "media" mode threw an error when a browser added a dark/light class.
+- **Expo typed routes** only know new screens after Expo regenerates them (`expo start` or `expo export`); a fresh type check right after adding a screen can fail until then.
+- **iPhone stays on Expo Go** (our own iPhone build needs a paid Apple account); Android gets our development build (APK from EAS).
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
 ## 7. How we work (process learnings)
