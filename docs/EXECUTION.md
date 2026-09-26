@@ -33,7 +33,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 ### Still open
 - [ ] Android phone check in Expo Go (same QR code)
 - [ ] Notebook week: photos into `docs/data/notebook/` (Phase 2 uses them)
-- [ ] Cash: note count vs one total per shift (decisions Q1)
+- [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
 - Deferred: Sentry → Phase 3; PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 

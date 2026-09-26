@@ -34,6 +34,11 @@ A day is **Matched** when every product's Difference % and every shift's money D
 7. **Money limit is per shift** (₹100 default). The day total is shown but not separately limited (as in the PRD).
 8. **Shift C belongs to the day it started** (already built in `businessDay.ts`).
 
+## Owner decisions for this phase (26 Sep 2026)
+- **Notebook week:** you send photos to `docs/data/notebook/`, I transcribe into a spreadsheet, you check it once (D18).
+- **R1 compliance:** beyond 4% of the day's sold as per tank + evaporation allowance: HSD 0.20% (above 600 KL/year) → 4.20%; MS 0.75% (below 600 KL/year) → 4.75%. Settings, changeable later (D19).
+- **Cash:** note count × value + coins (D20).
+
 ## Golden cases (`tests/golden/`)
 One JSON file per case, holding the inputs, the expected results and where the case came from. The Vitest runner checks every file against the engine; in Phase 3 the same files drive the database tests, so both engines must agree (hard rule 4).
 

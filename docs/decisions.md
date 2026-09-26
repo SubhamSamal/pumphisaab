@@ -2,6 +2,15 @@
 
 Newest first. Date, decision, why.
 
+## 26 Sep 2026 (Phase 2 MCQ round)
+
+**D18. Notebook week: owner sends photos, Claude transcribes.** Photos go in `docs/data/notebook/`; Claude fills a spreadsheet from them; the owner checks it once for misread numbers before the days become golden cases.
+
+**D19. R1 (IOCL compliance) = |Stock Difference| beyond 4% of the day's sold as per tank + that fuel's evaporation allowance.** Allowances by yearly sales: HSD above 600 KL/year → 0.20%; MS below 600 KL/year → 0.75%. So R1 fires beyond 4.20% for HSD and 4.75% for MS. Stored as settings the owner can change later.
+Why: same base as S1, easy to explain.
+
+**D20. Cash is entered as a note count** (closes open question Q1). Notes × value + coins = cash total, per shift. Matches the PRD and removes hand-adding mistakes.
+
 ## 26 Sep 2026 (Phase 1 decisions, owner answered the MCQ round)
 
 **D7. Phase 1 libraries approved:** NativeWind 4.2 + Tailwind 3.4 (current stable, not the v5 preview), Inter via `@expo-google-fonts/inter`, Lucide icons (`lucide-react-native` + `react-native-svg`), Vitest, decimal.js. All run in Expo Go.
@@ -65,4 +74,4 @@ Why: nothing uses them before then.
 
 ## Open (need the owner)
 
-**Q1. Cash entry: note count or one total per shift?** The PRD (F6, acceptance case 4) says note count (₹500 × n ...). Canvas Flow 6 says "Cash ... works the same way: one box per shift". Until answered, the PRD (note count) stands. Needed before Phase 6.
+- Backups: Supabase Pro vs free plan + nightly copy (before real pilot data, Phase 5). See D17 note.
