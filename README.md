@@ -6,6 +6,7 @@ Sara hisaab ek jagah. Daily entry and same-day matching for Indian petrol pumps.
 - What we're building: [docs/PRD-PumpHisaab-v1.1.md](docs/PRD-PumpHisaab-v1.1.md)
 - Plan and status: [docs/EXECUTION.md](docs/EXECUTION.md)
 - Decisions log: [docs/decisions.md](docs/decisions.md)
+- Learnings and KT (how the pump really works): [docs/learnings.md](docs/learnings.md)
 - Design (visual source of truth): [docs/design/](docs/design/)
 
 ## Run it

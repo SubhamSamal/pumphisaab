@@ -33,7 +33,7 @@ supabase/migrations/    SQL migrations (only way to change the database)
 supabase/functions/     Edge Functions (create user, push sender)
 supabase/tests/         pgTAP tests (RLS, triggers, views)
 tests/golden/           Golden calculation cases (JSON) shared by Vitest and pgTAP
-docs/                   PRD, design tokens, decisions log (docs/decisions.md)
+docs/                   PRD, design tokens, decisions log (docs/decisions.md), learnings/KT (docs/learnings.md)
 ```
 
 ## Hard rules
@@ -63,4 +63,5 @@ docs/                   PRD, design tokens, decisions log (docs/decisions.md)
 - Small steps. One feature slice at a time, committed with a clear message.
 - Before a big change, write a short plan and wait for "go".
 - Log every product or technical decision in `docs/decisions.md` (date, decision, why).
+- Add every new learning about the pump, the notebooks or the build to `docs/learnings.md` (the project KT).
 - If the PRD is unclear or contradicts the design, ask; do not guess.
