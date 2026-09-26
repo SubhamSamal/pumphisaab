@@ -1,0 +1,203 @@
+{
+  "kind": "day",
+  "source": "Design canvas sample day (01 Oct 2026)",
+  "description": "HSD: 14,820 + 11,980 − 18,681 = 8,119 L vs meters 8,077: −42 L (−0.52%), S1. MS 8,235 + 3,980 − 9,303 = 2,912 = meters: Matched. Shift A matched, B short ₹1,250, C excess ₹300 (both S2). MS tanker 20 L short of 4,000 (0.5%): S6.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      },
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "148.20",
+        "closingDipCm": "186.81"
+      },
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "82.35",
+        "closingDipCm": "93.03"
+      }
+    ],
+    "tankers": [
+      {
+        "id": "T1",
+        "vehicleNo": "OD02CD9087",
+        "lines": [
+          {
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "orderedLitres": "12000",
+            "shortLitres": "20"
+          },
+          {
+            "product": "MS",
+            "tankId": "MS-1",
+            "orderedLitres": "4000",
+            "shortLitres": "20"
+          }
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "48000.00",
+            "closing": "51000.00"
+          },
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "19000.00",
+            "closing": "19989.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "369889.00"
+        }
+      },
+      {
+        "code": "B",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "51000.00",
+            "closing": "54180.00"
+          },
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "19989.00",
+            "closing": "21139.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "401100.00"
+        }
+      },
+      {
+        "code": "C",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "54180.00",
+            "closing": "56077.00"
+          },
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "21139.00",
+            "closing": "21912.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "249103.00"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "HSD": {
+        "soldAsPerTank": "8119.00",
+        "soldAsPerMeters": "8077.00",
+        "difference": "-42.00",
+        "differencePercent": "-0.52",
+        "withinLimit": false
+      },
+      "MS": {
+        "soldAsPerTank": "2912.00",
+        "soldAsPerMeters": "2912.00",
+        "difference": "0.00",
+        "withinLimit": true
+      }
+    },
+    "shifts": {
+      "A": {
+        "shouldHave": "369889.00",
+        "difference": "0.00",
+        "withinLimit": true
+      },
+      "B": {
+        "shouldHave": "402350.00",
+        "difference": "-1250.00",
+        "withinLimit": false
+      },
+      "C": {
+        "shouldHave": "248803.00",
+        "difference": "300.00",
+        "withinLimit": false
+      }
+    },
+    "hardErrors": [],
+    "flags": [
+      "S1",
+      "S2",
+      "S2",
+      "S6"
+    ],
+    "isMatched": false
+  }
+}

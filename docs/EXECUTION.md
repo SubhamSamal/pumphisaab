@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status snapshot (last updated 26 Sep 2026)
 
-**Where we are:** Phase 0 and Phase 1 done. Next: Phase 2 (calculation engine), plan in `docs/plans/phase-2-calc-engine.md`, waiting for the owner's "go".
+**Where we are:** Phases 0, 1 and 2 done. Next: Phase 3 (foundations), plan to come; draft of what the database must store in `docs/plans/phase-3-schema-draft.md`.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -30,9 +30,16 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Libraries approved: NativeWind, Tailwind 3, Inter, Lucide, Vitest, decimal.js, AsyncStorage (D7, D11)
 - [x] Phases re-planned: calc first, daily entry in slices, CI database safety net (D15-D17)
 
+### Phase 2: calculation engine (done 26 Sep 2026)
+- [x] Engine in `src/calc/` (pure TypeScript, exact decimals); every limit in `src/calc/rules.ts`
+- [x] All hard checks H1-H9 and soft checks S1-S4, S6, S7, S9, R1
+- [x] 28 golden case files incl. PRD 1-8, the canvas day and the real notebook day 15 Sep 2026; expected answers computed separately in Python
+- [x] Real notebook day understood (16 MCQs, decisions D21-D33); report in `docs/plans/phase-2-report.md`
+- [x] 65 tests green
+
 ### Still open
 - [ ] Android phone check in Expo Go (same QR code)
-- [ ] Notebook week: photos into `docs/data/notebook/` (Phase 2 uses them)
+- [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
 - [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
 - Deferred: Sentry → Phase 3; PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
@@ -77,7 +84,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 
 > **Re-planned 26 Sep 2026** (decisions D15-D17). Old order: DB → calc → setup UI → Today → Sales/Tanker → flags → dashboard → hardening. New order below: maths first, daily entry in vertical slices, notebook comparison starts as soon as a full day can be submitted, full setup screens after the pilot starts.
 
-### Phase 2: Calculation engine + golden cases (~3-4 days, no UI, no database) — detailed plan: `docs/plans/phase-2-calc-engine.md`
+### Phase 2: Calculation engine + golden cases — done 26 Sep 2026 (plan: `docs/plans/phase-2-calc-engine.md`, report: `docs/plans/phase-2-report.md`)
 - Pure TypeScript in `src/calc/` with decimal.js: dip cm → litres (linear interpolation on the real chart), meter sales, test deduction, sold as per tank, stock Difference and %, shift Should have / Received / Difference (drawer expenses added back), tanker totals, Matched decision against tolerances, hard checks H1-H9 and soft checks S1-S9/R1 as pure functions
 - `tests/golden/*.json`: every PRD acceptance case (1-8) plus the owner's notebook week once transcribed; 30+ cases. Same files will drive the SQL tests later
 - Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3

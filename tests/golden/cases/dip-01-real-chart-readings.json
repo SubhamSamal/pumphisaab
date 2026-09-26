@@ -1,0 +1,44 @@
+{
+  "kind": "dip",
+  "source": "PRD acceptance 1 + pilot chart",
+  "description": "Dip cm to litres on the real 20 KL chart, reading straight across between rows. Outside 0-210 cm = no litres (H3).",
+  "chart": "iocl-20kl",
+  "readings": [
+    {
+      "dipCm": "0",
+      "litres": "0.00"
+    },
+    {
+      "dipCm": "1",
+      "litres": "11.97"
+    },
+    {
+      "dipCm": "123.0",
+      "litres": "13163.73"
+    },
+    {
+      "dipCm": "123.4",
+      "litres": "13215.37"
+    },
+    {
+      "dipCm": "128.5",
+      "litres": "13870.76"
+    },
+    {
+      "dipCm": "209.9",
+      "litres": "21627.73"
+    },
+    {
+      "dipCm": "210.0",
+      "litres": "21628.93"
+    },
+    {
+      "dipCm": "210.1",
+      "litres": null
+    },
+    {
+      "dipCm": "-0.1",
+      "litres": null
+    }
+  ]
+}

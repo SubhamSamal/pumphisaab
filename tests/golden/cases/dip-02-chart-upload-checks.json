@@ -1,0 +1,106 @@
+{
+  "kind": "chart",
+  "source": "PRD F1 dip chart upload",
+  "description": "Chart checks before saving: 0 cm row added if missing, exact duplicate rows dropped, a dip repeated with different litres or litres going down is refused with the row number.",
+  "charts": [
+    {
+      "name": "missing zero row",
+      "rows": [
+        [
+          "1",
+          "10"
+        ],
+        [
+          "2",
+          "25"
+        ]
+      ],
+      "ok": true,
+      "rowsAfter": 3,
+      "capacityLitres": "25"
+    },
+    {
+      "name": "exact duplicate row",
+      "rows": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "10"
+        ],
+        [
+          "1",
+          "10"
+        ],
+        [
+          "2",
+          "25"
+        ]
+      ],
+      "ok": true,
+      "rowsAfter": 3,
+      "capacityLitres": "25"
+    },
+    {
+      "name": "same dip twice",
+      "rows": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "46",
+          "3730"
+        ],
+        [
+          "46",
+          "3840"
+        ]
+      ],
+      "ok": false,
+      "problemRows": [
+        3
+      ]
+    },
+    {
+      "name": "litres go down",
+      "rows": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "10"
+        ],
+        [
+          "2",
+          "9"
+        ]
+      ],
+      "ok": false,
+      "problemRows": [
+        3
+      ]
+    },
+    {
+      "name": "not a number",
+      "rows": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "ten"
+        ]
+      ],
+      "ok": false,
+      "problemRows": [
+        2
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 10 / H1",
+  "description": "HSD-B closing 31,265.50 below opening 31,455.50: red error, its sale shows nothing.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "B",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "48210.00",
+            "closing": "48890.00"
+          },
+          {
+            "nozzleId": "HSD-B",
+            "label": "HSD-B",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "31455.50",
+            "closing": "31265.50"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "hardErrors": [
+      "H1"
+    ],
+    "flags": [],
+    "isMatched": false
+  }
+}

@@ -16,7 +16,8 @@
 - **Pump words, not accounting words:** Should have / Received, Sold as per tank / Sold as per meters, Difference, Flag.
 - **Pump setup locked:** 1 MS + 1 HSD tank, both 20 KL horizontal with the same IOCL chart (full tank = 21,628.93 L at 210 cm). 4 HSD + 4 MS nozzles. Shifts A 6am-2pm, B 2pm-10pm, C 10pm-6am (configurable). Business day starts 6 AM.
 - **Sign rule:** a negative Difference always means a loss.
-- **Added after v1.1 (25 Sep 2026, from the final design canvas):** owner notes on a section, "submit yesterday first", and "None today" buttons on unused payment types. Details in `docs/decisions.md` (D3). Visuals: `docs/design/canvas/` is final and wins over the design-system component notes (D2).
+- **Added after v1.1 (25 Sep 2026, from the final design canvas):** owner notes on a section, "submit yesterday first", and "None today" buttons on unused payment types. Details in `docs/decisions.md` (D3).
+- **Changed after the real notebook day (26 Sep 2026):** book-stock check S3 compares the day-to-day change in the gap; tanker short is taken off received; cash counted includes opening cash; payment types are Cash, Paytm, Card, XtraPower, Bank transfer, Credit; credit slips in ₹ or litres; customer payments kept out of sales; expense types extended. See `docs/decisions.md` D21-D33 — they override the matching lines below. Visuals: `docs/design/canvas/` is final and wins over the design-system component notes (D2).
 
 ---
 

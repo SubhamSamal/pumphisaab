@@ -1,0 +1,84 @@
+{
+  "kind": "day",
+  "source": "S6",
+  "description": "Tanker 14,000 L ordered, 28 L short (0.2%, OK). Dip rose from 59.8 to 119.8 cm = 7674.44 L, but the challan says 13,972 L received: differs by more than 0.5%, S6.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "iocl-20kl"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "59.8"
+      }
+    ],
+    "tankers": [
+      {
+        "id": "T1",
+        "vehicleNo": "OD02CD9087",
+        "invoiceNo": "7018875672",
+        "lines": [
+          {
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "orderedLitres": "14000",
+            "shortLitres": "28",
+            "dipBeforeCm": "59.8",
+            "dipAfterCm": "119.8"
+          }
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "tankers": {
+      "T1": {
+        "receivedNetLitres": "13972.00",
+        "dipRiseLitres": "7674.44"
+      }
+    },
+    "flags": [
+      "S6"
+    ],
+    "isMatched": false
+  }
+}

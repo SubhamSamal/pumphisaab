@@ -1,0 +1,102 @@
+{
+  "kind": "day",
+  "source": "Rule: money limit ₹100 per shift",
+  "description": "Shift A short exactly ₹100 (OK). Shift B short ₹100.01 (flag S2). Fuel matched.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "80.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "2000.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "100900"
+        }
+      },
+      {
+        "code": "B",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "2000.00",
+            "closing": "3000.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "100899.99"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "shifts": {
+      "A": {
+        "shouldHave": "101000.00",
+        "difference": "-100.00",
+        "withinLimit": true
+      },
+      "B": {
+        "shouldHave": "101000.00",
+        "difference": "-100.01",
+        "withinLimit": false
+      }
+    },
+    "hardErrors": [],
+    "flags": [
+      "S2"
+    ],
+    "isMatched": false
+  }
+}

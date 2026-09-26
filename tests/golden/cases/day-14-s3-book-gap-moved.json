@@ -1,0 +1,83 @@
+{
+  "kind": "day",
+  "source": "Decision D22 (S3 redefined)",
+  "description": "IOCL book stock minus opening dip. MS gap 2,534.22 L today vs 2,534.00 yesterday: moved 0.22 L, OK. HSD gap moved by 100 L, beyond 0.5% of 5,074.74 L (25.37 L): S3.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "iocl-20kl"
+      },
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "iocl-20kl"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "55.2",
+        "bookStockLitres": "7071",
+        "yesterdayBookGapLitres": "2534"
+      },
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "59.8",
+        "bookStockLitres": "9702.740",
+        "yesterdayBookGapLitres": "4528"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true
+          },
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "flags": [
+      "S3"
+    ],
+    "isMatched": false
+  }
+}

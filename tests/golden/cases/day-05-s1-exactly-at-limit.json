@@ -1,0 +1,74 @@
+{
+  "kind": "day",
+  "source": "Rule: 'beyond' means strictly more",
+  "description": "Difference −40 L on 8,000 L is exactly 0.5%: still OK, no flag, Matched.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "20.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "200000.00",
+            "closing": "207960.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "716400.00"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "HSD": {
+        "difference": "-40.00",
+        "differencePercent": "-0.50",
+        "withinLimit": true
+      }
+    },
+    "hardErrors": [],
+    "flags": [],
+    "isMatched": true
+  }
+}

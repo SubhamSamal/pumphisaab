@@ -1,0 +1,26 @@
+{
+  "kind": "tanker",
+  "source": "PRD acceptance 6",
+  "description": "HSD ordered 10,000 L, short 50 L, ₹85.00/L, margin ₹3.00/L.",
+  "receipt": {
+    "id": "T1",
+    "vehicleNo": "OD02CD9087",
+    "lines": [
+      {
+        "product": "HSD",
+        "tankId": "HSD-1",
+        "orderedLitres": "10000",
+        "shortLitres": "50",
+        "pricePerLitre": "85.00",
+        "marginPerLitre": "3.00"
+      }
+    ]
+  },
+  "expected": {
+    "receivedNetLitres": "9950.00",
+    "totalAmount": "850000.00",
+    "totalShortAmount": "4250.00",
+    "toPay": "845750.00",
+    "totalMargin": "29850.00"
+  }
+}

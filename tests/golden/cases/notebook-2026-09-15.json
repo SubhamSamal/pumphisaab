@@ -1,0 +1,568 @@
+{
+  "kind": "day",
+  "source": "Real notebook day: docs/data/notebook/Sept15-daily-report.pdf",
+  "description": "The real day of 15 Sep 2026, entered as one shift (the notebook keeps the day total; shift-wise numbers are in the shift notebook). MS: 4,536.78 − 4,307.24 = 229.54 L by tank vs 224.80 L by meters: -4.74 L (-2.07%); notebook circled −5. HSD: 5,074.74 + 13,972 (14,000 minus 28 L short) − 12,749.18 = 6297.56 L vs 6,250.45 L: -47.11 L (-0.75%); the notebook circled −75 because it added the full 14,000 L. Money: Should have ₹6,60,664.52; Received = cash in hand ₹22,919.99 − opening cash ₹36,013.04 + Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + bank ₹6,00,000 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − customer payments ₹15,65,052 = ₹6,60,664.52. Difference 0 because the notebook's cash in hand is the leftover figure, not a count. Nozzles 1 and 2 are not in use.",
+  "input": {
+    "businessDate": "2026-09-15",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "110.07",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "101.74",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "iocl-20kl"
+      },
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "iocl-20kl"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "55.2",
+        "closingDipCm": "53.2",
+        "bookStockLitres": "7071"
+      },
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "59.8",
+        "closingDipCm": "119.8",
+        "bookStockLitres": "9602"
+      }
+    ],
+    "tankers": [
+      {
+        "id": "T1",
+        "vehicleNo": "IOCL Jatni",
+        "invoiceNo": "7018875672",
+        "lines": [
+          {
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "orderedLitres": "14000",
+            "shortLitres": "28"
+          }
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-1",
+            "label": "MS-1",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": false
+          },
+          {
+            "nozzleId": "MS-2",
+            "label": "MS-2",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": false
+          },
+          {
+            "nozzleId": "MS-3",
+            "label": "MS-3",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "126942.71",
+            "closing": "127165.97"
+          },
+          {
+            "nozzleId": "MS-4",
+            "label": "MS-4",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "29804.03",
+            "closing": "29815.57"
+          },
+          {
+            "nozzleId": "HSD-1",
+            "label": "HSD-1",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": false
+          },
+          {
+            "nozzleId": "HSD-2",
+            "label": "HSD-2",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": false
+          },
+          {
+            "nozzleId": "HSD-3",
+            "label": "HSD-3",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "567503.44",
+            "closing": "570104.08"
+          },
+          {
+            "nozzleId": "HSD-4",
+            "label": "HSD-4",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "947934.58",
+            "closing": "951594.39"
+          }
+        ],
+        "tests": [
+          {
+            "nozzleId": "MS-3",
+            "litres": "10"
+          },
+          {
+            "nozzleId": "HSD-3",
+            "litres": "10"
+          }
+        ],
+        "openingCash": "36013.04",
+        "otherPayments": [
+          {
+            "type": "Paytm",
+            "amount": "55408.10"
+          },
+          {
+            "type": "Card",
+            "amount": "2560.00"
+          },
+          {
+            "type": "XtraPower",
+            "amount": "1003216.67"
+          },
+          {
+            "type": "Bank transfer",
+            "amount": "600000.00"
+          }
+        ],
+        "creditSlips": [
+          {
+            "slipNo": "4461",
+            "customer": "S.V.T. Logistics",
+            "vehicleNo": "OD29N6315",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4482",
+            "customer": "S.V.T. Logistics",
+            "vehicleNo": "OD05AR8799",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "10000"
+            }
+          },
+          {
+            "slipNo": "4463",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H9941",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4464",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H7857",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "13000"
+            }
+          },
+          {
+            "slipNo": "4465",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H7859",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "13000"
+            }
+          },
+          {
+            "slipNo": "4467",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD25G0271",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4468",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H9982",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4469",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD26U2099",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4470",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35G8487",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4471",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H0018",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4472",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H0618",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "10000"
+            }
+          },
+          {
+            "slipNo": "4473",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AB1783",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4474",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD25H0618",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "10000"
+            }
+          },
+          {
+            "slipNo": "4475",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35H6481",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4476",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "CG04MK2077",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4477",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD15K2647",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4478",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AC3885",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "15000"
+            }
+          },
+          {
+            "slipNo": "4479",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19Z5005",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "13000"
+            }
+          },
+          {
+            "slipNo": "4480",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AD1005",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "13000"
+            }
+          },
+          {
+            "slipNo": "4481",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AC3939",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4483",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AC4005",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "13000"
+            }
+          },
+          {
+            "slipNo": "4484",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19AD3939",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "14000"
+            }
+          },
+          {
+            "slipNo": "4485",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35G8759",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4486",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35G8411",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4487",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35J0465",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "15000"
+            }
+          },
+          {
+            "slipNo": "4488",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD35G8449",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4490",
+            "customer": "Maa Bhawani Roadlines",
+            "vehicleNo": "OD19W1911",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "12000"
+            }
+          },
+          {
+            "slipNo": "4142",
+            "customer": "Bijay Ku Sahoo",
+            "vehicleNo": "OD19Z3404",
+            "product": "HSD",
+            "entry": {
+              "by": "litres",
+              "litres": "420"
+            }
+          },
+          {
+            "slipNo": "782",
+            "customer": "M.G.M. Minerals Ltd",
+            "vehicleNo": "OD19U1828",
+            "product": "HSD",
+            "entry": {
+              "by": "litres",
+              "litres": "1600"
+            }
+          }
+        ],
+        "cash": {
+          "total": "22919.99"
+        }
+      }
+    ],
+    "expenses": [
+      {
+        "id": "E0",
+        "type": "Tiffin",
+        "rupees": "160",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E1",
+        "type": "DG rent",
+        "rupees": "15000",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E2",
+        "type": "Staff advance",
+        "rupees": "100",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E3",
+        "type": "Staff food",
+        "rupees": "300",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E4",
+        "type": "Tanker unloading",
+        "rupees": "350",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E5",
+        "type": "Tanker driver food",
+        "rupees": "200",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E6",
+        "type": "Cash advance to credit customer",
+        "rupees": "11000",
+        "paidFrom": "SHIFT_A"
+      }
+    ],
+    "customerPayments": [
+      {
+        "customer": "Bijay Ku Sahoo",
+        "rupees": "300000",
+        "method": "Bank transfer",
+        "shift": "A"
+      },
+      {
+        "customer": "Dord Logistics",
+        "rupees": "365052",
+        "method": "XtraPower",
+        "shift": "A"
+      },
+      {
+        "customer": "United Infracorp Ltd",
+        "rupees": "600000",
+        "method": "XtraPower",
+        "shift": "A"
+      },
+      {
+        "customer": "Maa Bhawani Roadlines",
+        "rupees": "300000",
+        "method": "Bank transfer",
+        "shift": "A"
+      }
+    ]
+  },
+  "expected": {
+    "products": {
+      "MS": {
+        "soldAsPerTank": "229.54",
+        "meterLitres": "234.80",
+        "testLitres": "10.00",
+        "soldAsPerMeters": "224.80",
+        "difference": "-4.74",
+        "differencePercent": "-2.07",
+        "withinLimit": false
+      },
+      "HSD": {
+        "soldAsPerTank": "6297.56",
+        "meterLitres": "6260.45",
+        "testLitres": "10.00",
+        "soldAsPerMeters": "6250.45",
+        "difference": "-47.11",
+        "differencePercent": "-0.75",
+        "withinLimit": false
+      }
+    },
+    "shifts": {
+      "A": {
+        "shouldHave": "660664.52",
+        "received": "660664.52",
+        "difference": "0.00",
+        "withinLimit": true,
+        "creditSlips": "550514.80",
+        "drawerExpenses": "27110.00",
+        "customerPaymentsTakenOff": "1565052.00"
+      }
+    },
+    "hardErrors": [],
+    "flags": [
+      "S1",
+      "S1"
+    ],
+    "isMatched": false
+  }
+}

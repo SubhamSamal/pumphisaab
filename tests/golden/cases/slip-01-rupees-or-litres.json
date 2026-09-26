@@ -1,0 +1,78 @@
+{
+  "kind": "slip",
+  "source": "Notebook 15 Sep 2026 + decision D27",
+  "description": "Rupee fill: litres = rupees ÷ rate, rounded UP to 2 decimals (as on the real slips). Litre fill: rupees = litres × rate.",
+  "rate": "101.74",
+  "slips": [
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "14000"
+      },
+      "litres": "137.61",
+      "rupees": "14000.00"
+    },
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "13000"
+      },
+      "litres": "127.78",
+      "rupees": "13000.00"
+    },
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "12000"
+      },
+      "litres": "117.95",
+      "rupees": "12000.00"
+    },
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "10000"
+      },
+      "litres": "98.29",
+      "rupees": "10000.00"
+    },
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "15000"
+      },
+      "litres": "147.44",
+      "rupees": "15000.00"
+    },
+    {
+      "entry": {
+        "by": "litres",
+        "litres": "420"
+      },
+      "litres": "420.00",
+      "rupees": "42730.80"
+    },
+    {
+      "entry": {
+        "by": "litres",
+        "litres": "1600"
+      },
+      "litres": "1600.00",
+      "rupees": "162784.00"
+    },
+    {
+      "entry": {
+        "by": "rupees",
+        "rupees": "15000"
+      },
+      "rules": {
+        "creditSlip": {
+          "litreDecimals": 2,
+          "litreRounding": "halfUp"
+        }
+      },
+      "litres": "147.43",
+      "rupees": "15000.00"
+    }
+  ]
+}

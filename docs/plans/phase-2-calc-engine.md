@@ -1,6 +1,6 @@
 # Phase 2 plan: Calculation engine + golden cases
 
-Status: **plan, waiting for owner "go"** · Written 26 Sep 2026 · Estimate 3-4 working days (+ notebook cases once transcribed)
+Status: **done 26 Sep 2026** (report: `phase-2-report.md`) · Written 26 Sep 2026 · Estimate 3-4 working days (+ notebook cases once transcribed)
 
 ## Why this phase comes first
 The maths is the product. If "sold as per tank", "sold as per meters" or "Difference" is wrong by even a litre, the app loses the owner's trust on day one. Building it first, with no screens and no database, lets us prove every formula against the PRD and the real notebooks, and tells us exactly what the database must store (Phase 3).

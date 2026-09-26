@@ -1,0 +1,101 @@
+{
+  "kind": "day",
+  "source": "S4",
+  "description": "HSD-A sold nothing all day (flag). HSD-B sold 250 L vs a 100 L average over 3 days, more than 2× (flag). HSD-C sold 250 L but has only 2 days of history, so no spike check. HSD-D is not in use: no flag.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "1000.00"
+          },
+          {
+            "nozzleId": "HSD-B",
+            "label": "HSD-B",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "1250.00"
+          },
+          {
+            "nozzleId": "HSD-C",
+            "label": "HSD-C",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "1250.00"
+          },
+          {
+            "nozzleId": "HSD-D",
+            "label": "HSD-D",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": false
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": [],
+    "nozzleHistory": {
+      "HSD-B": [
+        "100",
+        "100",
+        "100"
+      ],
+      "HSD-C": [
+        "100",
+        "100"
+      ]
+    }
+  },
+  "expected": {
+    "flags": [
+      "S4",
+      "S4"
+    ],
+    "isMatched": false
+  }
+}

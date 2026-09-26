@@ -1,0 +1,78 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 7",
+  "description": "Sold as per tank 8,000 L, meters 7,958 L: Difference −42 L (−0.53%), beyond 0.5%, raises S1. Screen shows −42 L (−0.53%) in red.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "20.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "200000.00",
+            "closing": "207958.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "716220.00"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "HSD": {
+        "soldAsPerTank": "8000.00",
+        "soldAsPerMeters": "7958.00",
+        "difference": "-42.00",
+        "differencePercent": "-0.53",
+        "withinLimit": false
+      }
+    },
+    "hardErrors": [],
+    "flags": [
+      "S1"
+    ],
+    "isMatched": false
+  }
+}

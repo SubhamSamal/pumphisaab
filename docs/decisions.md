@@ -2,6 +2,36 @@
 
 Newest first. Date, decision, why.
 
+## 26 Sep 2026 (real notebook day 15 Sep 2026, owner answered 16 MCQs)
+
+Source: `docs/data/notebook/Sept15-daily-report.pdf`, transcribed in `2026-09-15-transcription.md`.
+
+**D21. The pump keeps a shift notebook plus a day-summary notebook.** Meters are read at 6 AM / 2 PM / 10 PM and money is collected per shift. The app stays per shift (one place for everything).
+
+**D22. "Op. Stock" is IOCL's book (DSR) stock**, which has drifted from the dips (2,534 L MS, 4,528 L HSD on 15 Sep). **S3 is redefined:** flag when the gap (book stock − opening dip) changes from yesterday's gap by more than the limit (0.5% of the opening dip litres). Old drift is ignored; new drift is caught.
+
+**D23. Tanker short is taken off:** received net = invoice litres − short (15 Sep: 14,000 − 28 = 13,972 L). The notebook added the full 14,000 L to the tank, so the app shows HSD −47.11 L where the notebook shows −75.
+
+**D24. Cash is physically counted per shift and compared.** A shift's cash counted includes whatever was already in the drawer at the start (opening cash), which is subtracted. On 15 Sep: opening cash ₹36,013.04, cash in hand ₹22,919.99.
+
+**D25. Ways of getting paid, per shift:** Cash (note count), Paytm (UPI), Card swipe (POS, debit + credit together), XtraPower (IOCL fleet card), Bank transfer, Credit. PhonePe in the PRD becomes Paytm. Names stay editable.
+
+**D26. Settlement adjustments are ignored.** The manager types each shift's total from the Paytm / XtraPower / card machine. Bank settlement ("Adj", "not settled") is out of scope for v1; owner will confirm later if an adjustment field is needed.
+
+**D27. Credit slip in ₹ or in litres.** Rupee fill: litres = ₹ ÷ rate, **rounded up** to 2 decimals (matches every slip on 15 Sep, e.g. ₹15,000 ÷ 101.74 = 147.4346 → 147.44). Litre fill: ₹ = litres × rate, rounded to paise. Rounding direction is a setting.
+
+**D28. Cash advance to a credit customer** (S.V.T. ₹11,000) is an expense paid from the shift drawer, category "Cash advance to credit customer". It will also count against the customer's dues once the ledger exists (v2).
+
+**D29. Payments from customers** (old dues or advances; by bank, XtraPower, Paytm, card or cash) get a simple entry: customer, ₹, how, shift. They are kept out of fuel sales: the amount is taken off that shift's matching machine/bank total (or drawer, if cash) before matching. Full ledger and balances stay v2. The ₹1/L discount for 2 partner customers is given later on their bill, so slips stay at full price and the day is unaffected.
+
+**D30. Nozzles 1 and 2 (both fuels) are not in use.** Marked inactive: no readings needed, no flags.
+
+**D31. Slip numbers come from the pump's own books;** a number can never repeat across customers (H7 as in the PRD).
+
+**D32. Testing is random:** any nozzle, any shift, usually 10 L per fuel per day. The per-shift "nozzle + litres" design stays.
+
+**D33. Expense types:** Salary, Staff advance, Tiffin, Staff food, Bakshis, DG rent, Tanker unloading, Tanker driver food, Cash advance to credit customer, Other (owner can rename/add).
+
 ## 26 Sep 2026 (Phase 2 MCQ round)
 
 **D18. Notebook week: owner sends photos, Claude transcribes.** Photos go in `docs/data/notebook/`; Claude fills a spreadsheet from them; the owner checks it once for misread numbers before the days become golden cases.

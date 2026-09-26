@@ -1,0 +1,74 @@
+{
+  "kind": "day",
+  "source": "S7",
+  "description": "MS opening 129.1 cm vs last night's 128.5 cm: 0.6 cm, beyond 0.5 cm (flag). HSD 128.9 vs 128.5: 0.4 cm (OK).",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "iocl-20kl"
+      },
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "iocl-20kl"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "129.1",
+        "yesterdayClosingDipCm": "128.5"
+      },
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "128.9",
+        "yesterdayClosingDipCm": "128.5"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "flags": [
+      "S7"
+    ],
+    "isMatched": false
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "kind": "day",
+  "source": "Decision D19 (R1)",
+  "description": "Both fuels: 1,000 L left the tank, meters 957 L: −4.30%. HSD limit 4% + 0.20% = 4.20%: R1. MS limit 4% + 0.75% = 4.75%: no R1. Both raise S1.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      },
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "90.00"
+      },
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "90.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "0.00",
+            "closing": "957.00"
+          },
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "0.00",
+            "closing": "957.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "182787"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "MS": {
+        "differencePercent": "-4.30"
+      },
+      "HSD": {
+        "differencePercent": "-4.30"
+      }
+    },
+    "flags": [
+      "S1",
+      "S1",
+      "R1"
+    ],
+    "isMatched": false
+  }
+}

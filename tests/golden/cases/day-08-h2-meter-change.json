@@ -1,0 +1,76 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 9 / H2",
+  "description": "MS-A opening 19,850.00 but Shift A closed at 19,884.00, not approved: blocks submit. MS-B had an approved meter change: fine.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "B",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "19850.00",
+            "closing": "20204.00",
+            "previousClosing": "19884.00"
+          },
+          {
+            "nozzleId": "MS-B",
+            "label": "MS-B",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "100.00",
+            "closing": "365.00",
+            "previousClosing": "22140.50",
+            "meterChangeApproved": true
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "hardErrors": [
+      "H2"
+    ],
+    "isMatched": false
+  }
+}

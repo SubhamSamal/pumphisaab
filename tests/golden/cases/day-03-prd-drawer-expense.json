@@ -1,0 +1,123 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 5",
+  "description": "Same as the MS money day, but ₹300 Tiffin was paid from Shift A's drawer (so only ₹89,700 is counted) and ₹18,000 salary was paid by the owner. The Tiffin is added back to Shift A's Received; the salary is not. Difference stays 0.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "85.10"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "50000.00",
+            "closing": "51490.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [
+          {
+            "type": "Paytm",
+            "amount": "50000"
+          },
+          {
+            "type": "Card",
+            "amount": "5490"
+          }
+        ],
+        "creditSlips": [
+          {
+            "slipNo": "4471",
+            "customer": "Mahanadi Coalfields",
+            "vehicleNo": "OD05AB1234",
+            "product": "MS",
+            "entry": {
+              "by": "rupees",
+              "rupees": "5000"
+            }
+          }
+        ],
+        "cash": {
+          "byNotes": [
+            {
+              "noteValue": "500",
+              "count": "150"
+            },
+            {
+              "noteValue": "200",
+              "count": "50"
+            },
+            {
+              "noteValue": "100",
+              "count": "40"
+            }
+          ],
+          "coins": "700"
+        }
+      }
+    ],
+    "expenses": [
+      {
+        "id": "E1",
+        "type": "Tiffin",
+        "rupees": "300",
+        "paidFrom": "SHIFT_A"
+      },
+      {
+        "id": "E2",
+        "type": "Salary",
+        "rupees": "18000",
+        "paidFrom": "OWNER"
+      }
+    ],
+    "customerPayments": []
+  },
+  "expected": {
+    "shifts": {
+      "A": {
+        "shouldHave": "150490.00",
+        "received": "150490.00",
+        "difference": "0.00",
+        "cashCounted": "89700.00",
+        "drawerExpenses": "300.00"
+      }
+    },
+    "hardErrors": [],
+    "flags": [],
+    "isMatched": true
+  }
+}

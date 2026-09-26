@@ -1,0 +1,99 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 11 / H7",
+  "description": "Slip 4471 typed twice today, and slip 4400 was already used on an earlier day.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "B",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "2000.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [
+          {
+            "slipNo": "4471",
+            "customer": "Mahanadi Coalfields",
+            "vehicleNo": "OD35H9941",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "9000"
+            }
+          },
+          {
+            "slipNo": "4471",
+            "customer": "Sahu Transport",
+            "vehicleNo": "OD35H9941",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "900"
+            }
+          },
+          {
+            "slipNo": "4400",
+            "customer": "Sahu Transport",
+            "vehicleNo": "OD35H9941",
+            "product": "HSD",
+            "entry": {
+              "by": "rupees",
+              "rupees": "900"
+            }
+          }
+        ]
+      }
+    ],
+    "expenses": [],
+    "customerPayments": [],
+    "earlierSlipNumbers": [
+      "4400"
+    ]
+  },
+  "expected": {
+    "hardErrors": [
+      "H7",
+      "H7"
+    ],
+    "isMatched": false
+  }
+}

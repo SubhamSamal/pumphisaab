@@ -1,0 +1,119 @@
+{
+  "kind": "day",
+  "source": "PRD acceptance 4",
+  "description": "MS 1,490 L × ₹101.00 = Should have ₹1,50,490.00. Cash by notes 150×500 + 50×200 + 40×100 + coins ₹1,000 = ₹90,000; + Paytm ₹50,000 + Card ₹5,490 + credit ₹5,000 = Received ₹1,50,490. Difference 0.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "85.10"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "50000.00",
+            "closing": "51490.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [
+          {
+            "type": "Paytm",
+            "amount": "50000"
+          },
+          {
+            "type": "Card",
+            "amount": "5490"
+          }
+        ],
+        "creditSlips": [
+          {
+            "slipNo": "4471",
+            "customer": "Mahanadi Coalfields",
+            "vehicleNo": "OD05AB1234",
+            "product": "MS",
+            "entry": {
+              "by": "rupees",
+              "rupees": "5000"
+            }
+          }
+        ],
+        "cash": {
+          "byNotes": [
+            {
+              "noteValue": "500",
+              "count": "150"
+            },
+            {
+              "noteValue": "200",
+              "count": "50"
+            },
+            {
+              "noteValue": "100",
+              "count": "40"
+            }
+          ],
+          "coins": "1000"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "MS": {
+        "soldAsPerTank": "1490.00",
+        "soldAsPerMeters": "1490.00",
+        "difference": "0.00",
+        "withinLimit": true
+      }
+    },
+    "shifts": {
+      "A": {
+        "shouldHave": "150490.00",
+        "received": "150490.00",
+        "difference": "0.00",
+        "withinLimit": true,
+        "cashCounted": "90000.00",
+        "creditSlips": "5000.00"
+      }
+    },
+    "hardErrors": [],
+    "flags": [],
+    "isMatched": true
+  }
+}

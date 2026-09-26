@@ -1,0 +1,49 @@
+{
+  "kind": "price",
+  "source": "PRD acceptance 8",
+  "description": "The price for a day is the latest price whose start date is on or before that day.",
+  "prices": [
+    {
+      "product": "MS",
+      "perLitre": "100.00",
+      "startsOn": "2026-09-01"
+    },
+    {
+      "product": "MS",
+      "perLitre": "101.00",
+      "startsOn": "2026-10-01"
+    },
+    {
+      "product": "HSD",
+      "perLitre": "90.00",
+      "startsOn": "2026-09-01"
+    }
+  ],
+  "lookups": [
+    {
+      "product": "MS",
+      "date": "2026-09-30",
+      "perLitre": "100.00"
+    },
+    {
+      "product": "MS",
+      "date": "2026-10-01",
+      "perLitre": "101.00"
+    },
+    {
+      "product": "MS",
+      "date": "2026-12-31",
+      "perLitre": "101.00"
+    },
+    {
+      "product": "MS",
+      "date": "2026-08-31",
+      "perLitre": null
+    },
+    {
+      "product": "HSD",
+      "date": "2026-10-01",
+      "perLitre": "90.00"
+    }
+  ]
+}

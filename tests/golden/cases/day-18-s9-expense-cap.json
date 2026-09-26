@@ -1,0 +1,74 @@
+{
+  "kind": "day",
+  "source": "S9",
+  "description": "Owner capped Bakshis at ₹300 a day; ₹500 was spent: flag.",
+  "rules": {
+    "expenseDailyCaps": {
+      "Bakshis": "300"
+    }
+  },
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": []
+      }
+    ],
+    "expenses": [
+      {
+        "id": "E1",
+        "type": "Bakshis",
+        "rupees": "500",
+        "paidFrom": "SHIFT_B"
+      }
+    ],
+    "customerPayments": []
+  },
+  "expected": {
+    "flags": [
+      "S9"
+    ],
+    "isMatched": false
+  }
+}
