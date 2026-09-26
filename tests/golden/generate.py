@@ -429,5 +429,20 @@ write("notebook-2026-09-15", {
                          "creditSlips": "550514.80", "drawerExpenses": "27110.00", "customerPaymentsTakenOff": "1565052.00"}},
         "hardErrors": [], "flags": ["S1", "S1"], "isMatched": False}})
 assert q(should) == "660664.52" and q(received) == "660664.52"
+# ─── 7. Business date (shared by app and database) ───────────────────────
+write("bizdate-01-business-day", {
+    "kind": "businessDate", "source": "PRD F1 + acceptance 19, hard rule 9",
+    "description": "A business day runs from the day start (06:00 IST) to the same time next day. Shift C at 02:00 belongs to the previous date.",
+    "cases": [
+        {"at": "2026-10-01T06:00:00+05:30", "dayStart": "06:00", "businessDate": "2026-10-01"},
+        {"at": "2026-10-01T05:59:59+05:30", "dayStart": "06:00", "businessDate": "2026-09-30"},
+        {"at": "2026-10-02T02:00:00+05:30", "dayStart": "06:00", "businessDate": "2026-10-01"},
+        {"at": "2026-10-01T23:59:00+05:30", "dayStart": "06:00", "businessDate": "2026-10-01"},
+        {"at": "2026-10-01T00:30:00Z", "dayStart": "06:00", "businessDate": "2026-10-01"},
+        {"at": "2026-10-01T00:29:00Z", "dayStart": "06:00", "businessDate": "2026-09-30"},
+        {"at": "2026-10-01T06:30:00+05:30", "dayStart": "07:00", "businessDate": "2026-09-30"},
+        {"at": "2027-01-01T03:00:00+05:30", "dayStart": "06:00", "businessDate": "2026-12-31"},
+    ]})
+
 print("MS", q(ms_tank), q(ms_d), q(ms_p), "HSD", q(hsd_tank), q(hsd_d), q(hsd_p))
 print("written", len(os.listdir(OUT)), "case files")

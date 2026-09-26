@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  check:
+  app:
+    name: App (typecheck, lint, tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -17,3 +18,18 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+
+  database:
+    name: Database (throwaway copy, all migrations, pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Builds a throwaway Supabase from zero with every migration in supabase/migrations.
+      # Services the database tests don't need are skipped to save time. The live project is never touched.
+      - run: supabase start -x realtime,storage-api,imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+      - run: supabase test db
+      - run: supabase stop --no-backup
+        if: always()

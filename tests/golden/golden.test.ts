@@ -21,6 +21,7 @@ import {
   type DipChartRow,
   type Rules,
 } from "@/calc";
+import { businessDateAt } from "@/lib/businessDay";
 import { Decimal } from "@/lib/decimal";
 
 const DIR = join(__dirname);
@@ -153,6 +154,10 @@ describe("golden cases", () => {
           if (e.hardErrors) expect(sorted(result.hardErrors.map((i) => i.code)), "hard errors").toEqual(sorted(e.hardErrors));
           if (e.flags) expect(sorted(result.flags.map((i) => i.code)), "flags").toEqual(sorted(e.flags));
           if ("isMatched" in e) expect(result.isMatched, "matched").toBe(e.isMatched);
+          break;
+        }
+        case "businessDate": {
+          for (const b of c.cases) expect(businessDateAt(new Date(b.at), b.dayStart), `${b.at} (day starts ${b.dayStart})`).toBe(b.businessDate);
           break;
         }
         default:
