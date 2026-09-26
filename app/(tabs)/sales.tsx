@@ -7,7 +7,7 @@ export default function SalesScreen() {
     <>
       <MainHeader title="Sales" />
       <ScreenBody>
-        <ComingSoon icon="rupee" line="Cash, PhonePe, POS, XtraPower, Bank and Credit per shift arrive in Phase 6." />
+        <ComingSoon icon="rupee" line="Cash, PhonePe, POS, XtraPower, Bank and Credit per shift arrive in Phase 4." />
       </ScreenBody>
     </>
   );

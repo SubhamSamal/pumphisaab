@@ -7,7 +7,7 @@ export default function TankerScreen() {
     <>
       <MainHeader title="Tanker" />
       <ScreenBody>
-        <ComingSoon icon="truck" line="Tanker receipts arrive in Phase 6." />
+        <ComingSoon icon="truck" line="Tanker receipts arrive in Phase 4." />
       </ScreenBody>
     </>
   );

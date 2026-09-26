@@ -1,0 +1,20 @@
+/**
+ * Turns technical errors into one plain sentence that says what to do (design system: Alerts).
+ */
+
+type ErrorLike = { message?: string; code?: string; status?: number; name?: string } | null | undefined;
+
+export function friendlyError(error: unknown, fallback = "Something went wrong. Try again."): string {
+  const e = error as ErrorLike;
+  const message = (e?.message ?? "").toLowerCase();
+
+  if (message.includes("invalid login credentials")) return "Username or password is wrong. Check and try again.";
+  if (message.includes("banned")) return "This login is switched off. Ask the owner.";
+  if (message.includes("network request failed") || message.includes("failed to fetch") || message.includes("fetch failed"))
+    return "No internet. Check the connection and try again.";
+  if (e?.code === "40001" || message.includes("someone else changed this")) return "Someone else changed this just now. Reload and try again.";
+  if (e?.code === "42501" || message.includes("row-level security") || message.includes("permission denied"))
+    return "You don't have permission to do that.";
+  if (e?.code === "23505" || message.includes("duplicate key")) return "That name is already there.";
+  return fallback;
+}

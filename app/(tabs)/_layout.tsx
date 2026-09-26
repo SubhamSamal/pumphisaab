@@ -1,11 +1,11 @@
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { BottomNav, SideRail, useIsWide, type NavItem } from "@/components/ui";
-import { useRole } from "@/features/session/RoleProvider";
+import { useSession } from "@/features/session/SessionProvider";
 import { tabsFor, type TabKey } from "@/features/shell/tabs";
 
 export default function TabsLayout() {
-  const { role } = useRole();
+  const { role } = useSession();
   const wide = useIsWide() && Platform.OS === "web";
   const visible = tabsFor(role);
 

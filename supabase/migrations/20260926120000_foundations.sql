@@ -199,7 +199,9 @@ begin
     tg_op,
     case when tg_op in ('UPDATE', 'DELETE') then to_jsonb(old) end,
     case when tg_op in ('INSERT', 'UPDATE') then to_jsonb(new) end,
-    auth.uid(),
+    -- The logged-in person. For changes made by the create-user function (service role), the
+    -- function records the owner who asked for it in updated_by, so that is used instead.
+    coalesce(auth.uid(), case when tg_op <> 'DELETE' then (v_row ->> 'updated_by')::uuid end),
     coalesce(auth.jwt() ->> 'role', current_user)
   );
   return null;

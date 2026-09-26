@@ -200,10 +200,34 @@ export type TextFieldProps = {
   secure?: boolean;
   disabled?: boolean;
   autoComplete?: TextInputProps["autoComplete"];
+  /** Something inside the box on the right, e.g. a "Show" button for passwords. */
+  right?: ReactNode;
+  /** "words" for names; usernames and passwords stay as typed. */
+  capitalize?: "none" | "words";
+  returnKeyType?: TextInputProps["returnKeyType"];
+  onSubmitEditing?: TextInputProps["onSubmitEditing"];
+  inputRef?: React.Ref<TextInput>;
 };
 
 /** Non-numeric field, 16 px medium text. */
-export function TextField({ label, value, onChangeText, onBlur, placeholder, error, helper, vehicle, secure, disabled, autoComplete }: TextFieldProps) {
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  onBlur,
+  placeholder,
+  error,
+  helper,
+  vehicle,
+  secure,
+  disabled,
+  autoComplete,
+  right,
+  capitalize = "none",
+  returnKeyType,
+  onSubmitEditing,
+  inputRef,
+}: TextFieldProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
   return (
@@ -211,6 +235,7 @@ export function TextField({ label, value, onChangeText, onBlur, placeholder, err
       {label ? <FieldLabel>{label}</FieldLabel> : null}
       <FieldBox focused={focused} state={error ? "error" : "default"} disabled={disabled}>
         <TextInput
+          ref={inputRef}
           accessibilityLabel={label}
           value={value}
           onChangeText={(v) => onChangeText?.(vehicle ? v.toUpperCase().replace(/[\s-]/g, "") : v)}
@@ -220,7 +245,9 @@ export function TextField({ label, value, onChangeText, onBlur, placeholder, err
             onBlur?.();
           }}
           editable={!disabled}
-          autoCapitalize={vehicle ? "characters" : "none"}
+          autoCapitalize={vehicle ? "characters" : capitalize}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
           autoCorrect={false}
           autoComplete={autoComplete}
           secureTextEntry={secure}
@@ -240,6 +267,7 @@ export function TextField({ label, value, onChangeText, onBlur, placeholder, err
             vehicle ? ({ fontFeatureSettings: "'zero'" } as object) : null,
           ]}
         />
+        {right}
       </FieldBox>
       {error ? <FieldError message={error} /> : helper ? <FieldHint>{helper}</FieldHint> : null}
     </View>

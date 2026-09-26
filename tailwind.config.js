@@ -22,6 +22,9 @@ const sizes = {
 module.exports = {
   content: ["./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   presets: [require("nativewind/preset")],
+  // Our ThemeProvider switches colours itself (CSS variables per theme); NativeWind's own dark mode
+  // isn't used. "class" stops NativeWind throwing when a browser adds a dark/light class to the page.
+  darkMode: "class",
   theme: {
     colors: {
       transparent: "transparent",

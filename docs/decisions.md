@@ -2,6 +2,14 @@
 
 Newest first. Date, decision, why.
 
+## 26 Sep 2026 (Phase 3 build)
+
+**D41. Web is a single-page app** (`web.output: "single"`), not pre-rendered pages. The app sits behind a login, so there's nothing to pre-render, and the saved-login storage needs a real browser. Cloudflare Pages serves it the same way.
+
+**D42. Audit log order uses a running number (`seq`)** as well as the exact clock time, so changes saved together always read in the right order.
+
+**D43. Build profiles** (`eas.json`): `development` (our own dev app, Android APK), `preview` and `production` (installable APKs, no Play Store), each on its own EAS Update channel of the same name.
+
 ## 26 Sep 2026 (Phase 3 MCQ round)
 
 **D34. Android package ID: `com.pumphisaab.app`** (permanent).

@@ -1,5 +1,5 @@
 import type { IconName } from "@/components/ui";
-import type { Role } from "@/features/session/RoleProvider";
+import type { Role } from "@/features/session/SessionProvider";
 
 export type TabKey = "index" | "sales" | "tanker" | "dashboard" | "profile";
 
