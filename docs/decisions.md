@@ -2,6 +2,18 @@
 
 Newest first. Date, decision, why.
 
+## 26 Sep 2026 (Phase 1 decisions, owner answered the MCQ round)
+
+**D7. Phase 1 libraries approved:** NativeWind 4.2 + Tailwind 3.4 (current stable, not the v5 preview), Inter via `@expo-google-fonts/inter`, Lucide icons (`lucide-react-native` + `react-native-svg`), Vitest, decimal.js. All run in Expo Go.
+Why: in the CLAUDE.md stack or required by the design (Lucide, Inter).
+
+**D8. Gallery and role switch are developer-only.** The component gallery and an Owner/Manager preview switch exist only in development (Expo Go / localhost), never in released builds.
+Why: login arrives in Phase 2; no extra surface in the real app.
+
+**D9. Tabs show simple empty states in Phase 1** (title, bell, one line saying which phase fills it). No fake numbers.
+
+**D10. Light / Dark / Auto switch in Profile is built in Phase 1.** Default Auto (follows the phone); the choice is remembered on that phone only.
+
 ## 25 Sep 2026
 
 **D1. One PRD.** `docs/PRD-PumpHisaab-v1.1.md` is the only PRD. The draft copy that lived in the design canvas folder was deleted, along with the old v1 canvas and the design-system zip (duplicate of the folder).
