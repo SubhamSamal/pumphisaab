@@ -44,7 +44,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
 - [ ] Owner to confirm: cash counted includes opening drawer cash; machine totals include customers' dues payments
-- Deferred: Sentry → Phase 3; PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
+- Deferred: Sentry → Phase 4 (D40); PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
 ---
 

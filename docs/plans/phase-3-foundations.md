@@ -59,11 +59,13 @@ Pump, the real dip chart (211 rows), MS-1 and HSD-1, 8 nozzles (1 and 2 not in u
 - A small secure server function (**Edge Function** `create-user`) creates or resets a manager's login. It runs on Supabase's servers with the secret service key, which never goes in the app (hard rule 11). It checks the caller is the pump's owner.
 - A minimal **Profile › Logins** screen (canvas Flow 13): add manager (full name, username, password), reset password, switch off. The rest of the settings screens stay in Phase 6.
 
-### H. Our own app build, instant fixes, crash tracking (D17)
+### G2. Staff list (D38)
+- **Profile › Staff:** add a name, rename, switch off. Owner and managers can both do this. These names become the attendant chips on each shift in Phase 4.
+
+### H. Our own app build and instant fixes (D17)
 - **Android package ID** (permanent, question 1).
 - **Development build** of the app for your Android phone via EAS (a real installable APK, replaces Expo Go on Android). Needed for push notifications later.
 - **EAS Update:** fixes reach phones in minutes without reinstalling. Two channels: `preview` (you) and `production` (pilot).
-- **Sentry:** crashes and errors from phones and web arrive with the screen and app version, never with typed numbers or passwords.
 - **iPhone:** a development build needs a paid Apple developer account (US$99/year), which isn't in scope. Your iPhone keeps using Expo Go, which still works for everything in Phases 3-4 except push.
 
 ### I. Libraries this adds (CLAUDE.md: ask first)
@@ -74,27 +76,35 @@ Pump, the real dip chart (211 rows), MS-1 and HSD-1, 8 nozzles (1 and 2 not in u
 | `@tanstack/react-query` | Loading and caching data | Yes |
 | `react-hook-form` + `zod` | The sign-in and add-manager forms | Yes |
 | `expo-updates` | Instant fixes (EAS Update) | New, decided in D17 |
-| `@sentry/react-native` | Crash tracking | Yes (Sentry) |
 | `expo-dev-client` | Our own development build | New, decided in D17 |
 
 ## What I'll need from you (after "go", with exact click-by-click steps)
 1. **Supabase dashboard:** copy the project URL and anon (public) key into a `.env` file on this Mac (I'll tell you exactly where); turn off "Confirm email"; create your own login user.
 2. **Paste the migrations** into the SQL editor, in the order I give, after reading each one's warning header. Then run one check query I give you and paste me the result.
 3. **Deploy the `create-user` function** (method: question 2).
-4. **Sentry:** create a free account and project, paste me the DSN (a public address, not a secret).
-5. **Android phone:** install the development build APK from a link.
+4. **Android phone:** install the development build APK from a link.
+5. **Create the test manager** `manager.test` from Profile › Logins and log in with it once.
 
 ## Tests and checks
 - App: typecheck, lint, all Vitest tests (65 today + login form + session handling).
 - Database (in CI): every migration applies from zero; every table has the required columns, RLS and audit trigger; RLS isolation between two pumps; owner-only writes; audit log fills on every change and can't be edited; golden cases for dip, price and business date match the app.
 - By hand: you and a test manager log in on your phones and on the web; each sees the right tabs; the manager can't reach owner screens.
 
+## Owner decisions for this phase (26 Sep 2026)
+- Android package ID `com.pumphisaab.app` (D34)
+- You paste Edge Functions in the dashboard; I never deploy to live (D35)
+- Hidden login email `<username>@users.pumphisaab.com` (D36)
+- Seed: setup + prices MS ₹110.07 / HSD ₹101.74 from 15 Sep 2026; no credit customers or staff (D37)
+- Staff added in the app by owner or managers (D38)
+- Your username `subham`; test manager `manager.test` (D39)
+- Sentry moves to Phase 4; iPhone stays on Expo Go (D40)
+
 ## Not in this phase
-Daily entry tables and screens (Phase 4 slices), flags, push notifications, owner notes (Phase 5), full settings screens (Phase 6), PostHog (Phase 6), backups decision (before Phase 5).
+Daily entry tables and screens (Phase 4 slices), flags, push notifications, owner notes (Phase 5), full settings screens (Phase 6), PostHog (Phase 6), Sentry (Phase 4), credit customers screen (Phase 4, with credit slips), backups decision (before Phase 5).
 
 ## Exit check
 - You and one manager log in on your phones and web and see the right tabs and your pump's setup.
 - RLS test proves Pump X can't see Pump Y.
 - CI green including database tests; migration ledger on the live database matches the repo.
 - Audit log shows the setup rows and your login changes.
-- A crash test from the development build shows up in Sentry; an EAS Update reaches your Android phone.
+- An EAS Update reaches your Android phone.

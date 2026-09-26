@@ -2,6 +2,22 @@
 
 Newest first. Date, decision, why.
 
+## 26 Sep 2026 (Phase 3 MCQ round)
+
+**D34. Android package ID: `com.pumphisaab.app`** (permanent).
+
+**D35. Edge Functions are pasted by the owner** in Supabase › Edge Functions, like migrations. Claude Code never deploys to the live project.
+
+**D36. Hidden login email: `<username>@users.pumphisaab.com`** (a domain the owner controls; no email is ever sent). Replaces `@pumphisaab.app` in PRD F16.
+
+**D37. Seed data:** pump, real dip chart, tanks, nozzles (1 and 2 not in use), shifts, payment types, notes, expense types, rules, and prices MS ₹110.07 / HSD ₹101.74 starting 15 Sep 2026. **Credit customers and staff are not seeded;** they are added in the app.
+
+**D38. Staff list is managed in the app** (Profile › Staff: add, rename, switch off), built in Phase 3. Owner and managers can both manage staff (attendants change often); every other setup table stays owner-only.
+
+**D39. Logins:** owner username `subham`; first manager is a test login `manager.test`, created from Profile › Logins and removed before the pilot.
+
+**D40. Sentry waits until Phase 4** (not in Phase 3). iPhone stays on Expo Go (a development build needs a paid Apple account); Android gets the development build.
+
 ## 26 Sep 2026 (real notebook day 15 Sep 2026, owner answered 16 MCQs)
 
 Source: `docs/data/notebook/Sept15-daily-report.pdf`, transcribed in `2026-09-15-transcription.md`.
