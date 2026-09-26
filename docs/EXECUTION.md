@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status snapshot (last updated 26 Sep 2026, evening)
 
-**Where we are:** Phases 0, 1 and 2 done. Next: Phase 3 (foundations), plan in `docs/plans/phase-3-foundations.md`, waiting for the owner's "go".
+**Where we are:** Phase 3 (foundations) built and tested in CI; waiting on the owner's Supabase steps (`docs/plans/phase-3-owner-steps.md`) and a phone check.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -37,6 +37,14 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Real notebook day understood (16 MCQs, decisions D21-D33); report in `docs/plans/phase-2-report.md`
 - [x] 65 tests green, CI green
 - [x] Project KT started: `docs/learnings.md` (how the pump and notebooks really work, product, build and process learnings); CLAUDE.md now requires keeping it updated
+
+### Phase 3: foundations (built 26 Sep 2026; owner steps pending)
+- [x] 4 migrations: change log, audit log, row stamps with version check, pumps and members, setup tables, RLS, versioned dip charts, dip/business-date/price functions, pilot seed
+- [x] Database tests (pgTAP) in CI on a throwaway Supabase: structure rules, security between pumps, audit, golden cases, seed
+- [x] Sign in (username + password), session states, Profile › Logins (owner) and Staff (everyone), create-user Edge Function
+- [x] Android package com.pumphisaab.app, EAS Update channels, first Android development build started
+- [ ] Owner: Supabase settings, own login, paste migrations 1-4, check query, deploy create-user, send URL + public key
+- [ ] Owner: sign in as subham, create manager.test, sign in as manager on a phone; install Android dev build
 
 ### Still open
 - [ ] Android phone check in Expo Go (same QR code)
