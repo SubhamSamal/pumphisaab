@@ -9,6 +9,8 @@ Why: "Tap to type" wasn't obvious and the closing box did nothing until the open
 
 **D56. Numbers show Indian commas while being typed** (1,26,942.71) in every number box, so lakhs and thousands can't be confused. The stored number never has commas.
 
+**D58. The owner approves a meter change with an Approve button right on the nozzle row,** and Today shows the owner a banner ("1 meter change waiting for your approval" › Open Shift B). Found on the phone check: a note saying "tap it" wasn't enough. Sign-in shows the logo beside the name (shorter top, fits above the keyboard).
+
 **D57. Error messages under a box are 14 px and short** ("Less than the opening. Check the meter."), and the screen keeps a message that appears while typing above the keyboard.
 
 ## 27 Sep 2026 (slice 4b build)

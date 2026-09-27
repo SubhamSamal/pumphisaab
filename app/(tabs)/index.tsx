@@ -80,7 +80,11 @@ export default function TodayScreen() {
       shiftInputs(setup.data, shifts.data),
     );
     const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data);
-    return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data) };
+    // Shift codes with a meter change waiting for the owner (H2), for the owner's banner.
+    const pendingMeter = shifts.data.lines
+      .filter((l) => l.meterChange === "PENDING")
+      .map((l) => shifts.data.shifts.find((s) => s.id === l.shiftId)?.code ?? "");
+    return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data), pendingMeter };
   }, [setup.data, day.data, tanks.data, shifts.data]);
 
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
@@ -165,6 +169,24 @@ export default function TodayScreen() {
               onLock={() => lock.mutate(day.data.id, { onSuccess: () => track("day_locked", { date }) })}
               onUnlock={() => unlock.mutate(day.data.id, { onSuccess: () => track("day_unlocked", { date }) })}
             />
+
+            {isOwner && model.pendingMeter.length > 0 ? (
+              <Banner
+                tone="warning"
+                icon="edit"
+                title={`${model.pendingMeter.length} meter change${model.pendingMeter.length === 1 ? "" : "s"} waiting for your approval`}
+                action={
+                  <Button
+                    label={`Open Shift ${model.pendingMeter[0]}`}
+                    size="M"
+                    variant="secondary"
+                    onPress={() => router.push({ pathname: "/day/shift", params: { date, code: model.pendingMeter[0] } })}
+                  />
+                }
+              >
+                A new opening was typed after a meter repair or replacement. Check it and tap Approve.
+              </Banner>
+            ) : null}
 
             {model.price.missing.length > 0 ? (
               <Banner tone="warning" title={`No ${model.price.missing.join(" or ")} price for ${fmtDate(date, "short")}`}>

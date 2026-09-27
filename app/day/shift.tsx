@@ -138,6 +138,7 @@ function ShiftForm({
 }) {
   const saveReading = useSaveNozzleReading(pumpId, day.id);
   const setAttendant = useSetAttendant(pumpId, day.id);
+  const approve = useApproveMeterChange(day.id);
   const locked = day.isLocked;
   const [openedAt] = useState(() => Date.now());
   const [problem, setProblem] = useState<string | null>(null);
@@ -333,11 +334,24 @@ function ShiftForm({
                       note={
                         pending
                           ? isOwner
-                            ? "New opening waits for your approval. Tap it."
+                            ? `New opening waits for your approval (last closing ${fmtMeter(line?.previousClosing ?? "0")}).`
                             : "New opening waits for the owner. Keep working."
-                          : typeOpening && line?.hasPrevious
+                          : typeOpening && line?.hasPrevious && !openings[n.id]
                             ? `${before ? `Shift ${before.code}` : "Last night's shift"} has no closing yet. Type the opening from the meter.`
                             : undefined
+                      }
+                      noteAction={
+                        pending && isOwner && line?.readingId && !locked
+                          ? {
+                              label: "Approve",
+                              loading: approve.isPending,
+                              onPress: () =>
+                                approve.mutate(line.readingId as string, {
+                                  onSuccess: () => track("meter_change_approved", { shift: shift.code }),
+                                  onError: (e) => setProblem(e.message),
+                                }),
+                            }
+                          : undefined
                       }
                       editable={!locked}
                       onPressOpening={locked || typeOpening ? undefined : () => setSheet({ nozzle: n, line })}

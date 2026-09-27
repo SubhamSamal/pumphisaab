@@ -36,7 +36,8 @@ export default function SignIn() {
     // revealToEnd: with the keyboard open, the Sign in button stays visible under the password box.
     <KeyboardSafeScroll contentContainerClassName="px-24 pb-24 pt-[96px]" revealToEnd>
         <View className="w-full max-w-content gap-40 self-center">
-          <View className="gap-12">
+          {/* Logo beside the name (owner, 27 Sep): a shorter top, so the form fits above the keyboard. */}
+          <View className="flex-row items-center gap-12">
             <LogoMark />
             <Wordmark />
           </View>

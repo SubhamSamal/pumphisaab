@@ -3,6 +3,7 @@ import { Pressable, TextInput, View } from "react-native";
 import { fromShown, showTyped } from "@/lib/numberInput";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fontFamilyForWeight, text as textTokens } from "@/theme/theme";
+import { Button } from "./Button";
 import { FieldError } from "./Field";
 import { Icon } from "./Icon";
 import type { Product } from "./Tag";
@@ -138,6 +139,8 @@ export type NozzleRowProps = {
   error?: string;
   /** Amber line under the boxes (e.g. a meter change waiting for the owner). Never blocks typing. */
   note?: string;
+  /** A button beside the note (the owner's "Approve"). */
+  noteAction?: { label: string; onPress: () => void; loading?: boolean };
 };
 
 /**
@@ -160,6 +163,7 @@ export function NozzleRow({
   onSubmitEditing,
   error,
   note,
+  noteAction,
 }: NozzleRowProps) {
   return (
     <View className={`gap-8 border-b border-border px-[2px] py-12 ${error ? "bg-danger-subtle" : ""}`}>
@@ -197,13 +201,16 @@ export function NozzleRow({
       {error ? (
         <FieldError message={error} />
       ) : note ? (
-        <View className="flex-row items-start gap-4">
-          <View className="mt-[2px]">
-            <Icon name="clock" size="small" color="warning" />
+        <View className="flex-row items-center gap-8">
+          <View className="min-w-0 flex-1 flex-row items-start gap-4">
+            <View className="mt-[2px]">
+              <Icon name="clock" size="small" color="warning" />
+            </View>
+            <Text variant="label" weight="400" tone="warning" className="flex-1">
+              {note}
+            </Text>
           </View>
-          <Text variant="label" weight="400" tone="warning" className="flex-1">
-            {note}
-          </Text>
+          {noteAction ? <Button label={noteAction.label} icon="check" size="M" loading={noteAction.loading} onPress={noteAction.onPress} /> : null}
         </View>
       ) : null}
     </View>
