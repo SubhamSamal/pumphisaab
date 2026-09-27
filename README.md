@@ -3,6 +3,7 @@
 Sara hisaab ek jagah. Daily entry and same-day matching for Indian petrol pumps.
 
 - Rules for anyone (or any AI) working here: [CLAUDE.md](CLAUDE.md)
+- Start here in a new session: [docs/HANDOFF.md](docs/HANDOFF.md)
 - What we're building: [docs/PRD-PumpHisaab-v1.1.md](docs/PRD-PumpHisaab-v1.1.md)
 - Plan and status: [docs/EXECUTION.md](docs/EXECUTION.md)
 - Decisions log: [docs/decisions.md](docs/decisions.md)

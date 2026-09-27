@@ -6,7 +6,7 @@ Anyone new to the project (a person, or Claude Code in a new session) should be 
 - **Decisions** (what we chose) live in `docs/decisions.md` (D1, D2 …). This file explains the **why** and the **how things really work**, and points to the decisions.
 - **Keep it growing:** every new notebook day, owner answer or surprise gets added here, newest learnings at the end of each section, with the date.
 
-Last updated: 26 Sep 2026 (Phase 3 build)
+Last updated: 27 Sep 2026 (end of Phase 3)
 
 ---
 
@@ -152,9 +152,14 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **`npx expo start` changed meaning once expo-dev-client was added:** it defaults to "development build" mode, whose QR code Expo Go and the iPhone camera can't read. Use `npm start` (Expo Go + web) or `npm run start:android-app` (our Android app).
 - **Supabase "Allow new users to sign up" can look saved but not be.** Always re-test by attempting a sign-up; a test account was created on 26 Sep because of this and then deleted.
 - **iPhone stays on Expo Go** (our own iPhone build needs a paid Apple account); Android gets our development build (APK from EAS).
+- **Supabase keys:** the dashboard's "API URL" ends in `/rest/v1/`; the app needs only the base URL. The new "publishable key" (`sb_publishable_…`) works with supabase-js in place of the old anon key. User sign-in tokens are ES256 (new signing keys) and the Edge Function with "Verify JWT" on accepts them.
+- **Live security was tested from outside** after setup (26 Sep): not signed in → nothing; a login with no pump → nothing, can't write, function refuses; sign-up refused.
+- **Android:** our development app installs from an EAS link (allow Chrome to install unknown apps; Play Protect "Install anyway"). Expo Go is not needed on Android.
+- **Local database check** is saved in `tools/db-local-check/` (PGlite + stand-ins), so any session can use it.
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
 ## 7. How we work (process learnings)
+- **Give the owner all steps at once** (numbered, click by click, what to send back); one step at a time felt slow. Plans for each phase live in `docs/plans/`, and `docs/HANDOFF.md` is the start page for a new session.
 - **Every phase:** plan → owner MCQs → owner says "go" → build → check → plain-language summary. Nothing is built before "go".
 - **MCQs over open questions:** the owner answers fastest with 3-4 options and a recommendation; when an answer doesn't match the question, ask again with the exact text quoted (happened once with "Payment Received").
 - **Real data beats assumptions:** one notebook day changed 13 decisions. Get real data before designing anything that touches money.
@@ -162,9 +167,4 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Test like CI before pushing** (fresh clone); tell the owner plainly when something failed and why.
 
 ## 8. Still open
-- Cash handover: confirm the drawer is counted including opening cash, and opening cash is subtracted.
-- Confirm machine totals (Paytm, card, XtraPower, bank) include customers' dues payments, which the app then takes off.
-- Backups: Supabase Pro vs nightly copy (before Phase 5).
-- Whether "Adj" on XtraPower/Paytm needs its own field later (owner to check).
-- 6 more notebook days to turn into golden cases.
-- Android phone check in Expo Go.
+See `docs/HANDOFF.md` section 7 (kept there so there is one list). Also: whether "Adj" on XtraPower/Paytm needs its own field later (owner to check).

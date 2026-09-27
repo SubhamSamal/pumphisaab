@@ -44,3 +44,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+tools/db-local-check/node_modules/

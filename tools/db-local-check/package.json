@@ -1,0 +1,13 @@
+{
+  "name": "db-local-check",
+  "private": true,
+  "type": "module",
+  "description": "Quick local check of supabase/migrations and supabase/tests using PGlite (in-memory Postgres). Not part of the app.",
+  "scripts": {
+    "migrate": "node harness.mjs migrate",
+    "test": "node runtests.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8"
+  }
+}

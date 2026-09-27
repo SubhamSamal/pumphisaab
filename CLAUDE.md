@@ -1,6 +1,7 @@
 # CLAUDE.md: PumpHisaab
 
 Read this file fully before every task. If a request conflicts with this file, stop and ask.
+In a new session, read `docs/HANDOFF.md` next: it says where the project stands and what to do first.
 
 ## What we are building
 PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps. Managers enter the day's dips, meter readings, testing, money received, credit sales, tanker receipts and expenses. The app auto-calculates and matches **sold as per tank vs sold as per meters vs money received**, per shift and per day, and flags leaks to the owner.
@@ -33,7 +34,8 @@ supabase/migrations/    SQL migrations (only way to change the database)
 supabase/functions/     Edge Functions (create user, push sender)
 supabase/tests/         pgTAP tests (RLS, triggers, views)
 tests/golden/           Golden calculation cases (JSON) shared by Vitest and pgTAP
-docs/                   PRD, design tokens, decisions log (docs/decisions.md), learnings/KT (docs/learnings.md)
+docs/                   PRD, design tokens, decisions log (docs/decisions.md), learnings/KT (docs/learnings.md), start-here (docs/HANDOFF.md), phase plans (docs/plans/)
+tools/                  Developer-only helpers, not part of the app (tools/db-local-check)
 ```
 
 ## Hard rules
