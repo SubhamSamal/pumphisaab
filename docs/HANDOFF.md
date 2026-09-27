@@ -1,12 +1,12 @@
 # Start here (new Claude Code session)
 
-Last updated: 27 Sep 2026, start of Phase 4 (plan written, MCQs answered, waiting for "go"). This is the one page a new session reads first to pick up exactly where the last one stopped.
+Last updated: 27 Sep 2026, Phase 4 slice 4a built (waiting for the owner to paste migration 5 and try it on the phones). This is the one page a new session reads first to pick up exactly where the last one stopped.
 
 ## 1. Read, in this order
 1. `CLAUDE.md` (repo root): hard rules. They override everything.
 2. **This file.**
 3. `docs/EXECUTION.md`: phase plan and status checklist (verify it against the repo).
-4. `docs/decisions.md`: every decision D1-D52, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
+4. `docs/decisions.md`: every decision D1-D53, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
 5. `docs/learnings.md`: how the pump and notebooks really work, product, technical and process lessons.
 6. `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with the decisions above layered on top).
 7. `docs/design/canvas/` (v2 screen flows, final) and `docs/design-tokens.json`: visual source of truth. `docs/design/design-system/components/*/README.md` notes are partly stale (D2, D13).
@@ -19,7 +19,7 @@ Last updated: 27 Sep 2026, start of Phase 4 (plan written, MCQs answered, waitin
 | 1 App shell and design system | Done 26 Sep |
 | 2 Calculation engine + golden cases | Done 26 Sep (`docs/plans/phase-2-report.md`) |
 | 3 Foundations: database, security, login | Done 27 Sep (`docs/plans/phase-3-foundations.md`) |
-| **4 Daily entry, slice by slice** | **Plan written (`docs/plans/phase-4-daily-entry.md`), MCQs answered (D45-D52). Waiting for the owner's "go". Nothing built yet. First slice: 4a.** |
+| **4 Daily entry, slice by slice** | **In progress. 4a built (migration 5, Today, Opening dip, locking); owner steps in `docs/plans/phase-4-owner-steps.md`. Next: owner pastes migration 5 + phone check, then slice 4b.** |
 | 5 Notebook comparison + owner loop (flags, lock, alerts, push) | Later |
 | 6 Owner settings screens, dashboard, PostHog | Later |
 | 7 Hardening and go-live | Later |
@@ -44,7 +44,7 @@ Phase 4 slices (details in the Phase 4 plan): 4a day lifecycle + price Confirm +
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main` |
 | Supabase | project `pumphisaab`, URL `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Sign-up OFF, confirm email OFF, min password 8 |
-| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`) |
+| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`). Written, not yet pasted: `20260927120000_day_opening` (4a) |
 | Edge Function | `create-user` deployed by the owner (verify JWT on) |
 | Logins | `subham` (Owner), `manager.test` (Manager, test only, remove before pilot). Hidden emails `<username>@users.pumphisaab.com` |
 | `.env` | On the owner's Mac only (gitignored): `EXPO_PUBLIC_SUPABASE_URL` + publishable key. Never commit; never put a secret/service key in the app |

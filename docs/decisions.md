@@ -2,6 +2,15 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (slice 4a build)
+
+**D53. Small rules settled while building 4a** (inside the approved plan):
+- A day row is created the first time someone opens it (`open_day()`), not by a nightly job. Nobody can open a future date. A manager can **start** only today and the 2 days before; the owner can start any past day (old notebook days). A day that already exists can be opened by anyone and edited if it isn't locked.
+- The pump's **first day in the app** (`pumps.first_business_date`) is set to the day migration 5 is pasted. "Submit yesterday first" and the not-submitted warnings only count days from then on; the pre-pilot clean-up resets it.
+- The prices the manager confirmed are stored on the day. If the owner then adds a price for that date, the strip asks again ("New price from today", showing the confirmed price as "was").
+- Only a submitted day can be locked. Unlocking a day the owner locked makes it Submitted again (and exempt from auto-lock until locked).
+- The owner's date picker goes back up to a year; a manager's goes back 2 days.
+
 ## 27 Sep 2026 (Phase 4 MCQ round)
 
 Plan: `docs/plans/phase-4-daily-entry.md`.

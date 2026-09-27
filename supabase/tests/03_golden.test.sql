@@ -2,7 +2,7 @@
 -- The database's maths must give exactly the same answers as the app's (CLAUDE.md hard rule 4).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(40);
 
 -- Chart for dip-01-real-chart-readings.json
 insert into public.dip_charts (id, pump_id, name, chart_version)
@@ -228,6 +228,759 @@ insert into public.fuel_prices (pump_id, product, per_litre, starts_on) values
   ('eeeeeeee-0000-0000-0000-000000000001', 'MS', 101.00, '2026-10-01'),
   ('eeeeeeee-0000-0000-0000-000000000001', 'HSD', 90.00, '2026-09-01');
 
+-- Charts used by the day cases
+create temp table golden_chart_rows (chart text, dip_cm numeric, volume_l numeric) on commit drop;
+insert into golden_chart_rows values
+  ('iocl-20kl', 0, 0),
+  ('iocl-20kl', 1, 11.97),
+  ('iocl-20kl', 2, 33.89),
+  ('iocl-20kl', 3, 62.22),
+  ('iocl-20kl', 4, 95.71),
+  ('iocl-20kl', 5, 133.61),
+  ('iocl-20kl', 6, 175.43),
+  ('iocl-20kl', 7, 220.8),
+  ('iocl-20kl', 8, 269.41),
+  ('iocl-20kl', 9, 321.05),
+  ('iocl-20kl', 10, 375.51),
+  ('iocl-20kl', 11, 432.63),
+  ('iocl-20kl', 12, 492.26),
+  ('iocl-20kl', 13, 554.27),
+  ('iocl-20kl', 14, 618.56),
+  ('iocl-20kl', 15, 685.03),
+  ('iocl-20kl', 16, 753.57),
+  ('iocl-20kl', 17, 824.11),
+  ('iocl-20kl', 18, 896.57),
+  ('iocl-20kl', 19, 970.88),
+  ('iocl-20kl', 20, 1046.97),
+  ('iocl-20kl', 21, 1124.79),
+  ('iocl-20kl', 22, 1204.28),
+  ('iocl-20kl', 23, 1285.38),
+  ('iocl-20kl', 24, 1368.04),
+  ('iocl-20kl', 25, 1452.22),
+  ('iocl-20kl', 26, 1537.87),
+  ('iocl-20kl', 27, 1624.95),
+  ('iocl-20kl', 28, 1713.41),
+  ('iocl-20kl', 29, 1803.22),
+  ('iocl-20kl', 30, 1894.35),
+  ('iocl-20kl', 31, 1986.75),
+  ('iocl-20kl', 32, 2080.39),
+  ('iocl-20kl', 33, 2175.24),
+  ('iocl-20kl', 34, 2271.27),
+  ('iocl-20kl', 35, 2368.44),
+  ('iocl-20kl', 36, 2466.74),
+  ('iocl-20kl', 37, 2566.12),
+  ('iocl-20kl', 38, 2666.57),
+  ('iocl-20kl', 39, 2768.05),
+  ('iocl-20kl', 40, 2870.54),
+  ('iocl-20kl', 41, 2974.02),
+  ('iocl-20kl', 42, 3078.46),
+  ('iocl-20kl', 43, 3183.83),
+  ('iocl-20kl', 44, 3290.12),
+  ('iocl-20kl', 45, 3397.31),
+  ('iocl-20kl', 46, 3505.36),
+  ('iocl-20kl', 47, 3614.26),
+  ('iocl-20kl', 48, 3723.99),
+  ('iocl-20kl', 49, 3834.53),
+  ('iocl-20kl', 50, 3945.86),
+  ('iocl-20kl', 51, 4057.96),
+  ('iocl-20kl', 52, 4170.8),
+  ('iocl-20kl', 53, 4284.38),
+  ('iocl-20kl', 54, 4398.67),
+  ('iocl-20kl', 55, 4513.65),
+  ('iocl-20kl', 56, 4629.31),
+  ('iocl-20kl', 57, 4745.63),
+  ('iocl-20kl', 58, 4862.59),
+  ('iocl-20kl', 59, 4980.18),
+  ('iocl-20kl', 60, 5098.38),
+  ('iocl-20kl', 61, 5217.17),
+  ('iocl-20kl', 62, 5336.53),
+  ('iocl-20kl', 63, 5456.46),
+  ('iocl-20kl', 64, 5576.94),
+  ('iocl-20kl', 65, 5697.94),
+  ('iocl-20kl', 66, 5819.46),
+  ('iocl-20kl', 67, 5941.48),
+  ('iocl-20kl', 68, 6063.98),
+  ('iocl-20kl', 69, 6186.96),
+  ('iocl-20kl', 70, 6310.39),
+  ('iocl-20kl', 71, 6434.26),
+  ('iocl-20kl', 72, 6558.56),
+  ('iocl-20kl', 73, 6683.28),
+  ('iocl-20kl', 74, 6808.39),
+  ('iocl-20kl', 75, 6933.89),
+  ('iocl-20kl', 76, 7059.77),
+  ('iocl-20kl', 77, 7186),
+  ('iocl-20kl', 78, 7312.58),
+  ('iocl-20kl', 79, 7439.49),
+  ('iocl-20kl', 80, 7566.72),
+  ('iocl-20kl', 81, 7694.26),
+  ('iocl-20kl', 82, 7822.09),
+  ('iocl-20kl', 83, 7950.2),
+  ('iocl-20kl', 84, 8078.58),
+  ('iocl-20kl', 85, 8207.21),
+  ('iocl-20kl', 86, 8336.09),
+  ('iocl-20kl', 87, 8465.2),
+  ('iocl-20kl', 88, 8594.52),
+  ('iocl-20kl', 89, 8724.05),
+  ('iocl-20kl', 90, 8853.77),
+  ('iocl-20kl', 91, 8983.68),
+  ('iocl-20kl', 92, 9113.75),
+  ('iocl-20kl', 93, 9243.97),
+  ('iocl-20kl', 94, 9374.34),
+  ('iocl-20kl', 95, 9504.85),
+  ('iocl-20kl', 96, 9635.47),
+  ('iocl-20kl', 97, 9766.2),
+  ('iocl-20kl', 98, 9897.02),
+  ('iocl-20kl', 99, 10027.93),
+  ('iocl-20kl', 100, 10158.91),
+  ('iocl-20kl', 101, 10289.95),
+  ('iocl-20kl', 102, 10421.04),
+  ('iocl-20kl', 103, 10552.16),
+  ('iocl-20kl', 104, 10683.31),
+  ('iocl-20kl', 105, 10814.47),
+  ('iocl-20kl', 106, 10945.62),
+  ('iocl-20kl', 107, 11076.77),
+  ('iocl-20kl', 108, 11207.89),
+  ('iocl-20kl', 109, 11338.98),
+  ('iocl-20kl', 110, 11470.02),
+  ('iocl-20kl', 111, 11601),
+  ('iocl-20kl', 112, 11731.91),
+  ('iocl-20kl', 113, 11862.73),
+  ('iocl-20kl', 114, 11993.46),
+  ('iocl-20kl', 115, 12124.08),
+  ('iocl-20kl', 116, 12254.59),
+  ('iocl-20kl', 117, 12384.96),
+  ('iocl-20kl', 118, 12515.18),
+  ('iocl-20kl', 119, 12645.26),
+  ('iocl-20kl', 120, 12775.16),
+  ('iocl-20kl', 121, 12904.88),
+  ('iocl-20kl', 122, 13034.41),
+  ('iocl-20kl', 123, 13163.73),
+  ('iocl-20kl', 124, 13292.84),
+  ('iocl-20kl', 125, 13421.72),
+  ('iocl-20kl', 126, 13550.35),
+  ('iocl-20kl', 127, 13678.73),
+  ('iocl-20kl', 128, 13806.84),
+  ('iocl-20kl', 129, 13934.67),
+  ('iocl-20kl', 130, 14062.21),
+  ('iocl-20kl', 131, 14189.44),
+  ('iocl-20kl', 132, 14316.35),
+  ('iocl-20kl', 133, 14442.93),
+  ('iocl-20kl', 134, 14569.16),
+  ('iocl-20kl', 135, 14695.04),
+  ('iocl-20kl', 136, 14820.54),
+  ('iocl-20kl', 137, 14945.65),
+  ('iocl-20kl', 138, 15070.37),
+  ('iocl-20kl', 139, 15194.67),
+  ('iocl-20kl', 140, 15318.54),
+  ('iocl-20kl', 141, 15441.97),
+  ('iocl-20kl', 142, 15564.95),
+  ('iocl-20kl', 143, 15687.45),
+  ('iocl-20kl', 144, 15809.47),
+  ('iocl-20kl', 145, 15930.99),
+  ('iocl-20kl', 146, 16051.99),
+  ('iocl-20kl', 147, 16172.47),
+  ('iocl-20kl', 148, 16292.4),
+  ('iocl-20kl', 149, 16411.76),
+  ('iocl-20kl', 150, 16530.55),
+  ('iocl-20kl', 151, 16648.75),
+  ('iocl-20kl', 152, 16766.34),
+  ('iocl-20kl', 153, 16883.3),
+  ('iocl-20kl', 154, 16999.62),
+  ('iocl-20kl', 155, 17115.28),
+  ('iocl-20kl', 156, 17230.26),
+  ('iocl-20kl', 157, 17344.55),
+  ('iocl-20kl', 158, 17458.13),
+  ('iocl-20kl', 159, 17570.97),
+  ('iocl-20kl', 160, 17683.07),
+  ('iocl-20kl', 161, 17794.4),
+  ('iocl-20kl', 162, 17904.94),
+  ('iocl-20kl', 163, 18014.67),
+  ('iocl-20kl', 164, 18123.57),
+  ('iocl-20kl', 165, 18231.62),
+  ('iocl-20kl', 166, 18338.81),
+  ('iocl-20kl', 167, 18445.1),
+  ('iocl-20kl', 168, 18550.47),
+  ('iocl-20kl', 169, 18654.91),
+  ('iocl-20kl', 170, 18758.39),
+  ('iocl-20kl', 171, 18860.88),
+  ('iocl-20kl', 172, 18962.36),
+  ('iocl-20kl', 173, 19062.81),
+  ('iocl-20kl', 174, 19162.19),
+  ('iocl-20kl', 175, 19260.49),
+  ('iocl-20kl', 176, 19357.66),
+  ('iocl-20kl', 177, 19453.69),
+  ('iocl-20kl', 178, 19548.54),
+  ('iocl-20kl', 179, 19642.18),
+  ('iocl-20kl', 180, 19734.58),
+  ('iocl-20kl', 181, 19825.71),
+  ('iocl-20kl', 182, 19915.52),
+  ('iocl-20kl', 183, 20003.98),
+  ('iocl-20kl', 184, 20091.06),
+  ('iocl-20kl', 185, 20176.71),
+  ('iocl-20kl', 186, 20260.89),
+  ('iocl-20kl', 187, 20343.55),
+  ('iocl-20kl', 188, 20424.65),
+  ('iocl-20kl', 189, 20504.14),
+  ('iocl-20kl', 190, 20581.96),
+  ('iocl-20kl', 191, 20658.05),
+  ('iocl-20kl', 192, 20732.36),
+  ('iocl-20kl', 193, 20804.82),
+  ('iocl-20kl', 194, 20875.36),
+  ('iocl-20kl', 195, 20943.91),
+  ('iocl-20kl', 196, 21010.37),
+  ('iocl-20kl', 197, 21074.66),
+  ('iocl-20kl', 198, 21136.67),
+  ('iocl-20kl', 199, 21196.3),
+  ('iocl-20kl', 200, 21253.42),
+  ('iocl-20kl', 201, 21307.88),
+  ('iocl-20kl', 202, 21359.52),
+  ('iocl-20kl', 203, 21408.13),
+  ('iocl-20kl', 204, 21453.5),
+  ('iocl-20kl', 205, 21495.32),
+  ('iocl-20kl', 206, 21533.22),
+  ('iocl-20kl', 207, 21566.71),
+  ('iocl-20kl', 208, 21595.04),
+  ('iocl-20kl', 209, 21616.96),
+  ('iocl-20kl', 210, 21628.93),
+  ('linear-100', 0, 0),
+  ('linear-100', 1, 100),
+  ('linear-100', 2, 200),
+  ('linear-100', 3, 300),
+  ('linear-100', 4, 400),
+  ('linear-100', 5, 500),
+  ('linear-100', 6, 600),
+  ('linear-100', 7, 700),
+  ('linear-100', 8, 800),
+  ('linear-100', 9, 900),
+  ('linear-100', 10, 1000),
+  ('linear-100', 11, 1100),
+  ('linear-100', 12, 1200),
+  ('linear-100', 13, 1300),
+  ('linear-100', 14, 1400),
+  ('linear-100', 15, 1500),
+  ('linear-100', 16, 1600),
+  ('linear-100', 17, 1700),
+  ('linear-100', 18, 1800),
+  ('linear-100', 19, 1900),
+  ('linear-100', 20, 2000),
+  ('linear-100', 21, 2100),
+  ('linear-100', 22, 2200),
+  ('linear-100', 23, 2300),
+  ('linear-100', 24, 2400),
+  ('linear-100', 25, 2500),
+  ('linear-100', 26, 2600),
+  ('linear-100', 27, 2700),
+  ('linear-100', 28, 2800),
+  ('linear-100', 29, 2900),
+  ('linear-100', 30, 3000),
+  ('linear-100', 31, 3100),
+  ('linear-100', 32, 3200),
+  ('linear-100', 33, 3300),
+  ('linear-100', 34, 3400),
+  ('linear-100', 35, 3500),
+  ('linear-100', 36, 3600),
+  ('linear-100', 37, 3700),
+  ('linear-100', 38, 3800),
+  ('linear-100', 39, 3900),
+  ('linear-100', 40, 4000),
+  ('linear-100', 41, 4100),
+  ('linear-100', 42, 4200),
+  ('linear-100', 43, 4300),
+  ('linear-100', 44, 4400),
+  ('linear-100', 45, 4500),
+  ('linear-100', 46, 4600),
+  ('linear-100', 47, 4700),
+  ('linear-100', 48, 4800),
+  ('linear-100', 49, 4900),
+  ('linear-100', 50, 5000),
+  ('linear-100', 51, 5100),
+  ('linear-100', 52, 5200),
+  ('linear-100', 53, 5300),
+  ('linear-100', 54, 5400),
+  ('linear-100', 55, 5500),
+  ('linear-100', 56, 5600),
+  ('linear-100', 57, 5700),
+  ('linear-100', 58, 5800),
+  ('linear-100', 59, 5900),
+  ('linear-100', 60, 6000),
+  ('linear-100', 61, 6100),
+  ('linear-100', 62, 6200),
+  ('linear-100', 63, 6300),
+  ('linear-100', 64, 6400),
+  ('linear-100', 65, 6500),
+  ('linear-100', 66, 6600),
+  ('linear-100', 67, 6700),
+  ('linear-100', 68, 6800),
+  ('linear-100', 69, 6900),
+  ('linear-100', 70, 7000),
+  ('linear-100', 71, 7100),
+  ('linear-100', 72, 7200),
+  ('linear-100', 73, 7300),
+  ('linear-100', 74, 7400),
+  ('linear-100', 75, 7500),
+  ('linear-100', 76, 7600),
+  ('linear-100', 77, 7700),
+  ('linear-100', 78, 7800),
+  ('linear-100', 79, 7900),
+  ('linear-100', 80, 8000),
+  ('linear-100', 81, 8100),
+  ('linear-100', 82, 8200),
+  ('linear-100', 83, 8300),
+  ('linear-100', 84, 8400),
+  ('linear-100', 85, 8500),
+  ('linear-100', 86, 8600),
+  ('linear-100', 87, 8700),
+  ('linear-100', 88, 8800),
+  ('linear-100', 89, 8900),
+  ('linear-100', 90, 9000),
+  ('linear-100', 91, 9100),
+  ('linear-100', 92, 9200),
+  ('linear-100', 93, 9300),
+  ('linear-100', 94, 9400),
+  ('linear-100', 95, 9500),
+  ('linear-100', 96, 9600),
+  ('linear-100', 97, 9700),
+  ('linear-100', 98, 9800),
+  ('linear-100', 99, 9900),
+  ('linear-100', 100, 10000),
+  ('linear-100', 101, 10100),
+  ('linear-100', 102, 10200),
+  ('linear-100', 103, 10300),
+  ('linear-100', 104, 10400),
+  ('linear-100', 105, 10500),
+  ('linear-100', 106, 10600),
+  ('linear-100', 107, 10700),
+  ('linear-100', 108, 10800),
+  ('linear-100', 109, 10900),
+  ('linear-100', 110, 11000),
+  ('linear-100', 111, 11100),
+  ('linear-100', 112, 11200),
+  ('linear-100', 113, 11300),
+  ('linear-100', 114, 11400),
+  ('linear-100', 115, 11500),
+  ('linear-100', 116, 11600),
+  ('linear-100', 117, 11700),
+  ('linear-100', 118, 11800),
+  ('linear-100', 119, 11900),
+  ('linear-100', 120, 12000),
+  ('linear-100', 121, 12100),
+  ('linear-100', 122, 12200),
+  ('linear-100', 123, 12300),
+  ('linear-100', 124, 12400),
+  ('linear-100', 125, 12500),
+  ('linear-100', 126, 12600),
+  ('linear-100', 127, 12700),
+  ('linear-100', 128, 12800),
+  ('linear-100', 129, 12900),
+  ('linear-100', 130, 13000),
+  ('linear-100', 131, 13100),
+  ('linear-100', 132, 13200),
+  ('linear-100', 133, 13300),
+  ('linear-100', 134, 13400),
+  ('linear-100', 135, 13500),
+  ('linear-100', 136, 13600),
+  ('linear-100', 137, 13700),
+  ('linear-100', 138, 13800),
+  ('linear-100', 139, 13900),
+  ('linear-100', 140, 14000),
+  ('linear-100', 141, 14100),
+  ('linear-100', 142, 14200),
+  ('linear-100', 143, 14300),
+  ('linear-100', 144, 14400),
+  ('linear-100', 145, 14500),
+  ('linear-100', 146, 14600),
+  ('linear-100', 147, 14700),
+  ('linear-100', 148, 14800),
+  ('linear-100', 149, 14900),
+  ('linear-100', 150, 15000),
+  ('linear-100', 151, 15100),
+  ('linear-100', 152, 15200),
+  ('linear-100', 153, 15300),
+  ('linear-100', 154, 15400),
+  ('linear-100', 155, 15500),
+  ('linear-100', 156, 15600),
+  ('linear-100', 157, 15700),
+  ('linear-100', 158, 15800),
+  ('linear-100', 159, 15900),
+  ('linear-100', 160, 16000),
+  ('linear-100', 161, 16100),
+  ('linear-100', 162, 16200),
+  ('linear-100', 163, 16300),
+  ('linear-100', 164, 16400),
+  ('linear-100', 165, 16500),
+  ('linear-100', 166, 16600),
+  ('linear-100', 167, 16700),
+  ('linear-100', 168, 16800),
+  ('linear-100', 169, 16900),
+  ('linear-100', 170, 17000),
+  ('linear-100', 171, 17100),
+  ('linear-100', 172, 17200),
+  ('linear-100', 173, 17300),
+  ('linear-100', 174, 17400),
+  ('linear-100', 175, 17500),
+  ('linear-100', 176, 17600),
+  ('linear-100', 177, 17700),
+  ('linear-100', 178, 17800),
+  ('linear-100', 179, 17900),
+  ('linear-100', 180, 18000),
+  ('linear-100', 181, 18100),
+  ('linear-100', 182, 18200),
+  ('linear-100', 183, 18300),
+  ('linear-100', 184, 18400),
+  ('linear-100', 185, 18500),
+  ('linear-100', 186, 18600),
+  ('linear-100', 187, 18700),
+  ('linear-100', 188, 18800),
+  ('linear-100', 189, 18900),
+  ('linear-100', 190, 19000),
+  ('linear-100', 191, 19100),
+  ('linear-100', 192, 19200),
+  ('linear-100', 193, 19300),
+  ('linear-100', 194, 19400),
+  ('linear-100', 195, 19500),
+  ('linear-100', 196, 19600),
+  ('linear-100', 197, 19700),
+  ('linear-100', 198, 19800),
+  ('linear-100', 199, 19900),
+  ('linear-100', 200, 20000),
+  ('linear-100', 201, 20100),
+  ('linear-100', 202, 20200),
+  ('linear-100', 203, 20300),
+  ('linear-100', 204, 20400),
+  ('linear-100', 205, 20500),
+  ('linear-100', 206, 20600),
+  ('linear-100', 207, 20700),
+  ('linear-100', 208, 20800),
+  ('linear-100', 209, 20900),
+  ('linear-100', 210, 21000),
+  ('linear-100', 211, 21100),
+  ('linear-100', 212, 21200),
+  ('linear-100', 213, 21300),
+  ('linear-100', 214, 21400),
+  ('linear-100', 215, 21500),
+  ('linear-100', 216, 21600),
+  ('linear-100', 217, 21700),
+  ('linear-100', 218, 21800),
+  ('linear-100', 219, 21900),
+  ('linear-100', 220, 22000),
+  ('linear-100', 221, 22100),
+  ('linear-100', 222, 22200),
+  ('linear-100', 223, 22300),
+  ('linear-100', 224, 22400),
+  ('linear-100', 225, 22500),
+  ('linear-100', 226, 22600),
+  ('linear-100', 227, 22700),
+  ('linear-100', 228, 22800),
+  ('linear-100', 229, 22900),
+  ('linear-100', 230, 23000),
+  ('linear-100', 231, 23100),
+  ('linear-100', 232, 23200),
+  ('linear-100', 233, 23300),
+  ('linear-100', 234, 23400),
+  ('linear-100', 235, 23500),
+  ('linear-100', 236, 23600),
+  ('linear-100', 237, 23700),
+  ('linear-100', 238, 23800),
+  ('linear-100', 239, 23900),
+  ('linear-100', 240, 24000),
+  ('linear-100', 241, 24100),
+  ('linear-100', 242, 24200),
+  ('linear-100', 243, 24300),
+  ('linear-100', 244, 24400),
+  ('linear-100', 245, 24500),
+  ('linear-100', 246, 24600),
+  ('linear-100', 247, 24700),
+  ('linear-100', 248, 24800),
+  ('linear-100', 249, 24900),
+  ('linear-100', 250, 25000),
+  ('linear-100', 251, 25100),
+  ('linear-100', 252, 25200),
+  ('linear-100', 253, 25300),
+  ('linear-100', 254, 25400),
+  ('linear-100', 255, 25500),
+  ('linear-100', 256, 25600),
+  ('linear-100', 257, 25700),
+  ('linear-100', 258, 25800),
+  ('linear-100', 259, 25900),
+  ('linear-100', 260, 26000),
+  ('linear-100', 261, 26100),
+  ('linear-100', 262, 26200),
+  ('linear-100', 263, 26300),
+  ('linear-100', 264, 26400),
+  ('linear-100', 265, 26500),
+  ('linear-100', 266, 26600),
+  ('linear-100', 267, 26700),
+  ('linear-100', 268, 26800),
+  ('linear-100', 269, 26900),
+  ('linear-100', 270, 27000),
+  ('linear-100', 271, 27100),
+  ('linear-100', 272, 27200),
+  ('linear-100', 273, 27300),
+  ('linear-100', 274, 27400),
+  ('linear-100', 275, 27500),
+  ('linear-100', 276, 27600),
+  ('linear-100', 277, 27700),
+  ('linear-100', 278, 27800),
+  ('linear-100', 279, 27900),
+  ('linear-100', 280, 28000),
+  ('linear-100', 281, 28100),
+  ('linear-100', 282, 28200),
+  ('linear-100', 283, 28300),
+  ('linear-100', 284, 28400),
+  ('linear-100', 285, 28500),
+  ('linear-100', 286, 28600),
+  ('linear-100', 287, 28700),
+  ('linear-100', 288, 28800),
+  ('linear-100', 289, 28900),
+  ('linear-100', 290, 29000),
+  ('linear-100', 291, 29100),
+  ('linear-100', 292, 29200),
+  ('linear-100', 293, 29300),
+  ('linear-100', 294, 29400),
+  ('linear-100', 295, 29500),
+  ('linear-100', 296, 29600),
+  ('linear-100', 297, 29700),
+  ('linear-100', 298, 29800),
+  ('linear-100', 299, 29900),
+  ('linear-100', 300, 30000);
+
+-- day-01-prd-hsd-matched.json: HSD opening dip 12,000 L + received 9,950 L (10,000 ordered, 50 short) − closing 13,955 L = 7,995 L sold as per tank. Meters 8,005 − 10 test = 7,995. Difference 0: Matched. The 50 L short (0.5%) raises S6.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000001', 'golden day-01-prd-hsd-matched.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000001', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000001', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000001' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000001', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000001' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000001' and label = 'HSD-1'), 'OPENING', 120.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000001' and label = 'HSD-1'), 'CLOSING', 139.55, null);
+
+-- day-02-prd-ms-money.json: MS 1,490 L × ₹101.00 = Should have ₹1,50,490.00. Cash by notes 150×500 + 50×200 + 40×100 + coins ₹1,000 = ₹90,000; + Paytm ₹50,000 + Card ₹5,490 + credit ₹5,000 = Received ₹1,50,490. Difference 0.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000002', 'golden day-02-prd-ms-money.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000002', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000002', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000002' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000002', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000002' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000002', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000002' and label = 'MS-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000002' and label = 'MS-1'), 'CLOSING', 85.10, null);
+
+-- day-03-prd-drawer-expense.json: Same as the MS money day, but ₹300 Tiffin was paid from Shift A's drawer (so only ₹89,700 is counted) and ₹18,000 salary was paid by the owner. The Tiffin is added back to Shift A's Received; the salary is not. Difference stays 0.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000003', 'golden day-03-prd-drawer-expense.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000003', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000003', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000003' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000003', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000003' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000003', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000003' and label = 'MS-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000003' and label = 'MS-1'), 'CLOSING', 85.10, null);
+
+-- day-04-prd-stock-short.json: Sold as per tank 8,000 L, meters 7,958 L: Difference −42 L (−0.53%), beyond 0.5%, raises S1. Screen shows −42 L (−0.53%) in red.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000004', 'golden day-04-prd-stock-short.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000004', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000004', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000004' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000004', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000004' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000004', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000004' and label = 'HSD-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000004', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000004' and label = 'HSD-1'), 'CLOSING', 20.00, null);
+
+-- day-05-s1-exactly-at-limit.json: Difference −40 L on 8,000 L is exactly 0.5%: still OK, no flag, Matched.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000005', 'golden day-05-s1-exactly-at-limit.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000005', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000005', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000005' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000005', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000005' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000005', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000005', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000005' and label = 'HSD-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000005', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000005' and label = 'HSD-1'), 'CLOSING', 20.00, null);
+
+-- day-06-s2-money-limit.json: Shift A short exactly ₹100 (OK). Shift B short ₹100.01 (flag S2). Fuel matched.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000006', 'golden day-06-s2-money-limit.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000006', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000006', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000006' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000006', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000006' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000006', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000006', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000006' and label = 'MS-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000006', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000006' and label = 'MS-1'), 'CLOSING', 80.00, null);
+
+-- day-07-h1-closing-below-opening.json: HSD-B closing 31,265.50 below opening 31,455.50: red error, its sale shows nothing.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000007', 'golden day-07-h1-closing-below-opening.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000007', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000007', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000007' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000007', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000007' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000007', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000007', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000007' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-08-h2-meter-change.json: MS-A opening 19,850.00 but Shift A closed at 19,884.00, not approved: blocks submit. MS-B had an approved meter change: fine.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000008', 'golden day-08-h2-meter-change.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000008', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000008', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000008' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000008', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000008' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000008', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000008', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000008' and label = 'MS-1'), 'OPENING', 100.00, null);
+
+-- day-09-h3-dip-outside-chart.json: Closing dip typed as 1714 instead of 171.4: outside the 0-210 cm chart. Tank vs meters can't be worked out.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000009', 'golden day-09-h3-dip-outside-chart.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000009', 'iocl-20kl');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000009', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000009' and name = 'iocl-20kl'), dip_cm, volume_l from golden_chart_rows where chart = 'iocl-20kl';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000009', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000009' and name = 'iocl-20kl'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000009', 'a0000000-0000-0000-0000-000000000009', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000009', 'a1000000-0000-0000-0000-000000000009', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000009' and label = 'HSD-1'), 'OPENING', 128.5, null);
+
+-- day-10-h5-h6-negative-and-unconfirmed.json: Price not confirmed (no money worked out) and a negative expense.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000010', 'golden day-10-h5-h6-negative-and-unconfirmed.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000010', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000010', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000010' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000010', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000010' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000010', 'a0000000-0000-0000-0000-000000000010', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000010', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000010' and label = 'MS-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000010', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000010' and label = 'MS-1'), 'CLOSING', 99.00, null);
+
+-- day-11-h7-duplicate-slip.json: Slip 4471 typed twice today, and slip 4400 was already used on an earlier day.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000011', 'golden day-11-h7-duplicate-slip.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000011', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000011', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000011' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000011', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000011' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000011', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000011', 'a1000000-0000-0000-0000-000000000011', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000011' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-12-h8-test-over-sale.json: HSD-A sold 5 L this shift but 10 L were entered as tested.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000012', 'golden day-12-h8-test-over-sale.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000012', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000012', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000012' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000012', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000012' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000012', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000012', 'a1000000-0000-0000-0000-000000000012', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000012' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-13-h9-credit-over-meters.json: Meters sold 100 L of HSD in the shift, but credit slips add up to 110 L.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000013', 'golden day-13-h9-credit-over-meters.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000013', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000013', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000013' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000013', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000013' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000013', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000013', 'a1000000-0000-0000-0000-000000000013', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000013' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-14-s3-book-gap-moved.json: IOCL book stock minus opening dip. MS gap 2,534.22 L today vs 2,534.00 yesterday: moved 0.22 L, OK. HSD gap moved by 100 L, beyond 0.5% of 5,074.74 L (25.37 L): S3.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000014', 'golden day-14-s3-book-gap-moved.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000014', 'iocl-20kl');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000014', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000014' and name = 'iocl-20kl'), dip_cm, volume_l from golden_chart_rows where chart = 'iocl-20kl';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000014', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000014' and name = 'iocl-20kl'));
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000014', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000014' and name = 'iocl-20kl'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000014', '2026-10-01');
+insert into public.business_days (id, pump_id, business_date) values ('a2000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000014', '2026-10-01'::date - 1);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000014', 'a2000000-0000-0000-0000-000000000014', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000014' and label = 'MS-1'), 'OPENING', 0, 2534);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000014', 'a1000000-0000-0000-0000-000000000014', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000014' and label = 'MS-1'), 'OPENING', 55.2, 7071);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000014', 'a2000000-0000-0000-0000-000000000014', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000014' and label = 'HSD-1'), 'OPENING', 0, 4528);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000014', 'a1000000-0000-0000-0000-000000000014', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000014' and label = 'HSD-1'), 'OPENING', 59.8, 9702.740);
+
+-- day-15-s4-nozzle-sales.json: HSD-A sold nothing all day (flag). HSD-B sold 250 L vs a 100 L average over 3 days, more than 2× (flag). HSD-C sold 250 L but has only 2 days of history, so no spike check. HSD-D is not in use: no flag.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000015', 'golden day-15-s4-nozzle-sales.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000015', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000015', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000015' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000015', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000015' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000015', 'a0000000-0000-0000-0000-000000000015', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000015', 'a1000000-0000-0000-0000-000000000015', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000015' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-16-s6-tanker-dip-check.json: Tanker 14,000 L ordered, 28 L short (0.2%, OK). Dip rose from 59.8 to 119.8 cm = 7674.44 L, but the challan says 13,972 L received: differs by more than 0.5%, S6.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000016', 'golden day-16-s6-tanker-dip-check.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000016', 'iocl-20kl');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000016', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000016' and name = 'iocl-20kl'), dip_cm, volume_l from golden_chart_rows where chart = 'iocl-20kl';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000016', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000016' and name = 'iocl-20kl'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000016', 'a0000000-0000-0000-0000-000000000016', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000016', 'a1000000-0000-0000-0000-000000000016', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000016' and label = 'HSD-1'), 'OPENING', 59.8, null);
+
+-- day-17-s7-opening-dip.json: MS opening 129.1 cm vs last night's 128.5 cm: 0.6 cm, beyond 0.5 cm (flag). HSD 128.9 vs 128.5: 0.4 cm (OK).
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000017', 'golden day-17-s7-opening-dip.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000017', 'iocl-20kl');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000017', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000017' and name = 'iocl-20kl'), dip_cm, volume_l from golden_chart_rows where chart = 'iocl-20kl';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000017', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000017' and name = 'iocl-20kl'));
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000017', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000017' and name = 'iocl-20kl'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000017', 'a0000000-0000-0000-0000-000000000017', '2026-10-01');
+insert into public.business_days (id, pump_id, business_date) values ('a2000000-0000-0000-0000-000000000017', 'a0000000-0000-0000-0000-000000000017', '2026-10-01'::date - 1);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000017', 'a2000000-0000-0000-0000-000000000017', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000017' and label = 'MS-1'), 'CLOSING', 128.5, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000017', 'a1000000-0000-0000-0000-000000000017', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000017' and label = 'MS-1'), 'OPENING', 129.1, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000017', 'a2000000-0000-0000-0000-000000000017', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000017' and label = 'HSD-1'), 'CLOSING', 128.5, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000017', 'a1000000-0000-0000-0000-000000000017', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000017' and label = 'HSD-1'), 'OPENING', 128.9, null);
+
+-- day-18-s9-expense-cap.json: Owner capped Bakshis at ₹300 a day; ₹500 was spent: flag.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000018', 'golden day-18-s9-expense-cap.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station') || '{"expenseDailyCaps":{"Bakshis":"300"}}'::jsonb);
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000018', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000018', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000018' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000018', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000018' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000018', 'a0000000-0000-0000-0000-000000000018', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000018', 'a1000000-0000-0000-0000-000000000018', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000018' and label = 'MS-1'), 'OPENING', 100.00, null);
+
+-- day-19-r1-compliance.json: Both fuels: 1,000 L left the tank, meters 957 L: −4.30%. HSD limit 4% + 0.20% = 4.20%: R1. MS limit 4% + 0.75% = 4.75%: no R1. Both raise S1.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000019', 'golden day-19-r1-compliance.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000019', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000019', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000019' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000019', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000019' and name = 'linear-100'));
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000019', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000019' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000019', 'a0000000-0000-0000-0000-000000000019', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000019', 'a1000000-0000-0000-0000-000000000019', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000019' and label = 'MS-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000019', 'a1000000-0000-0000-0000-000000000019', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000019' and label = 'MS-1'), 'CLOSING', 90.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000019', 'a1000000-0000-0000-0000-000000000019', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000019' and label = 'HSD-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000019', 'a1000000-0000-0000-0000-000000000019', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000019' and label = 'HSD-1'), 'CLOSING', 90.00, null);
+
+-- day-20-nothing-left-tank.json: Dip didn't move (0 L sold as per tank) but meters show 5 L: % can't be worked out, S1 is raised.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000020', 'golden day-20-nothing-left-tank.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000020', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000020', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000020' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000020', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000020' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000020', 'a0000000-0000-0000-0000-000000000020', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000020', 'a1000000-0000-0000-0000-000000000020', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000020' and label = 'HSD-1'), 'OPENING', 100.00, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000020', 'a1000000-0000-0000-0000-000000000020', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000020' and label = 'HSD-1'), 'CLOSING', 100.00, null);
+
+-- day-21-in-progress.json: No closing dip and no cash counted yet: no fuel or money result, no errors, not Matched yet.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000021', 'golden day-21-in-progress.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000021', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000021', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000021' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000021', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000021' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000021', 'a0000000-0000-0000-0000-000000000021', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000021', 'a1000000-0000-0000-0000-000000000021', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000021' and label = 'HSD-1'), 'OPENING', 100.00, null);
+
+-- day-22-canvas-sample.json: HSD: 14,820 + 11,980 − 18,681 = 8,119 L vs meters 8,077: −42 L (−0.52%), S1. MS 8,235 + 3,980 − 9,303 = 2,912 = meters: Matched. Shift A matched, B short ₹1,250, C excess ₹300 (both S2). MS tanker 20 L short of 4,000 (0.5%): S6.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000022', 'golden day-22-canvas-sample.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000022', 'linear-100');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000022', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000022' and name = 'linear-100'), dip_cm, volume_l from golden_chart_rows where chart = 'linear-100';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000022', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000022' and name = 'linear-100'));
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000022', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000022' and name = 'linear-100'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000022', 'a0000000-0000-0000-0000-000000000022', '2026-10-01');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000022', 'a1000000-0000-0000-0000-000000000022', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000022' and label = 'HSD-1'), 'OPENING', 148.20, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000022', 'a1000000-0000-0000-0000-000000000022', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000022' and label = 'HSD-1'), 'CLOSING', 186.81, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000022', 'a1000000-0000-0000-0000-000000000022', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000022' and label = 'MS-1'), 'OPENING', 82.35, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000022', 'a1000000-0000-0000-0000-000000000022', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000022' and label = 'MS-1'), 'CLOSING', 93.03, null);
+
+-- notebook-2026-09-15.json: The real day of 15 Sep 2026, entered as one shift (the notebook keeps the day total; shift-wise numbers are in the shift notebook). MS: 4,536.78 − 4,307.24 = 229.54 L by tank vs 224.80 L by meters: -4.74 L (-2.07%); notebook circled −5. HSD: 5,074.74 + 13,972 (14,000 minus 28 L short) − 12,749.18 = 6297.56 L vs 6,250.45 L: -47.11 L (-0.75%); the notebook circled −75 because it added the full 14,000 L. Money: Should have ₹6,60,664.52; Received = cash in hand ₹22,919.99 − opening cash ₹36,013.04 + Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + bank ₹6,00,000 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − customer payments ₹15,65,052 = ₹6,60,664.52. Difference 0 because the notebook's cash in hand is the leftover figure, not a count. Nozzles 1 and 2 are not in use.
+insert into public.pumps (id, name, rules) values ('a0000000-0000-0000-0000-000000000023', 'golden notebook-2026-09-15.json', (select rules from public.pumps where name = 'Shree Lokanath Filling Station'));
+insert into public.dip_charts (pump_id, name) values ('a0000000-0000-0000-0000-000000000023', 'iocl-20kl');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select 'a0000000-0000-0000-0000-000000000023', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000023' and name = 'iocl-20kl'), dip_cm, volume_l from golden_chart_rows where chart = 'iocl-20kl';
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000023', 'MS-1', 'MS', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000023' and name = 'iocl-20kl'));
+insert into public.tanks (pump_id, label, product, chart_id) values ('a0000000-0000-0000-0000-000000000023', 'HSD-1', 'HSD', (select id from public.dip_charts where pump_id = 'a0000000-0000-0000-0000-000000000023' and name = 'iocl-20kl'));
+insert into public.business_days (id, pump_id, business_date) values ('a1000000-0000-0000-0000-000000000023', 'a0000000-0000-0000-0000-000000000023', '2026-09-15');
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000023', 'a1000000-0000-0000-0000-000000000023', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000023' and label = 'MS-1'), 'OPENING', 55.2, 7071);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000023', 'a1000000-0000-0000-0000-000000000023', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000023' and label = 'MS-1'), 'CLOSING', 53.2, null);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000023', 'a1000000-0000-0000-0000-000000000023', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000023' and label = 'HSD-1'), 'OPENING', 59.8, 9602);
+insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values ('a0000000-0000-0000-0000-000000000023', 'a1000000-0000-0000-0000-000000000023', (select id from public.tanks where pump_id = 'a0000000-0000-0000-0000-000000000023' and label = 'HSD-1'), 'CLOSING', 119.8, null);
+
 select is(public.business_date_at('2026-10-01T06:00:00+05:30'::timestamptz, '06:00', 'Asia/Kolkata'), '2026-10-01'::date, 'bizdate-01-business-day.json: 2026-10-01T06:00:00+05:30, day starts 06:00');
 select is(public.business_date_at('2026-10-01T05:59:59+05:30'::timestamptz, '06:00', 'Asia/Kolkata'), '2026-09-30'::date, 'bizdate-01-business-day.json: 2026-10-01T05:59:59+05:30, day starts 06:00');
 select is(public.business_date_at('2026-10-02T02:00:00+05:30'::timestamptz, '06:00', 'Asia/Kolkata'), '2026-10-01'::date, 'bizdate-01-business-day.json: 2026-10-02T02:00:00+05:30, day starts 06:00');
@@ -250,6 +1003,24 @@ select is(public.price_for('eeeeeeee-0000-0000-0000-000000000001', 'MS', '2026-1
 select is(public.price_for('eeeeeeee-0000-0000-0000-000000000001', 'MS', '2026-12-31'), 101.00::numeric, 'price-01-start-date.json: MS on 2026-12-31');
 select is(public.price_for('eeeeeeee-0000-0000-0000-000000000001', 'MS', '2026-08-31'), null, 'price-01-start-date.json: MS on 2026-08-31');
 select is(public.price_for('eeeeeeee-0000-0000-0000-000000000001', 'HSD', '2026-10-01'), 90.00::numeric, 'price-01-start-date.json: HSD on 2026-10-01');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000001' and day_id = 'a1000000-0000-0000-0000-000000000001' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000001' and day_id = 'a1000000-0000-0000-0000-000000000001' and s7_flag) f), array[]::text[], 'day-01-prd-hsd-matched.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000002' and day_id = 'a1000000-0000-0000-0000-000000000002' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000002' and day_id = 'a1000000-0000-0000-0000-000000000002' and s7_flag) f), array[]::text[], 'day-02-prd-ms-money.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000003' and day_id = 'a1000000-0000-0000-0000-000000000003' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000003' and day_id = 'a1000000-0000-0000-0000-000000000003' and s7_flag) f), array[]::text[], 'day-03-prd-drawer-expense.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000004' and day_id = 'a1000000-0000-0000-0000-000000000004' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000004' and day_id = 'a1000000-0000-0000-0000-000000000004' and s7_flag) f), array[]::text[], 'day-04-prd-stock-short.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000005' and day_id = 'a1000000-0000-0000-0000-000000000005' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000005' and day_id = 'a1000000-0000-0000-0000-000000000005' and s7_flag) f), array[]::text[], 'day-05-s1-exactly-at-limit.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000006' and day_id = 'a1000000-0000-0000-0000-000000000006' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000006' and day_id = 'a1000000-0000-0000-0000-000000000006' and s7_flag) f), array[]::text[], 'day-06-s2-money-limit.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000007' and day_id = 'a1000000-0000-0000-0000-000000000007' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000007' and day_id = 'a1000000-0000-0000-0000-000000000007' and s7_flag) f), array[]::text[], 'day-07-h1-closing-below-opening.json: opening-dip flags (S3, S7) are none');
+select throws_ok('insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values (''a0000000-0000-0000-0000-000000000009'', ''a1000000-0000-0000-0000-000000000009'', (select id from public.tanks where pump_id = ''a0000000-0000-0000-0000-000000000009'' and label = ''HSD-1''), ''CLOSING'', 1714, null)', 'P0001', null, 'day-09-h3-dip-outside-chart.json: H3, 1714 cm is refused (outside the chart)');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000014' and day_id = 'a1000000-0000-0000-0000-000000000014' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000014' and day_id = 'a1000000-0000-0000-0000-000000000014' and s7_flag) f), array['S3']::text[], 'day-14-s3-book-gap-moved.json: opening-dip flags (S3, S7) are S3');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000015' and day_id = 'a1000000-0000-0000-0000-000000000015' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000015' and day_id = 'a1000000-0000-0000-0000-000000000015' and s7_flag) f), array[]::text[], 'day-15-s4-nozzle-sales.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000016' and day_id = 'a1000000-0000-0000-0000-000000000016' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000016' and day_id = 'a1000000-0000-0000-0000-000000000016' and s7_flag) f), array[]::text[], 'day-16-s6-tanker-dip-check.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000017' and day_id = 'a1000000-0000-0000-0000-000000000017' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000017' and day_id = 'a1000000-0000-0000-0000-000000000017' and s7_flag) f), array['S7']::text[], 'day-17-s7-opening-dip.json: opening-dip flags (S3, S7) are S7');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000018' and day_id = 'a1000000-0000-0000-0000-000000000018' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000018' and day_id = 'a1000000-0000-0000-0000-000000000018' and s7_flag) f), array[]::text[], 'day-18-s9-expense-cap.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000019' and day_id = 'a1000000-0000-0000-0000-000000000019' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000019' and day_id = 'a1000000-0000-0000-0000-000000000019' and s7_flag) f), array[]::text[], 'day-19-r1-compliance.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000020' and day_id = 'a1000000-0000-0000-0000-000000000020' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000020' and day_id = 'a1000000-0000-0000-0000-000000000020' and s7_flag) f), array[]::text[], 'day-20-nothing-left-tank.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000021' and day_id = 'a1000000-0000-0000-0000-000000000021' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000021' and day_id = 'a1000000-0000-0000-0000-000000000021' and s7_flag) f), array[]::text[], 'day-21-in-progress.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000022' and day_id = 'a1000000-0000-0000-0000-000000000022' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000022' and day_id = 'a1000000-0000-0000-0000-000000000022' and s7_flag) f), array[]::text[], 'day-22-canvas-sample.json: opening-dip flags (S3, S7) are none');
+select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000023' and day_id = 'a1000000-0000-0000-0000-000000000023' and s3_flag union all select 'S7' from public.v_tank_day where pump_id = 'a0000000-0000-0000-0000-000000000023' and day_id = 'a1000000-0000-0000-0000-000000000023' and s7_flag) f), array[]::text[], 'notebook-2026-09-15.json: opening-dip flags (S3, S7) are none');
 
 select * from finish();
 rollback;

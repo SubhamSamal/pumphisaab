@@ -16,5 +16,8 @@ export function friendlyError(error: unknown, fallback = "Something went wrong. 
   if (e?.code === "42501" || message.includes("row-level security") || message.includes("permission denied"))
     return "You don't have permission to do that.";
   if (e?.code === "23505" || message.includes("duplicate key")) return "That name is already there.";
+  if (e?.code === "23514" || message.includes("violates check constraint")) return "That number can't be negative. Check it.";
+  // Our own database checks already speak plain English ("This day is locked. Ask the owner to unlock it.").
+  if (e?.code === "P0001" && e.message) return e.message;
   return fallback;
 }

@@ -14,6 +14,7 @@ import {
   Card,
   Chip,
   ChipGroup,
+  DateStepper,
   DifferenceValue,
   DipInput,
   Divider,
@@ -29,6 +30,7 @@ import {
   NozzleRow,
   NumericInput,
   PriceChip,
+  PriceStrip,
   ProductTag,
   ProgressBar,
   SaveIndicator,
@@ -231,6 +233,24 @@ function GalleryContent() {
           <NozzleRow label="HSD-C" opening="52,904.00" closing="" />
           <NozzleGroupHeader product="MS" detail="· ₹101.00/L" />
           <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingChanged />
+        </Section>
+
+        <Section title="Price confirm strip">
+          <PriceStrip state="toConfirm" note="Same as yesterday" items={[{ product: "HSD", price: "₹90.00" }, { product: "MS", price: "₹101.00" }]} />
+          <PriceStrip
+            state="changed"
+            note="Set by owner"
+            items={[
+              { product: "HSD", price: "₹90.50", was: "₹90.00" },
+              { product: "MS", price: "₹101.00" },
+            ]}
+          />
+          <PriceStrip state="confirmed" items={[{ product: "HSD", price: "₹90.00" }, { product: "MS", price: "₹101.00" }]} />
+        </Section>
+
+        <Section title="Date stepper">
+          <DateStepper label="Thu, 01 Oct 2026" caption="Today" canNext={false} />
+          <DateStepper label="Tue, 15 Sep 2026" caption="16 days ago" />
         </Section>
 
         <Section title="Today">

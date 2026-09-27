@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
+import { SelectedDayProvider } from "@/features/day/SelectedDay";
 import { SessionProvider, useSession } from "@/features/session/SessionProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 
@@ -30,7 +31,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <Screens />
+          <SelectedDayProvider>
+            <Screens />
+          </SelectedDayProvider>
         </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>
@@ -50,6 +53,7 @@ function Screens() {
       <Stack.Protected guard={status === "ready"}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="alerts" />
+        <Stack.Screen name="day/opening-dip" />
         <Stack.Screen name="profile/logins" />
         <Stack.Screen name="profile/add-manager" />
         <Stack.Screen name="profile/staff" />

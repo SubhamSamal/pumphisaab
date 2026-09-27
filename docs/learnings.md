@@ -159,6 +159,12 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Live security was tested from outside** after setup (26 Sep): not signed in → nothing; a login with no pump → nothing, can't write, function refuses; sign-up refused.
 - **Android:** our development app installs from an EAS link (allow Chrome to install unknown apps; Play Protect "Install anyway"). Expo Go is not needed on Android.
 - **Local database check** is saved in `tools/db-local-check/` (PGlite + stand-ins), so any session can use it.
+- **Numbers from Supabase arrive as JavaScript numbers** unless cast: every numeric column the app reads is selected as `column::text` so litres and rupees never pass through floating point (Phase 4).
+- **Views use `security_invoker = true`** so each person's own Row Level Security applies when they read `v_business_days` / `v_tank_day` (Phase 4).
+- **The database works out dip litres itself** (a trigger on `tank_readings`), stores the chart version used, and refuses a dip outside the chart (H3). Whatever litres the app sends are ignored (Phase 4).
+- **Locked is worked out, not stored by a job:** a submitted day counts as locked once 3 business days old, computed from the server date each time; no scheduled job to fail (D49).
+- **Golden day cases now load into real tables** in the database test (one made-up pump per case) and are checked through the SQL views; each slice checks more of the day (Phase 4).
+- **The owner's Android dev server may already be running on port 8082**; the browser preview can reuse it (`localhost:8082/gallery`).
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
 ## 7. How we work (process learnings)

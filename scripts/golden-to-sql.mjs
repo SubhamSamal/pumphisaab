@@ -17,6 +17,9 @@ export function buildGoldenSql() {
   const decimals = (s) => (s.includes(".") ? s.length - s.indexOf(".") - 1 : 0);
   const tests = [];
   const setup = [];
+  const dayCases = [];
+  // Test chart for the PRD examples (same as tests/golden/golden.test.ts): 1 cm = 100 L, up to 300 cm.
+  charts["linear-100"] = Array.from({ length: 301 }, (_, cm) => [String(cm), String(cm * 100)]);
 
   for (const c of cases) {
     if (c.kind === "dip") {
@@ -46,6 +49,9 @@ insert into public.fuel_prices (pump_id, product, per_litre, starts_on) values
         tests.push(`select is(${got}, ${l.perLitre === null ? "null" : `${l.perLitre}::numeric`}, ${sqlText(`${c.file}: ${l.product} on ${l.date}`)});`);
       }
     }
+    if (c.kind === "day") {
+      dayCases.push(c);
+    }
     if (c.kind === "businessDate") {
       for (const b of c.cases) {
         tests.push(
@@ -54,6 +60,80 @@ insert into public.fuel_prices (pump_id, product, per_litre, starts_on) values
       }
     }
   }
+
+  // ─── Whole days: loaded into real tables, one made-up pump per case ───────
+  // Each Phase 4 slice checks more of the day through the SQL views. Today (4a): the dips
+  // (H3 refused on save) and the opening-dip flags S3 and S7 from v_tank_day.
+  if (dayCases.length) {
+    setup.push(`-- Charts used by the day cases
+create temp table golden_chart_rows (chart text, dip_cm numeric, volume_l numeric) on commit drop;
+insert into golden_chart_rows values
+  ${Object.entries(charts)
+    .flatMap(([name, rows]) => rows.map(([d, l]) => `('${name}', ${d}, ${l})`))
+    .join(",\n  ")};`);
+  }
+  const PILOT_RULES = "(select rules from public.pumps where name = 'Shree Lokanath Filling Station')";
+  const chartMax = (name) => Math.max(...charts[name].map(([d]) => Number(d)));
+  dayCases.forEach((c, i) => {
+    const n = String(i + 1).padStart(4, "0");
+    const pump = `'a0000000-0000-0000-0000-00000000${n}'`;
+    const day = `'a1000000-0000-0000-0000-00000000${n}'`;
+    const yesterday = `'a2000000-0000-0000-0000-00000000${n}'`;
+    const input = c.input;
+    const lines = [`-- ${c.file}: ${c.description.replace(/\n/g, " ")}`];
+    lines.push(
+      `insert into public.pumps (id, name, rules) values (${pump}, ${sqlText(`golden ${c.file}`)}, ${PILOT_RULES}${c.rules ? ` || ${sqlText(JSON.stringify(c.rules))}::jsonb` : ""});`,
+    );
+    const usedCharts = [...new Set(input.tanks.map((t) => t.chart))];
+    for (const ch of usedCharts) {
+      lines.push(`insert into public.dip_charts (pump_id, name) values (${pump}, '${ch}');
+insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
+  select ${pump}, (select id from public.dip_charts where pump_id = ${pump} and name = '${ch}'), dip_cm, volume_l from golden_chart_rows where chart = '${ch}';`);
+    }
+    const tank = (id) => `(select id from public.tanks where pump_id = ${pump} and label = ${sqlText(input.tanks.find((t) => t.id === id).label)})`;
+    for (const t of input.tanks) {
+      lines.push(
+        `insert into public.tanks (pump_id, label, product, chart_id) values (${pump}, ${sqlText(t.label)}, '${t.product}', (select id from public.dip_charts where pump_id = ${pump} and name = '${t.chart}'));`,
+      );
+    }
+    lines.push(`insert into public.business_days (id, pump_id, business_date) values (${day}, ${pump}, '${input.businessDate}');`);
+
+    // Yesterday, rebuilt from what the case says about it: its closing dip (S7) and its
+    // IOCL gap (S3: opening dip 0 cm = 0 L, so the IOCL report stock is the gap itself).
+    const needsYesterday = input.tankDays.some((td) => td.yesterdayClosingDipCm !== undefined || td.yesterdayBookGapLitres !== undefined);
+    if (needsYesterday) {
+      lines.push(`insert into public.business_days (id, pump_id, business_date) values (${yesterday}, ${pump}, '${input.businessDate}'::date - 1);`);
+    }
+    const reading = (dayId, td, type, cm, book) =>
+      `insert into public.tank_readings (pump_id, day_id, tank_id, reading_type, dip_cm, book_stock_l) values (${pump}, ${dayId}, ${tank(td.tankId)}, '${type}', ${cm ?? "null"}, ${book ?? "null"})`;
+    for (const td of input.tankDays) {
+      const max = chartMax(input.tanks.find((t) => t.id === td.tankId).chart);
+      if (td.yesterdayClosingDipCm !== undefined) lines.push(`${reading(yesterday, td, "CLOSING", td.yesterdayClosingDipCm)};`);
+      if (td.yesterdayBookGapLitres !== undefined) {
+        if (Number(td.yesterdayBookGapLitres) < 0) throw new Error(`${c.file}: a negative yesterday gap can't be rebuilt in the database`);
+        lines.push(`${reading(yesterday, td, "OPENING", "0", td.yesterdayBookGapLitres)};`);
+      }
+      for (const [type, cm, book] of [
+        ["OPENING", td.openingDipCm, td.bookStockLitres],
+        ["CLOSING", td.closingDipCm, undefined],
+      ]) {
+        if (cm === undefined) continue;
+        if (Number(cm) < 0 || Number(cm) > max) {
+          tests.push(`select throws_ok(${sqlText(reading(day, td, type, cm, book))}, 'P0001', null, ${sqlText(`${c.file}: H3, ${cm} cm is refused (outside the chart)`)});`);
+          continue;
+        }
+        lines.push(`${reading(day, td, type, cm, book)};`);
+      }
+    }
+    setup.push(lines.join("\n"));
+
+    if (c.expected.flags) {
+      const want = c.expected.flags.filter((f) => f === "S3" || f === "S7").sort();
+      tests.push(
+        `select is((select coalesce(array_agg(code order by code), '{}') from (select 'S3' as code from public.v_tank_day where pump_id = ${pump} and day_id = ${day} and s3_flag union all select 'S7' from public.v_tank_day where pump_id = ${pump} and day_id = ${day} and s7_flag) f), array[${want.map((f) => `'${f}'`).join(", ")}]::text[], ${sqlText(`${c.file}: opening-dip flags (S3, S7) are ${want.join(", ") || "none"}`)});`,
+      );
+    }
+  });
 
   return `-- GENERATED by scripts/golden-to-sql.mjs from tests/golden/cases. Don't edit by hand: run npm run golden:sql.
 -- The database's maths must give exactly the same answers as the app's (CLAUDE.md hard rule 4).
