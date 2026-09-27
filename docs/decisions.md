@@ -8,6 +8,8 @@ Newest first. Date, decision, why.
 
 **D65. Every chamber has its own dip before and dip after** (migration 10: `receipt_chambers.dip_before_cm`). Diesel may be sold between two chambers to make room, so a chamber's rise = its own after − its own before, and the tanker's rise (for the S6 dip check) = the chambers' rises added up, not last-after − first-before. Adding a chamber pre-fills its "before" with the previous chamber's "after" (editable). The separate "Tank dip before unloading" box is gone. Chambers saved earlier without a "before" use the previous chamber's "after".
 
+**D67. Forms with a Save button keep a draft on the phone (28 Sep 2026)** (owner: pressing Back lost a whole tanker). The tanker and credit slip forms write what's typed to AsyncStorage (D11) on every change and bring it back when that form is opened again, with a "Brought back what you typed · Start again" note. The draft is cleared on Save or Remove, and dropped after 14 days. Key: pump + business date + the tanker/slip id (or "new"), so one unsaved new tanker per day. Boxes that save by themselves (dips, meters, cash) don't need it. Brought forward from 4f's offline drafts; 4f builds on `src/lib/drafts.ts`.
+
 **D66. The challan check is one plain sentence under the totals**, only when they differ: "The challan is ₹51.00 more than litres × invoice price (₹13,87,960.00)." (replaces the confusing "Price × litres (+₹… on the challan)" row).
 
 ## 27 Sep 2026 (owner's 4b/4c phone check)

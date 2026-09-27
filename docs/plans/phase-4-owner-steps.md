@@ -192,6 +192,18 @@ One section per slice. Do the steps in order and send back what each step asks f
 
 ---
 
+## Drafts on the tanker and credit slip (28 Sep 2026) — quick check before 4d
+
+**What changed:** what you type on **Add tanker** and **Add credit slip** is kept on the phone as you type. Press Back (or the app closes) and open the same form again: everything is back, with a blue note **"Brought back what you typed"** and a **Start again** button. The note goes away once you **Save** (or Remove). Opening an existing tanker, changing something and going back keeps that change too, until you save it or tap Start again.
+
+### Step 1: check it (as owner, 2 minutes)
+1. **Tanker** › **Add tanker**: type a tanker number, invoice amount `100`, Ordered `4000`, chamber 1 litres `4000`. Press **Back** (don't save).
+2. **Add tanker** again: everything you typed is there, with the blue note. Tap **Start again**: the form is empty.
+3. Same with **Add credit slip** (Sales › a shift › Add credit slip): type a vehicle and slip number, Back, open again.
+4. **Send me** a screenshot of the blue note.
+
+---
+
 ## Slice 4d: Sales (27 Sep 2026) — test together with 4b and 4c
 
 **What's new:** the **Sales** tab. **By shift**: one card per shift with Should have, every part of Received, and the Difference (Matched / Short / Excess). **By type**: each way of payment with the day total and the split by shift, and **None today** for an unused type. Tap a shift to enter its money:

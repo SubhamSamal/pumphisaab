@@ -21,9 +21,11 @@ import {
 import { slipAmounts, type Product } from "@/calc";
 import { CustomerPicker } from "@/features/day/CustomerPicker";
 import { useDay, useDaySetup, useDeleteSlip, useSalesData, useSalesSetup, useSaveSlip, useShiftData, type CreditSale, type Day, type DaySetup, type SalesSetup, type Shift } from "@/features/day/queries";
+import { useDraftLoad, useKeepDraft } from "@/features/day/useDraft";
 import { useMembership } from "@/features/session/SessionProvider";
 import { track } from "@/lib/analytics";
 import { Decimal } from "@/lib/decimal";
+import { draftKey } from "@/lib/drafts";
 import { fmtLitres, fmtRupees } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
@@ -41,9 +43,13 @@ export default function CreditSlipScreen() {
   const shifts = useShiftData(day.data?.id);
   const salesSetup = useSalesSetup(me.pump.id);
   const sales = useSalesData(day.data?.id);
+  // What was typed but not saved yet stays on the phone (owner, 28 Sep).
+  const keyOfDraft = draftKey("slip", me.pump.id, date ?? "", id ?? "new");
+  const drafts = useDraftLoad<SlipDraft>(keyOfDraft);
+  const [formNo, setFormNo] = useState(0);
 
   const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error;
-  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data;
+  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data && drafts.loaded;
   const existing = id ? sales.data?.slips.find((x) => x.id === id) : undefined;
 
   return (
@@ -63,6 +69,13 @@ export default function CreditSlipScreen() {
         </ScreenBody>
       ) : (
         <SlipForm
+          key={formNo}
+          draftKey={keyOfDraft}
+          draft={drafts.draft}
+          onStartAgain={() => {
+            drafts.forget();
+            setFormNo((n) => n + 1);
+          }}
           pumpId={me.pump.id}
           setup={setup.data}
           day={day.data}
@@ -77,7 +90,12 @@ export default function CreditSlipScreen() {
   );
 }
 
+type SlipDraft = { slipId: string; shiftCode: string; customerId: string | null; vehicle: string; slipNo: string; product: Product; by: "RUPEES" | "LITRES"; value: string };
+
 function SlipForm({
+  draftKey: keyOfDraft,
+  draft,
+  onStartAgain,
   pumpId,
   setup,
   day,
@@ -87,6 +105,9 @@ function SlipForm({
   existing,
   onDone,
 }: {
+  draftKey: string;
+  draft: SlipDraft | null;
+  onStartAgain: () => void;
   pumpId: string;
   setup: DaySetup;
   day: Day;
@@ -98,13 +119,28 @@ function SlipForm({
 }) {
   const save = useSaveSlip(pumpId, day.id);
   const remove = useDeleteSlip(day.id);
-  const [shiftCode, setShiftCode] = useState(startShift);
-  const [customerId, setCustomerId] = useState<string | null>(existing?.customerId ?? null);
-  const [vehicle, setVehicle] = useState(existing?.vehicleNo ?? "");
-  const [slipNo, setSlipNo] = useState(existing?.slipNo ?? "");
-  const [product, setProduct] = useState<Product>(existing?.product ?? "HSD");
-  const [by, setBy] = useState<"RUPEES" | "LITRES">(existing?.entryBy ?? "RUPEES");
-  const [value, setValue] = useState(existing ? (existing.entryBy === "RUPEES" ? existing.rupees : existing.litres) : "");
+  // The slip as saved (or empty); a draft from the phone goes on top of it.
+  const [base] = useState<SlipDraft>(() => ({
+    slipId: existing?.id ?? newId(),
+    shiftCode: startShift,
+    customerId: existing?.customerId ?? null,
+    vehicle: existing?.vehicleNo ?? "",
+    slipNo: existing?.slipNo ?? "",
+    product: existing?.product ?? "HSD",
+    by: existing?.entryBy ?? "RUPEES",
+    value: existing ? (existing.entryBy === "RUPEES" ? existing.rupees : existing.litres) : "",
+  }));
+  const start = draft ?? base;
+  const [restored] = useState(Boolean(draft));
+  const [slipId] = useState(start.slipId);
+  const [shiftCode, setShiftCode] = useState(start.shiftCode);
+  const [customerId, setCustomerId] = useState<string | null>(start.customerId);
+  const [vehicle, setVehicle] = useState(start.vehicle);
+  const [slipNo, setSlipNo] = useState(start.slipNo);
+  const [product, setProduct] = useState<Product>(start.product);
+  const [by, setBy] = useState<"RUPEES" | "LITRES">(start.by);
+  const [value, setValue] = useState(start.value);
+  const discardDraft = useKeepDraft<SlipDraft>(keyOfDraft, { slipId, shiftCode, customerId, vehicle, slipNo, product, by, value }, base);
   const [tried, setTried] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
@@ -133,10 +169,11 @@ function SlipForm({
     setTried(true);
     if (!canSave || !shift || !customerId || v.kind !== "ok") return;
     save.mutate(
-      { id: existing?.id ?? newId(), shiftId: shift.id, customerId, vehicleNo: vehicle, slipNo, product, entryBy: by, value: v.value },
+      { id: slipId, shiftId: shift.id, customerId, vehicleNo: vehicle, slipNo, product, entryBy: by, value: v.value },
       {
         onSuccess: () => {
           if (!existing) track("credit_sale_added", { shift: shiftCode, product, entry_by: by });
+          discardDraft();
           onDone();
         },
       },
@@ -162,6 +199,16 @@ function SlipForm({
           )
         }
       >
+        {restored && !day.isLocked ? (
+          <Banner
+            tone="info"
+            icon="edit"
+            title="Brought back what you typed"
+            action={<Button label="Start again" size="M" variant="ghost" onPress={onStartAgain} />}
+          >
+            {"Not saved yet. Tap Save slip when it's done."}
+          </Banner>
+        ) : null}
         {!day.priceConfirmed ? <Banner tone="warning" title="Confirm today's price on Today first" /> : null}
         {save.error ? <Banner tone="danger" title={save.error.message} /> : null}
 
@@ -216,7 +263,7 @@ function SlipForm({
           label="Remove slip"
           variant="destructive"
           loading={remove.isPending}
-          onPress={() => existing && remove.mutate(existing.id, { onSuccess: () => (setConfirmRemove(false), onDone()) })}
+          onPress={() => existing && remove.mutate(existing.id, { onSuccess: () => (discardDraft(), setConfirmRemove(false), onDone()) })}
         />
         <Button label="Keep it" variant="secondary" onPress={() => setConfirmRemove(false)} />
       </BottomSheet>

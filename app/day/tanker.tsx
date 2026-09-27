@@ -41,10 +41,12 @@ import {
   type Receipt,
   type ReceiptLine,
 } from "@/features/day/queries";
+import { useDraftLoad, useKeepDraft } from "@/features/day/useDraft";
 import { useMembership } from "@/features/session/SessionProvider";
 import { track } from "@/lib/analytics";
 import { addDays } from "@/lib/businessDay";
 import { Decimal } from "@/lib/decimal";
+import { draftKey } from "@/lib/drafts";
 import { fmtDate, fmtLitres, fmtRupees, MINUS } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
@@ -62,9 +64,13 @@ export default function TankerFormScreen() {
   const day = useDay(me.pump.id, date);
   const tankers = useTankers(day.data?.id);
   const recent = useRecentTankers(me.pump.id);
+  // What was typed but not saved yet stays on the phone (owner, 28 Sep: Back lost a whole tanker).
+  const keyOfDraft = draftKey("tanker", me.pump.id, date ?? "", id ?? "new");
+  const drafts = useDraftLoad<TankerDraft>(keyOfDraft);
+  const [formNo, setFormNo] = useState(0);
 
   const failed = setup.error ?? day.error ?? tankers.error ?? recent.error;
-  const ready = setup.data && day.data && tankers.data && recent.data;
+  const ready = setup.data && day.data && tankers.data && recent.data && drafts.loaded;
   const existing = id ? tankers.data?.find((r) => r.id === id) : undefined;
 
   return (
@@ -85,6 +91,13 @@ export default function TankerFormScreen() {
         </ScreenBody>
       ) : (
         <TankerForm
+          key={formNo}
+          draftKey={keyOfDraft}
+          draft={drafts.draft}
+          onStartAgain={() => {
+            drafts.forget();
+            setFormNo((n) => n + 1);
+          }}
           pumpId={me.pump.id}
           isOwner={me.role === "owner"}
           setup={setup.data}
@@ -100,6 +113,7 @@ export default function TankerFormScreen() {
 
 type ChamberForm = { litres: string; before: string; after: string };
 type LineForm = { on: boolean; ordered: string; short: string; chambers: ChamberForm[] };
+type TankerDraft = { receiptId: string; vehicle: string; invoiceNo: string; invoiceAmount: string; invoiceDate: string; forms: Record<string, LineForm> };
 
 /** "14000.00" → "14000" for the typing box. */
 const plain = (v: string | null | undefined) => {
@@ -109,6 +123,9 @@ const plain = (v: string | null | undefined) => {
 };
 
 function TankerForm({
+  draftKey: keyOfDraft,
+  draft,
+  onStartAgain,
   pumpId,
   isOwner,
   setup,
@@ -117,6 +134,9 @@ function TankerForm({
   prefill,
   onDone,
 }: {
+  draftKey: string;
+  draft: TankerDraft | null;
+  onStartAgain: () => void;
   pumpId: string;
   isOwner: boolean;
   setup: DaySetup;
@@ -128,19 +148,16 @@ function TankerForm({
   const save = useSaveTanker(pumpId, day.id);
   const remove = useDeleteTanker(pumpId, day.id);
   const locked = day.isLocked;
-  const [receiptId] = useState(() => existing?.id ?? newId());
-  const [vehicle, setVehicle] = useState(existing?.vehicleNo ?? "");
-  const [invoiceNo, setInvoiceNo] = useState(existing?.invoiceNo ?? "");
-  const [invoiceAmount, setInvoiceAmount] = useState(plain(existing?.invoiceAmount));
-  const [invoiceDate, setInvoiceDate] = useState(existing?.invoiceDate ?? day.businessDate);
-  const [tried, setTried] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(false);
-  const [marginFor, setMarginFor] = useState<Product | null>(null);
-
   // One tank per fuel today (MS-1, HSD-1); diesel first, as on the challan.
   const tanks = activeTanks(setup).sort((a, b) => (a.product === b.product ? 0 : a.product === "HSD" ? -1 : 1));
-  const [forms, setForms] = useState<Record<string, LineForm>>(() =>
-    Object.fromEntries(
+  // The form as saved (or empty); a draft from the phone goes on top of it.
+  const [base] = useState<TankerDraft>(() => ({
+    receiptId: existing?.id ?? newId(),
+    vehicle: existing?.vehicleNo ?? "",
+    invoiceNo: existing?.invoiceNo ?? "",
+    invoiceAmount: plain(existing?.invoiceAmount),
+    invoiceDate: existing?.invoiceDate ?? day.businessDate,
+    forms: Object.fromEntries(
       tanks.map((t, i) => {
         const l = existing?.lines.find((x) => x.tankId === t.id);
         return [
@@ -162,7 +179,19 @@ function TankerForm({
         ];
       }),
     ),
-  );
+  }));
+  const start = draft ? { ...draft, forms: Object.fromEntries(tanks.map((t) => [t.id, draft.forms[t.id] ?? base.forms[t.id]])) } : base;
+  const [restored] = useState(Boolean(draft));
+  const [receiptId] = useState(start.receiptId);
+  const [vehicle, setVehicle] = useState(start.vehicle);
+  const [invoiceNo, setInvoiceNo] = useState(start.invoiceNo);
+  const [invoiceAmount, setInvoiceAmount] = useState(start.invoiceAmount);
+  const [invoiceDate, setInvoiceDate] = useState(start.invoiceDate);
+  const [tried, setTried] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [marginFor, setMarginFor] = useState<Product | null>(null);
+  const [forms, setForms] = useState<Record<string, LineForm>>(start.forms);
+  const discardDraft = useKeepDraft<TankerDraft>(keyOfDraft, { receiptId, vehicle, invoiceNo, invoiceAmount, invoiceDate, forms }, base);
   const setForm = (tankId: string, patch: Partial<LineForm>) => setForms((f) => ({ ...f, [tankId]: { ...f[tankId], ...patch } }));
   const setChamber = (tankId: string, k: number, patch: Partial<ChamberForm>) =>
     setForms((f) => ({ ...f, [tankId]: { ...f[tankId], chambers: f[tankId].chambers.map((c, j) => (j === k ? { ...c, ...patch } : c)) } }));
@@ -282,6 +311,7 @@ function TankerForm({
       {
         onSuccess: () => {
           if (!existing) track("tanker_receipt_added", { fuels: lines.length, chambers: lines.reduce((n, l) => n + l.chambers.length, 0) });
+          discardDraft();
           onDone();
         },
       },
@@ -312,6 +342,16 @@ function TankerForm({
         }
       >
         {locked ? <Banner tone="info" icon="lock" title="This day is locked" /> : null}
+        {restored && !locked ? (
+          <Banner
+            tone="info"
+            icon="edit"
+            title="Brought back what you typed"
+            action={<Button label="Start again" size="M" variant="ghost" onPress={onStartAgain} />}
+          >
+            {"Not saved yet. Tap Save tanker when it's done."}
+          </Banner>
+        ) : null}
         {save.error ? <Banner tone="danger" title={save.error.message} /> : null}
 
         <TextField
@@ -492,7 +532,7 @@ function TankerForm({
           label="Remove tanker"
           variant="destructive"
           loading={remove.isPending}
-          onPress={() => existing && remove.mutate(existing.id, { onSuccess: () => (setConfirmRemove(false), onDone()) })}
+          onPress={() => existing && remove.mutate(existing.id, { onSuccess: () => (discardDraft(), setConfirmRemove(false), onDone()) })}
         />
         <Button label="Keep it" variant="secondary" onPress={() => setConfirmRemove(false)} />
       </BottomSheet>

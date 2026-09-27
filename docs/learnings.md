@@ -175,6 +175,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Android clips the top of big typed numbers** unless `includeFontPadding: false` and centred vertical text (found on the tanker screen, 27 Sep).
 - **Build one slice while the owner tests the last** (27 Sep): the owner asked to build all of Phase 4 and test once; building 4d during lunch but testing 4b-4d before 4e/4f keeps each round small, because every phone check so far found something the tests can't (keyboard, layout, wording).
 - **A worked example can carry a rule change safely:** when D47 changed how bank dues count, the 15 Sep example was updated in the Python generator first, and the engine, the database and the app then had to agree with it again.
+- **Any form with a Save button must keep a draft** (owner, 28 Sep): the pump manager gets interrupted (a customer, a call) and presses Back. Use `useDraftLoad` / `useKeepDraft` (`src/features/day/useDraft.ts`) on every new Save-button form, and call `discardDraft()` after Save and Remove.
 - **The owner's Android dev server may already be running on port 8082**; the browser preview can reuse it (`localhost:8082/gallery`).
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
