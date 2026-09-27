@@ -383,8 +383,11 @@ hsd_tank = real_litres("59.8") + (D("14000") - 28) - real_litres("119.8")
 ms_d, ms_p = pr(ms_tank, "224.80")
 hsd_d, hsd_p = pr(hsd_tank, "6250.45")
 should = D("224.80") * ms_price + D("6250.45") * hsd_price
-payments_in = D("300000") + D("365052") + D("600000") + D("300000")
-received = (D("22919.99") - D("36013.04")) + D("55408.10") + D("2560") + D("1003216.67") + D("600000") + credit_rupees + D("27110") - payments_in
+# D47: dues paid by XtraPower are inside the XtraPower shift total, so they are taken off. Dues paid
+# by bank transfer (HDFC ₹3 lakh + ₹3 lakh) come separately: not in any shift total, not taken off.
+# That day the whole HDFC ₹6,00,000 was dues, so the shift's Bank transfer total for fuel is ₹0.
+payments_in = D("365052") + D("600000")
+received = (D("22919.99") - D("36013.04")) + D("55408.10") + D("2560") + D("1003216.67") + credit_rupees + D("27110") - payments_in
 write("notebook-2026-09-15", {
     "kind": "day", "source": "Real notebook day: docs/data/notebook/Sept15-daily-report.pdf",
     "description": (
@@ -392,7 +395,7 @@ write("notebook-2026-09-15", {
         f"MS: 4,536.78 − 4,307.24 = {q(ms_tank)} L by tank vs 224.80 L by meters: {q(ms_d)} L ({q(ms_p)}%); notebook circled −5. "
         f"HSD: 5,074.74 + 13,972 (14,000 minus 28 L short) − 12,749.18 = {q(hsd_tank)} L vs 6,250.45 L: {q(hsd_d)} L ({q(hsd_p)}%); "
         "the notebook circled −75 because it added the full 14,000 L. Money: Should have ₹6,60,664.52; Received = cash in hand ₹22,919.99 − opening cash ₹36,013.04 "
-        "+ Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + bank ₹6,00,000 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − customer payments ₹15,65,052 = ₹6,60,664.52. "
+        "+ Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − XtraPower dues ₹9,65,052 = ₹6,60,664.52. The HDFC dues (₹6,00,000) came by bank, outside the shift (D47). "
         "Difference 0 because the notebook's cash in hand is the leftover figure, not a count. Nozzles 1 and 2 are not in use."
     ),
     "input": day([tank("MS", "iocl-20kl"), tank("HSD", "iocl-20kl")],
@@ -405,7 +408,7 @@ write("notebook-2026-09-15", {
                      nozzle("HSD", "3", "567503.44", "570104.08"), nozzle("HSD", "4", "947934.58", "951594.39")],
                      cash_total="22919.99", opening_cash="36013.04",
                      payments=[{"type": "Paytm", "amount": "55408.10"}, {"type": "Card", "amount": "2560.00"},
-                               {"type": "XtraPower", "amount": "1003216.67"}, {"type": "Bank transfer", "amount": "600000.00"}],
+                               {"type": "XtraPower", "amount": "1003216.67"}, {"type": "Bank transfer", "amount": "0.00"}],
                      slips=slips,
                      tests=[{"nozzleId": "MS-3", "litres": "10"}, {"nozzleId": "HSD-3", "litres": "10"}])],
                  prices=[{"product": "MS", "perLitre": "110.07", "startsOn": "2026-09-01"},
@@ -416,19 +419,33 @@ write("notebook-2026-09-15", {
                  expenses=[{"id": f"E{i}", "type": t, "rupees": r, "paidFrom": "SHIFT_A"} for i, (t, r) in enumerate([
                      ("Tiffin", "160"), ("DG rent", "15000"), ("Staff advance", "100"), ("Staff food", "300"),
                      ("Tanker unloading", "350"), ("Tanker driver food", "200"), ("Cash advance to credit customer", "11000")])],
-                 payments=[{"customer": "Bijay Ku Sahoo", "rupees": "300000", "method": "Bank transfer", "shift": "A"},
+                 payments=[{"customer": "Bijay Ku Sahoo", "rupees": "300000", "method": "Bank transfer"},
                            {"customer": "Dord Logistics", "rupees": "365052", "method": "XtraPower", "shift": "A"},
                            {"customer": "United Infracorp Ltd", "rupees": "600000", "method": "XtraPower", "shift": "A"},
-                           {"customer": "Maa Bhawani Roadlines", "rupees": "300000", "method": "Bank transfer", "shift": "A"}]),
+                           {"customer": "Maa Bhawani Roadlines", "rupees": "300000", "method": "Bank transfer"}]),
     "expected": {
         "products": {"MS": {"soldAsPerTank": q(ms_tank), "meterLitres": "234.80", "testLitres": "10.00", "soldAsPerMeters": "224.80",
                             "difference": q(ms_d), "differencePercent": q(ms_p), "withinLimit": False},
                      "HSD": {"soldAsPerTank": q(hsd_tank), "meterLitres": "6260.45", "testLitres": "10.00", "soldAsPerMeters": "6250.45",
                              "difference": q(hsd_d), "differencePercent": q(hsd_p), "withinLimit": False}},
         "shifts": {"A": {"shouldHave": q(should), "received": q(received), "difference": q(received - should), "withinLimit": True,
-                         "creditSlips": "550514.80", "drawerExpenses": "27110.00", "customerPaymentsTakenOff": "1565052.00"}},
+                         "creditSlips": "550514.80", "drawerExpenses": "27110.00", "customerPaymentsTakenOff": "965052.00"}},
         "hardErrors": [], "flags": ["S1", "S1"], "isMatched": False}})
 assert q(should) == "660664.52" and q(received) == "660664.52"
+
+# D47 on its own: MS 100 L at ₹101 = ₹10,100 should have. Cash ₹5,100 + XtraPower ₹8,000 (of which
+# ₹3,000 is a customer's old dues, taken off) = ₹10,100. A ₹50,000 bank-transfer dues payment has no
+# shift: recorded, never taken off.
+write("day-23-d47-dues-by-method", {
+    "kind": "day", "source": "Decision D47",
+    "description": "Dues paid by XtraPower are inside the shift's XtraPower total and are taken off; dues paid by bank transfer have no shift and are not taken off. Difference 0.",
+    "input": day([tank("MS")], [{"tankId": "MS-1", "openingDipCm": "100", "closingDipCm": "99"}],
+                 [shift("A", [nozzle("MS", "A", "5000.00", "5100.00")], cash_total="5100",
+                        payments=[{"type": "XtraPower", "amount": "8000"}])],
+                 payments=[{"customer": "Dord Logistics", "rupees": "3000", "method": "XtraPower", "shift": "A"},
+                           {"customer": "Maa Bhawani Roadlines", "rupees": "50000", "method": "Bank transfer"}]),
+    "expected": {"shifts": {"A": {"shouldHave": "10100.00", "received": "10100.00", "difference": "0.00", "customerPaymentsTakenOff": "3000.00"}},
+                 "hardErrors": [], "flags": [], "isMatched": True}})
 # ─── 7. Business date (shared by app and database) ───────────────────────
 write("bizdate-01-business-day", {
     "kind": "businessDate", "source": "PRD F1 + acceptance 19, hard rule 9",

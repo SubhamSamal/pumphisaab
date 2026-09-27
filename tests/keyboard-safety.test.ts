@@ -41,7 +41,9 @@ describe("keyboard never covers what's being typed", () => {
       const rawImport = /import\s*{[^}]*\b(ScrollView|KeyboardAvoidingView)\b[^}]*}\s*from\s*"react-native"/.test(f.code);
       expect(rawImport, "use ScreenBody or KeyboardSafeScroll from @/components/ui instead").toBe(false);
 
-      if (TYPING_BOX.test(f.code)) {
+      // A screen (default export) with a typing box must be built on the keyboard-safe body. Parts
+      // used inside screens (e.g. the company picker) are covered by the screen that holds them.
+      if (TYPING_BOX.test(f.code) && /export default function/.test(f.code)) {
         expect(KEYBOARD_SAFE.test(f.code), "a screen with a typing box must be inside ScreenBody or KeyboardSafeScroll").toBe(true);
       }
     });

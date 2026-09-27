@@ -56,6 +56,8 @@ function Screens() {
         <Stack.Screen name="day/opening-dip" />
         <Stack.Screen name="day/shift" />
         <Stack.Screen name="day/tanker" />
+        <Stack.Screen name="day/sales" />
+        <Stack.Screen name="day/credit-slip" />
         <Stack.Screen name="profile/logins" />
         <Stack.Screen name="profile/add-manager" />
         <Stack.Screen name="profile/staff" />

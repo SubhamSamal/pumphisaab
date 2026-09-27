@@ -169,6 +169,8 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **The round gear button at the top right on Android is the Expo dev-client menu,** not part of the app; it won't be in the preview/pilot build.
 - **"Insert or update" (upsert) re-sends every column it saves,** so a column-level UPDATE grant must include the row's keys (pump, day, shift, nozzle); the triggers stop them from really changing. A database test now saves exactly the way the app does (4b).
 - **An opening has two sources:** the previous shift's closing (copied by the database) or a typed one (meter change / first reading). The app shows the copied value even before the row is saved (`openingOf()`), so the screen and the engine agree before and after saving (4b).
+- **Build one slice while the owner tests the last** (27 Sep): the owner asked to build all of Phase 4 and test once; building 4d during lunch but testing 4b-4d before 4e/4f keeps each round small, because every phone check so far found something the tests can't (keyboard, layout, wording).
+- **A worked example can carry a rule change safely:** when D47 changed how bank dues count, the 15 Sep example was updated in the Python generator first, and the engine, the database and the app then had to agree with it again.
 - **The owner's Android dev server may already be running on port 8082**; the browser preview can reuse it (`localhost:8082/gallery`).
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 

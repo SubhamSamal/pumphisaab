@@ -243,7 +243,15 @@ export const useLockDay = (pumpId: string) => useDayAction(pumpId, "lock_day");
 export const useUnlockDay = (pumpId: string) => useDayAction(pumpId, "unlock_day");
 
 // ─── Shifts: meters, attendants, testing (slice 4b) ───────────────────────
-export type Shift = { id: string; code: string; startsAt: string; endsAt: string };
+export type Shift = {
+  id: string;
+  code: string;
+  startsAt: string;
+  endsAt: string;
+  /** Cash in the drawer at the start, if typed (else the previous shift's count is used, D46). */
+  openingCash: string | null;
+  salesDoneAt: string | null;
+};
 export type MeterChange = "NONE" | "PENDING" | "APPROVED";
 /** One in-use nozzle in one shift, saved or not yet (from v_nozzle_readings). */
 export type NozzleLine = {
@@ -270,7 +278,7 @@ export function useShiftData(dayId: string | undefined) {
     queryFn: async (): Promise<ShiftData> => {
       const id = dayId as string;
       const [shifts, lines, attendants, tests] = await Promise.all([
-        supabase.from("shifts").select("id, shift_code, starts_at, ends_at").eq("day_id", id).order("starts_at"),
+        supabase.from("shifts").select("id, shift_code, starts_at, ends_at, opening_cash::text, sales_done_at").eq("day_id", id).order("starts_at"),
         supabase
           .from("v_nozzle_readings")
           .select(
@@ -282,7 +290,14 @@ export function useShiftData(dayId: string | undefined) {
       ]);
       for (const r of [shifts, lines, attendants, tests]) if (r.error) throw r.error;
       return {
-        shifts: shifts.data!.map((s) => ({ id: s.id, code: s.shift_code, startsAt: s.starts_at, endsAt: s.ends_at })),
+        shifts: shifts.data!.map((s) => ({
+          id: s.id,
+          code: s.shift_code,
+          startsAt: s.starts_at,
+          endsAt: s.ends_at,
+          openingCash: s.opening_cash,
+          salesDoneAt: s.sales_done_at,
+        })),
         lines: lines.data!.map(
           (l): NozzleLine => ({
             shiftId: l.shift_id,
@@ -558,4 +573,244 @@ export function useSetNoTanker(pumpId: string) {
       check(supabase.from("business_days").update({ no_tanker: value }).eq("id", dayId)),
     onSettled: () => qc.invalidateQueries({ queryKey: ["day", pumpId] }),
   });
+}
+
+// ─── Sales (slice 4d) ─────────────────────────────────────────────────────
+export type PaymentType = { id: string; name: string; kind: "CASH" | "CREDIT" | "OTHER" };
+export type Denomination = { id: string; value: string };
+export type Customer = { id: string; name: string; isActive: boolean };
+export type SalesSetup = { types: PaymentType[]; notes: Denomination[]; customers: Customer[] };
+
+export function useSalesSetup(pumpId: string) {
+  return useQuery({
+    queryKey: ["salesSetup", pumpId],
+    queryFn: async (): Promise<SalesSetup> => {
+      const [types, notes, customers] = await Promise.all([
+        supabase.from("payment_types").select("id, name, kind").eq("pump_id", pumpId).eq("is_active", true).order("sort_order"),
+        supabase.from("cash_denominations").select("id, value::text").eq("pump_id", pumpId).eq("is_active", true).order("value", { ascending: false }),
+        supabase.from("credit_customers").select("id, name, is_active").eq("pump_id", pumpId).order("name"),
+      ]);
+      for (const r of [types, notes, customers]) if (r.error) throw r.error;
+      return {
+        types: types.data as PaymentType[],
+        notes: notes.data!.map((n) => ({ id: n.id, value: n.value })),
+        customers: customers.data!.map((c) => ({ id: c.id, name: c.name, isActive: c.is_active })),
+      };
+    },
+  });
+}
+
+export type ShiftPayment = { id: string; shiftId: string; typeId: string; amount: string | null; coins: string | null };
+export type NoteCount = { id: string; shiftId: string; noteId: string; count: number };
+export type CreditSale = {
+  id: string;
+  shiftId: string;
+  customerId: string;
+  vehicleNo: string;
+  slipNo: string;
+  product: Product;
+  entryBy: "RUPEES" | "LITRES";
+  rupees: string;
+  litres: string;
+  rate: string;
+};
+export type CustomerPaymentRow = { id: string; shiftId: string | null; customerId: string; typeId: string; amount: string };
+/** What the database worked out per shift (opening cash used, D46). */
+export type ShiftMoneyRow = { shiftId: string; openingCash: string };
+export type SalesData = {
+  payments: ShiftPayment[];
+  counts: NoteCount[];
+  slips: CreditSale[];
+  customerPayments: CustomerPaymentRow[];
+  money: ShiftMoneyRow[];
+};
+
+export function useSalesData(dayId: string | undefined) {
+  return useQuery({
+    queryKey: ["salesData", dayId],
+    enabled: Boolean(dayId),
+    queryFn: async (): Promise<SalesData> => {
+      const id = dayId as string;
+      const [payments, counts, slips, cps, money] = await Promise.all([
+        supabase.from("shift_payments").select("id, shift_id, payment_type_id, amount::text, coins::text").eq("day_id", id),
+        supabase.from("cash_counts").select("id, shift_id, denomination_id, note_count").eq("day_id", id),
+        supabase
+          .from("credit_sales")
+          .select("id, shift_id, customer_id, vehicle_no, slip_no, product, entry_by, rupees::text, litres::text, rate::text")
+          .eq("day_id", id)
+          .order("created_at"),
+        supabase.from("customer_payments").select("id, shift_id, customer_id, payment_type_id, amount::text").eq("day_id", id).order("created_at"),
+        supabase.from("v_shift_money").select("shift_id, opening_cash::text").eq("day_id", id),
+      ]);
+      for (const r of [payments, counts, slips, cps, money]) if (r.error) throw r.error;
+      return {
+        payments: payments.data!.map((p) => ({ id: p.id, shiftId: p.shift_id, typeId: p.payment_type_id, amount: p.amount, coins: p.coins })),
+        counts: counts.data!.map((c) => ({ id: c.id, shiftId: c.shift_id, noteId: c.denomination_id, count: c.note_count })),
+        slips: slips.data!.map((x) => ({
+          id: x.id,
+          shiftId: x.shift_id,
+          customerId: x.customer_id,
+          vehicleNo: x.vehicle_no,
+          slipNo: x.slip_no,
+          product: x.product,
+          entryBy: x.entry_by,
+          rupees: x.rupees,
+          litres: x.litres,
+          rate: x.rate,
+        })),
+        customerPayments: cps.data!.map((c) => ({ id: c.id, shiftId: c.shift_id, customerId: c.customer_id, typeId: c.payment_type_id, amount: c.amount })),
+        money: money.data!.map((m) => ({ shiftId: m.shift_id, openingCash: m.opening_cash })),
+      };
+    },
+  });
+}
+
+function useSalesSave<T>(dayId: string | undefined, key: string, fn: (input: T) => Promise<void>, extraKeys: unknown[][] = []) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", key],
+    mutationFn: fn,
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["salesData", dayId] });
+      for (const k of extraKeys) qc.invalidateQueries({ queryKey: k });
+    },
+  });
+}
+
+/** One ₹ total for a way of payment in a shift (or the coins, for Cash). Keyed by shift + type. */
+export function useSaveShiftPayment(pumpId: string, dayId: string | undefined) {
+  return useSalesSave(dayId, "shiftPayment", (input: { shiftId: string; typeId: string; amount?: string | null; coins?: string | null }) =>
+    check(
+      supabase.from("shift_payments").upsert(
+        {
+          pump_id: pumpId,
+          day_id: dayId,
+          shift_id: input.shiftId,
+          payment_type_id: input.typeId,
+          ...(input.amount !== undefined ? { amount: input.amount } : {}),
+          ...(input.coins !== undefined ? { coins: input.coins } : {}),
+        },
+        { onConflict: "shift_id,payment_type_id" },
+      ),
+    ),
+  );
+}
+
+/** How many of one note were counted in a shift's drawer. Saving the count also marks the cash as counted. */
+export function useSaveNoteCount(pumpId: string, dayId: string | undefined) {
+  return useSalesSave(dayId, "noteCount", async (input: { shiftId: string; noteId: string; count: number; cashTypeId: string }) => {
+    await check(
+      supabase
+        .from("cash_counts")
+        .upsert(
+          { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, denomination_id: input.noteId, note_count: input.count },
+          { onConflict: "shift_id,denomination_id" },
+        ),
+    );
+    await check(
+      supabase
+        .from("shift_payments")
+        .upsert(
+          { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, payment_type_id: input.cashTypeId },
+          { onConflict: "shift_id,payment_type_id", ignoreDuplicates: true },
+        ),
+    );
+  });
+}
+
+/** Cash already in the drawer at the start of a shift; null = use the previous shift's count (D46). */
+export function useSetOpeningCash(dayId: string | undefined) {
+  return useSalesSave(
+    dayId,
+    "openingCash",
+    (input: { shiftId: string; value: string | null }) => check(supabase.from("shifts").update({ opening_cash: input.value }).eq("id", input.shiftId)),
+    [["shiftData", dayId]],
+  );
+}
+
+/**
+ * "Done" for a shift's sales (PRD F6): every way of payment still empty becomes ₹0, the cash counts
+ * as counted (₹0 coins if nothing was typed), and the shift is marked done. Safe to tap twice.
+ */
+export function useSalesDone(pumpId: string, dayId: string | undefined) {
+  return useSalesSave(
+    dayId,
+    "salesDone",
+    async (input: { shiftId: string; types: PaymentType[]; existing: ShiftPayment[] }) => {
+      const missing = input.types.filter((t) => t.kind !== "CREDIT" && !input.existing.some((p) => p.shiftId === input.shiftId && p.typeId === t.id));
+      const emptyOther = input.types.filter(
+        (t) => t.kind === "OTHER" && input.existing.some((p) => p.shiftId === input.shiftId && p.typeId === t.id && p.amount === null),
+      );
+      const rows = [
+        ...missing.map((t) => ({ pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, payment_type_id: t.id, ...(t.kind === "CASH" ? { coins: 0 } : { amount: 0 }) })),
+        ...emptyOther.map((t) => ({ pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, payment_type_id: t.id, amount: 0 })),
+      ];
+      if (rows.length) await check(supabase.from("shift_payments").upsert(rows, { onConflict: "shift_id,payment_type_id" }));
+      await check(supabase.from("shifts").update({ sales_done_at: new Date().toISOString() }).eq("id", input.shiftId));
+    },
+    [["shiftData", dayId]],
+  );
+}
+
+/** Adds a new credit customer (D50) and gives back its id. */
+export function useAddCustomer(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "customer"],
+    mutationFn: async (name: string): Promise<string> => {
+      const { data, error } = await supabase.from("credit_customers").insert({ pump_id: pumpId, name: name.trim() }).select("id").single();
+      if (error) throw new Error(friendlyError(error, "Couldn't add the company. Try again."), { cause: error });
+      return data.id as string;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["salesSetup", pumpId] }),
+  });
+}
+
+/** Adds or fixes a credit slip (id made on the phone). The database works out ₹ ↔ litres and checks H6, H7. */
+export function useSaveSlip(pumpId: string, dayId: string | undefined) {
+  return useSalesSave(
+    dayId,
+    "slip",
+    (input: { id: string; shiftId: string; customerId: string; vehicleNo: string; slipNo: string; product: Product; entryBy: "RUPEES" | "LITRES"; value: string }) =>
+      check(
+        supabase.from("credit_sales").upsert(
+          {
+            id: input.id,
+            pump_id: pumpId,
+            day_id: dayId,
+            shift_id: input.shiftId,
+            customer_id: input.customerId,
+            vehicle_no: input.vehicleNo,
+            slip_no: input.slipNo.trim(),
+            product: input.product,
+            entry_by: input.entryBy,
+            // The other one is worked out by the database; a placeholder satisfies the column.
+            rupees: input.entryBy === "RUPEES" ? input.value : 1,
+            litres: input.entryBy === "LITRES" ? input.value : 1,
+            rate: 1,
+          },
+          { onConflict: "id" },
+        ),
+      ),
+  );
+}
+
+export function useDeleteSlip(dayId: string | undefined) {
+  return useSalesSave(dayId, "slipDelete", (id: string) => check(supabase.from("credit_sales").delete().eq("id", id)));
+}
+
+/** A customer paying old dues / an advance (D29, D47). shiftId null = bank transfer, outside every shift. */
+export function useSaveCustomerPayment(pumpId: string, dayId: string | undefined) {
+  return useSalesSave(dayId, "customerPayment", (input: { id: string; shiftId: string | null; customerId: string; typeId: string; amount: string }) =>
+    check(
+      supabase.from("customer_payments").upsert(
+        { id: input.id, pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, customer_id: input.customerId, payment_type_id: input.typeId, amount: input.amount },
+        { onConflict: "id" },
+      ),
+    ),
+  );
+}
+
+export function useDeleteCustomerPayment(dayId: string | undefined) {
+  return useSalesSave(dayId, "customerPaymentDelete", (id: string) => check(supabase.from("customer_payments").delete().eq("id", id)));
 }

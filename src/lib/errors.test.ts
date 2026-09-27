@@ -13,5 +13,8 @@ it("turns technical errors into one plain sentence", () => {
   expect(friendlyError({ code: "PGRST202", message: "Could not find the function public.open_day" })).toBe(
     "The app is newer than the database. The owner needs to paste the latest database update.",
   );
+  expect(friendlyError({ code: "23505", message: "Slip 4471 is already saved for Mahanadi Coalfields. Check the slip number." })).toBe(
+    "Slip 4471 is already saved for Mahanadi Coalfields. Check the slip number.",
+  );
   expect(friendlyError({ message: "weird" })).toBe("Something went wrong. Try again.");
 });

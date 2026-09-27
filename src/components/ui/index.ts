@@ -13,6 +13,7 @@ export { Icon, type IconName } from "./Icon";
 export { ListItem } from "./ListItem";
 export { LogoMark, Wordmark } from "./Logo";
 export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./Navigation";
+export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";
 export { NozzleColumnHeader, NozzleGroupHeader, NozzleRow, type NozzleRowProps } from "./NozzleRow";
 export { BottomSheet, Toast } from "./Overlay";
 export { PriceStrip, type PriceStripItem, type PriceStripProps } from "./PriceStrip";

@@ -12,6 +12,7 @@ import {
   type DayResult,
   type Issue,
   type Product,
+  type CustomerPayment,
   type ShiftCode,
   type ShiftInput,
   type TankDay,
@@ -19,9 +20,22 @@ import {
 } from "@/calc";
 import { addDays } from "@/lib/businessDay";
 import { Decimal, toDecimal } from "@/lib/decimal";
-import { fmtClock, fmtLitres, fmtRupees } from "@/lib/format";
+import { fmtClock, fmtDifference, fmtLitres, fmtRupees } from "@/lib/format";
 import type { SectionStatus } from "@/components/ui";
-import type { Day, DaySetup, DayStatus, NozzleLine, Receipt, SetupNozzle, Shift, ShiftData, TankReading, TankYesterday } from "./queries";
+import type {
+  Day,
+  DaySetup,
+  DayStatus,
+  NozzleLine,
+  Receipt,
+  SalesData,
+  SalesSetup,
+  SetupNozzle,
+  Shift,
+  ShiftData,
+  TankReading,
+  TankYesterday,
+} from "./queries";
 
 /**
  * What's typed on screen right now for a tank, before or after it is saved.
@@ -66,7 +80,14 @@ export function tankDays(
 }
 
 /** Everything known about the day so far, through the calculation engine (src/calc). */
-export function evaluate(setup: DaySetup, day: Day, days: TankDay[], shifts: ShiftInput[] = [], tankers: TankerReceipt[] = []): DayResult {
+export function evaluate(
+  setup: DaySetup,
+  day: Day,
+  days: TankDay[],
+  shifts: ShiftInput[] = [],
+  tankers: TankerReceipt[] = [],
+  customerPayments: CustomerPayment[] = [],
+): DayResult {
   const input: DayInput = {
     businessDate: day.businessDate,
     priceConfirmed: day.priceConfirmed,
@@ -76,7 +97,7 @@ export function evaluate(setup: DaySetup, day: Day, days: TankDay[], shifts: Shi
     tankers,
     shifts,
     expenses: [],
-    customerPayments: [],
+    customerPayments,
   };
   return evaluateDay(input, setup.rules);
 }
@@ -139,6 +160,7 @@ export function todaySections(
   shiftData?: ShiftData,
   typed: TypedClosings = {},
   receipts?: Receipt[],
+  sales?: SalesBundle,
 ): Section[] {
   const opening = dipSection("openingDip", "Opening dip", setup, readings, result, day.isLocked);
   const shiftCards = (["A", "B", "C"] as const).map((code) => {
@@ -146,7 +168,9 @@ export function todaySections(
     const shift = shiftData?.shifts.find((s) => s.code === code);
     return shift && shiftData ? shiftSection(key, shift, setup, shiftData, result, day.isLocked, typed) : comingSoon(key, `Shift ${code} readings`, day.isLocked);
   });
-  const later = COMING.map(({ key, title }) => comingSoon(key, title, day.isLocked));
+  const later = COMING.map(({ key, title }) =>
+    key === "sales" && sales && shiftData ? salesSection(day, shiftData.shifts, result, sales.data) : comingSoon(key, title, day.isLocked),
+  );
   const closing = { ...dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked), ready: false, subtitle: "Coming soon" };
   const tanker = receipts ? tankerSection(day, receipts, result) : comingSoon("tanker", "Tanker", day.isLocked);
   return [opening, tanker, ...shiftCards, ...later, closing];
@@ -181,8 +205,8 @@ export function openingOf(line: NozzleLine | undefined): string | null {
 /** "6 AM to 2 PM" */
 export const shiftHours = (shift: Shift) => `${fmtClock(shift.startsAt)} to ${fmtClock(shift.endsAt)}`;
 
-/** The day's shifts as the engine wants them: readings (with typed closings on top) and testing. */
-export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosings = {}): ShiftInput[] {
+/** The day's shifts as the engine wants them: readings (with typed closings on top), testing and, once Sales exists, money. */
+export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosings = {}, sales?: SalesBundle): ShiftInput[] {
   return data.shifts.map((shift) => ({
     code: shift.code as ShiftCode,
     nozzles: setup.nozzles.map((n) => {
@@ -203,10 +227,83 @@ export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosin
       };
     }),
     tests: data.tests.filter((t) => t.shiftId === shift.id).map((t) => ({ nozzleId: t.nozzleId, litres: t.litres })),
-    openingCash: "0",
-    otherPayments: [],
-    creditSlips: [],
+    ...(sales ? shiftMoneyInput(shift, sales) : { openingCash: "0", otherPayments: [], creditSlips: [] }),
   }));
+}
+
+// ─── Sales (slice 4d) ─────────────────────────────────────────────────────
+export type SalesBundle = { setup: SalesSetup; data: SalesData };
+
+/**
+ * One shift's money as the engine wants it. The cash counts as counted once any note or the coins
+ * are saved (or Done is tapped). Cash at the start: typed, else what the database worked out from
+ * the previous shift's count (D46), else 0.
+ */
+export function shiftMoneyInput(shift: Shift, { setup, data }: SalesBundle): Pick<ShiftInput, "cash" | "openingCash" | "otherPayments" | "creditSlips"> {
+  const cashType = setup.types.find((t) => t.kind === "CASH");
+  const cashRow = data.payments.find((p) => p.shiftId === shift.id && p.typeId === cashType?.id);
+  const counts = data.counts.filter((c) => c.shiftId === shift.id);
+  const customerName = (id: string) => setup.customers.find((c) => c.id === id)?.name ?? "";
+  return {
+    openingCash: shift.openingCash ?? data.money.find((m) => m.shiftId === shift.id)?.openingCash ?? "0",
+    ...(cashRow || counts.length
+      ? {
+          cash: {
+            byNotes: counts.map((c) => ({ noteValue: setup.notes.find((n) => n.id === c.noteId)?.value ?? "0", count: String(c.count) })),
+            coins: cashRow?.coins ?? "0",
+          },
+        }
+      : {}),
+    otherPayments: setup.types
+      .filter((t) => t.kind === "OTHER")
+      .flatMap((t) => {
+        const row = data.payments.find((p) => p.shiftId === shift.id && p.typeId === t.id);
+        return row?.amount != null ? [{ type: t.name, amount: row.amount }] : [];
+      }),
+    creditSlips: data.slips
+      .filter((x) => x.shiftId === shift.id)
+      .map((x) => ({
+        slipNo: x.slipNo,
+        customer: customerName(x.customerId),
+        vehicleNo: x.vehicleNo,
+        product: x.product,
+        entry: x.entryBy === "RUPEES" ? { by: "rupees" as const, rupees: x.rupees } : { by: "litres" as const, litres: x.litres },
+      })),
+  };
+}
+
+/** Payments from customers as the engine wants them; a bank transfer carries no shift (D47). */
+export function customerPaymentInputs(shifts: Shift[], { setup, data }: SalesBundle): CustomerPayment[] {
+  return data.customerPayments.map((p) => {
+    const code = shifts.find((s) => s.id === p.shiftId)?.code;
+    return {
+      customer: setup.customers.find((c) => c.id === p.customerId)?.name ?? "",
+      rupees: p.amount,
+      method: setup.types.find((t) => t.id === p.typeId)?.name ?? "",
+      ...(code ? { shift: code as ShiftCode } : {}),
+    };
+  });
+}
+
+/** Done when every shift's Sales is marked Done. The line says how each shift stands. */
+export function salesSection(day: Day, shifts: Shift[], result: DayResult, data: SalesData): Section {
+  const done = shifts.length > 0 && shifts.every((s) => s.salesDoneAt);
+  const started = shifts.some((s) => s.salesDoneAt) || data.payments.length > 0 || data.slips.length > 0 || data.counts.length > 0;
+  const parts = shifts.map((s) => {
+    const m = result.shifts.find((x) => x.shift === s.code);
+    if (!m) return `${s.code} open`;
+    const d = fmtDifference(m.difference, "rupees");
+    return d.tone === "matched" ? `${s.code} matched` : `${s.code} ${d.word.toLowerCase()} ${d.text}`;
+  });
+  return {
+    key: "sales",
+    title: "Sales",
+    subtitle: started ? `${done ? "Done · " : ""}${parts.join(" · ")}` : "To do · Cash, Paytm, Card, XtraPower, Bank, Credit",
+    status: day.isLocked ? "locked" : done ? "done" : started ? "inProgress" : "todo",
+    errors: result.hardErrors.filter((e) => e.code === "H9").length,
+    flags: result.flags.filter((f) => f.code === "S2").length,
+    ready: true,
+  };
 }
 
 /** Each in-use nozzle's opening and closing are known, and at least one person is ticked. */

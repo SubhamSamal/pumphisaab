@@ -15,13 +15,27 @@ import {
   StickyActionBar,
   Text,
 } from "@/components/ui";
-import { daysNotSubmitted, evaluate, priceStrip, sectionsDone, shiftInputs, tankDays, tankerInputs, todaySections, type Section } from "@/features/day/model";
+import {
+  customerPaymentInputs,
+  daysNotSubmitted,
+  evaluate,
+  priceStrip,
+  sectionsDone,
+  shiftInputs,
+  tankDays,
+  tankerInputs,
+  todaySections,
+  type SalesBundle,
+  type Section,
+} from "@/features/day/model";
 import {
   useConfirmPrices,
   useDay,
   useDaySetup,
   useLockDay,
   useRecentDays,
+  useSalesData,
+  useSalesSetup,
   useShiftData,
   useTankers,
   useTankReadings,
@@ -58,6 +72,8 @@ export default function TodayScreen() {
   const tanks = useTankReadings(day.data?.id);
   const shifts = useShiftData(day.data?.id);
   const tankers = useTankers(day.data?.id);
+  const salesSetup = useSalesSetup(pumpId);
+  const sales = useSalesData(day.data?.id);
   const recent = useRecentDays(pumpId, serverKnown ? today : undefined);
   const save = useSaveState();
   const confirm = useConfirmPrices(pumpId);
@@ -70,25 +86,27 @@ export default function TodayScreen() {
   }, [dayId, date, isToday]);
 
   const minDate = addDays(today, -(isOwner ? OWNER_DAYS_BACK : MANAGER_DAYS_BACK));
-  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending;
-  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error;
+  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending || salesSetup.isPending || sales.isPending;
+  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error ?? salesSetup.error ?? sales.error;
 
   const model = useMemo(() => {
-    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data) return null;
+    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data) return null;
+    const bundle: SalesBundle = { setup: salesSetup.data, data: sales.data };
     const result = evaluate(
       setup.data,
       day.data,
       tankDays(setup.data, tanks.data.readings, tanks.data.yesterday),
-      shiftInputs(setup.data, shifts.data),
+      shiftInputs(setup.data, shifts.data, {}, bundle),
       tankerInputs(tankers.data),
+      customerPaymentInputs(shifts.data.shifts, bundle),
     );
-    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data);
+    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle);
     // Shift codes with a meter change waiting for the owner (H2), for the owner's banner.
     const pendingMeter = shifts.data.lines
       .filter((l) => l.meterChange === "PENDING")
       .map((l) => shifts.data.shifts.find((s) => s.id === l.shiftId)?.code ?? "");
     return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data), pendingMeter };
-  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data]);
+  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data]);
 
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
 
@@ -97,6 +115,7 @@ export default function TodayScreen() {
     track("section_opened", { section: s.key });
     if (s.key === "openingDip") router.push({ pathname: "/day/opening-dip", params: { date } });
     if (s.key === "tanker") router.push("/tanker");
+    if (s.key === "sales") router.push("/sales");
     if (s.key === "shiftA" || s.key === "shiftB" || s.key === "shiftC") {
       router.push({ pathname: "/day/shift", params: { date, code: s.key.slice(-1) } });
     }
@@ -162,6 +181,8 @@ export default function TodayScreen() {
               tanks.refetch();
               shifts.refetch();
               tankers.refetch();
+              salesSetup.refetch();
+              sales.refetch();
             }}
           />
         ) : (

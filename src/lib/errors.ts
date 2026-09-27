@@ -15,6 +15,8 @@ export function friendlyError(error: unknown, fallback = "Something went wrong. 
   if (e?.code === "40001" || message.includes("someone else changed this")) return "Someone else changed this just now. Reload and try again.";
   if (e?.code === "42501" || message.includes("row-level security") || message.includes("permission denied"))
     return "You don't have permission to do that.";
+  // Our own "already used" checks explain themselves (e.g. "Slip 4471 is already saved for …").
+  if (e?.code === "23505" && e.message && !message.includes("duplicate key")) return e.message;
   if (e?.code === "23505" || message.includes("duplicate key")) return "That name is already there.";
   if (e?.code === "23514" || message.includes("violates check constraint")) return "That number can't be negative. Check it.";
   // The app was updated before its database change was pasted in Supabase (missing table, column or function).

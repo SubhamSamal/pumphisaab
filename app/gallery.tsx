@@ -25,6 +25,7 @@ import {
   KeyValueRow,
   ListItem,
   LogoMark,
+  NoteCountRow,
   NozzleColumnHeader,
   NozzleGroupHeader,
   NozzleRow,
@@ -235,6 +236,11 @@ function GalleryContent() {
           <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingChanged note="New opening waits for the owner's approval." />
           <NozzleRow label="MS-B" opening="—" closing="" placeholder="After Shift A" />
           <NozzleRow label="MS-C" openingInput={{ value: "", onChange: () => {} }} closing="" />
+        </Section>
+
+        <Section title="Cash note count">
+          <NoteCountRow note="₹500" count="150" amount="₹75,000" />
+          <NoteCountRow note="₹200" count="" amount="₹0" />
         </Section>
 
         <Section title="Price confirm strip">

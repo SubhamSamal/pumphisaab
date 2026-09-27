@@ -7,7 +7,8 @@
  *                + Paytm + Card + XtraPower + Bank transfer    (totals typed from each machine/app)
  *                + credit slips
  *                + expenses paid out of this shift's drawer    (that cash was received, then spent)
- *                − customer payments of old dues / advances    (money in, but not for today's fuel)
+ *                − customer payments of old dues / advances    (money in, but not for today's fuel; only those
+ *                                                                inside this shift's totals: bank-transfer dues have no shift, D47)
  *
  *   Difference   = Received − Should have      (negative = short, positive = excess)
  */

@@ -120,7 +120,11 @@ export type CustomerPayment = {
   rupees: Num;
   /** "Cash", or the same name as an OtherPayment type ("XtraPower", "Bank transfer" …). */
   method: string;
-  shift: ShiftCode;
+  /**
+   * The shift whose total already holds this money, so it is taken off that shift (D47): dues paid
+   * by Cash, Paytm, Card or XtraPower. Dues paid by bank transfer come outside every shift: no shift.
+   */
+  shift?: ShiftCode;
 };
 
 export type DayInput = {

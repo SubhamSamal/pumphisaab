@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES } from "@/calc";
-import { daysNotSubmitted, evaluate, lastPrices, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
-import type { Day, DaySetup, NozzleLine, Receipt, ShiftData, TankReading } from "./queries";
+import { customerPaymentInputs, daysNotSubmitted, evaluate, lastPrices, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import type { Day, DaySetup, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
   ([dipCm, litres]) => ({ dipCm, litres }),
@@ -144,9 +144,9 @@ describe("price Confirm strip (H6)", () => {
 
 describe("shift meters (slice 4b)", () => {
   const shifts = [
-    { id: "A", code: "A", startsAt: "2026-10-01T00:30:00Z", endsAt: "2026-10-01T08:30:00Z" },
-    { id: "B", code: "B", startsAt: "2026-10-01T08:30:00Z", endsAt: "2026-10-01T16:30:00Z" },
-    { id: "C", code: "C", startsAt: "2026-10-01T16:30:00Z", endsAt: "2026-10-02T00:30:00Z" },
+    { id: "A", code: "A", startsAt: "2026-10-01T00:30:00Z", endsAt: "2026-10-01T08:30:00Z", openingCash: null, salesDoneAt: null },
+    { id: "B", code: "B", startsAt: "2026-10-01T08:30:00Z", endsAt: "2026-10-01T16:30:00Z", openingCash: null, salesDoneAt: null },
+    { id: "C", code: "C", startsAt: "2026-10-01T16:30:00Z", endsAt: "2026-10-02T00:30:00Z", openingCash: null, salesDoneAt: null },
   ];
   const line = (shiftId: string, nozzleId: string, over: Partial<NozzleLine> = {}): NozzleLine => ({
     shiftId,
@@ -265,5 +265,93 @@ describe("tanker (slice 4c)", () => {
     });
     expect(lastPrices([newer, older])).toEqual({ HSD: { price: "99.14", margin: "2.60" }, MS: { price: "96.10", margin: "4.90" } });
     expect(lastPrices([newer, older], "t2")).toEqual({ MS: { price: "96.10", margin: "4.90" } });
+  });
+});
+
+describe("sales (slice 4d)", () => {
+  const shiftA = { id: "A", code: "A", startsAt: "2026-10-01T00:30:00Z", endsAt: "2026-10-01T08:30:00Z", openingCash: null, salesDoneAt: null };
+  const salesSetup: SalesSetup = {
+    types: [
+      { id: "cash", name: "Cash", kind: "CASH" },
+      { id: "xp", name: "XtraPower", kind: "OTHER" },
+      { id: "bank", name: "Bank transfer", kind: "OTHER" },
+      { id: "credit", name: "Credit", kind: "CREDIT" },
+    ],
+    notes: [
+      { id: "n500", value: "500.00" },
+      { id: "n200", value: "200.00" },
+    ],
+    customers: [
+      { id: "dord", name: "Dord Logistics", isActive: true },
+      { id: "maa", name: "Maa Bhawani Roadlines", isActive: true },
+    ],
+  };
+  // MS 100 L at ₹110.07 = ₹11,007 should have.
+  const shiftData: ShiftData = {
+    shifts: [shiftA],
+    lines: [
+      { shiftId: "A", nozzleId: "ms3", readingId: "r", version: 1, opening: "500", openingTyped: true, closing: "600", meterChange: "NONE", hasPrevious: false, previousClosing: null },
+    ],
+    attendants: [],
+    tests: [],
+  };
+  const sales = (over: Partial<SalesData> = {}): SalesData => ({
+    // Cash 10 × ₹500 + 5 × ₹200 + ₹7 coins = ₹6,007; XtraPower ₹8,000 of which ₹3,000 is Dord's dues.
+    payments: [
+      { id: "p1", shiftId: "A", typeId: "cash", amount: null, coins: "7" },
+      { id: "p2", shiftId: "A", typeId: "xp", amount: "8000", coins: null },
+    ],
+    counts: [
+      { id: "c1", shiftId: "A", noteId: "n500", count: 10 },
+      { id: "c2", shiftId: "A", noteId: "n200", count: 5 },
+    ],
+    slips: [],
+    customerPayments: [
+      { id: "cp1", shiftId: "A", customerId: "dord", typeId: "xp", amount: "3000" },
+      { id: "cp2", shiftId: null, customerId: "maa", typeId: "bank", amount: "50000" },
+    ],
+    money: [{ shiftId: "A", openingCash: "0" }],
+    ...over,
+  });
+
+  const run = (data: SalesData, d = day({ priceConfirmed: true, confirmed: { MS: "110.07", HSD: "101.74" } })) => {
+    const bundle = { setup: salesSetup, data };
+    return evaluate(setup, d, [], shiftInputs(setup, shiftData, {}, bundle), [], customerPaymentInputs(shiftData.shifts, bundle));
+  };
+
+  it("works out Received the engine's way: cash notes + coins, XtraPower, less dues held in it; bank dues untouched (D47)", () => {
+    const m = run(sales()).shifts[0];
+    expect(m.shouldHave.toFixed(2)).toBe("11007.00");
+    expect(m.receivedParts.cashCounted.toFixed(2)).toBe("6007.00");
+    expect(m.receivedParts.customerPaymentsTakenOff.toFixed(2)).toBe("3000.00");
+    expect(m.received.toFixed(2)).toBe("11007.00");
+    expect(m.difference.isZero()).toBe(true);
+  });
+
+  it("takes off the drawer cash at the start (the database's D46 value, or the typed one)", () => {
+    expect(run(sales({ money: [{ shiftId: "A", openingCash: "1000" }] })).shifts[0].difference.toFixed(2)).toBe("-1000.00");
+  });
+
+  it("works nothing out until the cash is counted", () => {
+    expect(run(sales({ payments: [], counts: [] })).shifts).toEqual([]);
+  });
+
+  it("gives bank-transfer dues no shift", () => {
+    const cps = customerPaymentInputs(shiftData.shifts, { setup: salesSetup, data: sales() });
+    expect(cps).toEqual([
+      { customer: "Dord Logistics", rupees: "3000", method: "XtraPower", shift: "A" },
+      { customer: "Maa Bhawani Roadlines", rupees: "50000", method: "Bank transfer" },
+    ]);
+  });
+
+  it("shows the Sales card: done when every shift is Done, with how each shift stands", () => {
+    const result = run(sales({ payments: [{ id: "p1", shiftId: "A", typeId: "cash", amount: null, coins: "7" }] }));
+    expect(salesSection(day(), [shiftA], result, sales()).subtitle).toBe("A short −₹8,000");
+    const doneShift = { ...shiftA, salesDoneAt: "2026-10-01T09:00:00Z" };
+    const matched = run(sales());
+    expect(salesSection(day(), [doneShift], matched, sales())).toMatchObject({ status: "done", subtitle: "Done · A matched", flags: 0 });
+    expect(salesSection(day(), [shiftA], matched, sales({ payments: [], counts: [], slips: [] })).subtitle).toBe(
+      "To do · Cash, Paytm, Card, XtraPower, Bank, Credit",
+    );
   });
 });

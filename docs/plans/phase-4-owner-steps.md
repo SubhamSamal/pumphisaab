@@ -130,3 +130,49 @@ One section per slice. Do the steps in order and send back what each step asks f
 - A fuel with **Ordered** empty isn't on that tanker; a tanker with both fuels has both filled.
 - "No tanker today" can't be turned on while a tanker is added for that day.
 - A tanker counts in the day it was **unloaded** (the day open on Today), even if the invoice date is earlier.
+
+---
+
+## Slice 4d: Sales (27 Sep 2026) — test together with 4b and 4c
+
+**What's new:** the **Sales** tab. **By shift**: one card per shift with Should have, every part of Received, and the Difference (Matched / Short / Excess). **By type**: each way of payment with the day total and the split by shift, and **None today** for an unused type. Tap a shift to enter its money:
+- **Cash:** cash already in the drawer at the start (filled in from the previous shift's count; change it if cash was taken out), the note count (₹500 × n …), coins, and **Cash counted**.
+- **Paytm, Card, XtraPower, Bank transfer:** one total each for the shift.
+- **Credit slips:** Add credit slip: shift, company (search, or add a new one), vehicle, slip number, fuel, and the amount in **₹ or litres**; the other is worked out (litres rounded up, D27). A slip number used before is refused and names the company that has it (H7).
+- **Payments from customers** (old dues / advances): company, amount, how paid. XtraPower / Paytm / Card / Cash dues are taken off that shift; bank transfers are only recorded (D47).
+- **Done** fills every empty box with ₹0 and marks the shift's sales done. Today's **Sales** card is done when all three shifts are Done.
+
+> Until Step 1 is done Today says "The app is newer than the database".
+
+### Step 1: paste migration 8 (after 7)
+1. Supabase › **SQL Editor** › **New query**, open `supabase/migrations/20260927150000_sales.sql`, read **DATA SAFETY** (new tables; managers may now add credit customers; the app may save opening cash and "sales done" on a shift; nothing deleted), copy all, paste, **Run**.
+2. Check query:
+   ```sql
+   select (select count(*) from schema_migrations_applied) as migrations,
+          (select count(*) from credit_sales) as slips;
+   ```
+3. **Send me** the result. Expected: migrations = 8, slips = 0.
+
+### Step 2: Shift A money (as owner, about 8 minutes)
+Shift A (27 Sep) already has readings: HSD 713.26 L after testing, MS 0 L.
+1. Today: the price must be **Confirmed** (it is).
+2. **Sales** tab › **By shift** › tap **Shift A**. Shift A's Should have is **₹72,567.07** (713.26 L × ₹101.74).
+3. Cash in the drawer at the start: type `0`. Notes: ₹500 × `60`, ₹200 × `20`, coins `567.07`. Cash counted **₹34,567.07**.
+4. Paytm `10000`, XtraPower `20000` (leave Card and Bank empty).
+5. **Add credit slip**: shift A, company: type `SVT` › **Add "SVT" as a new company**, vehicle `OD29N6315`, slip `4461`, fuel HSD, **Rupees** `14000`. The line shows ₹14,000 ÷ ₹101.74 = **137.61 L**. **Save slip**.
+6. **Add payment from customer**: company `Dord Logistics` (add it), amount `6000`, how paid **XtraPower** (the note says it's taken off Shift A). Save.
+7. The money card at the bottom: Received = 34,567.07 + 10,000 + 20,000 + 14,000 − 6,000 = **₹72,567.07**, Difference **Matched**.
+8. **Add credit slip** again with slip number ` 4461 ` (spaces around it), another company: it's refused: "Slip 4461 is already saved for SVT".
+9. Tap **Done · Shift A sales**. **Sales › By shift**: Shift A shows the card with every line. **By type**: Card and Bank show "None today" buttons.
+10. **Send me** screenshots of steps 5, 7 and 9 (By type).
+
+### Step 3: manager, shift B (about 4 minutes)
+1. Sign in as `manager.test`. **Sales › Shift B**: "Cash in the drawer at the start" says it's from Shift A's count (₹34,567.07).
+2. Add a payment from customer by **Bank transfer** (`Maa Bhawani`, `300000`): the note says it's only recorded, not taken off.
+3. Tap **Done · Shift B sales** (Shift B's readings are in; its Difference shows up).
+4. **Send me** one screenshot of Shift B's money card.
+
+### Good to know
+- A credit slip needs today's price **Confirmed** first (H6).
+- Credit litres more than the meters sold in that shift show red (H9) and will block Submit.
+- Fixing a number after Done is allowed; everything is logged.

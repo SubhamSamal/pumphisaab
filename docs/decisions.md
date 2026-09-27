@@ -2,6 +2,18 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (slice 4d build, owner at lunch: built to the approved plan)
+
+**D60. Sales, as built in 4d:**
+- **Sales tab** has two views (canvas F6): **By shift** (Should have, every part of Received, Difference per shift) and **By type** (day total per way of payment, split by shift, "None today"). Money is typed on one screen per shift (Cash, other totals, credit slips, payments from customers, the money card), opened from either view or Today.
+- **Cash:** note count per shift + coins. The cash counts as counted as soon as a note or coins is saved, or when Done is tapped. "Cash in the drawer at the start" stays empty = the previous shift's count (across days for Shift A), typed = that amount (D46).
+- **Done** fills every empty box with ₹0 (coins ₹0 if nothing counted) and marks the shift's sales done; editing after Done is allowed and logged. The Sales section is done when all shifts are Done.
+- **"None today"** is on the By type view for Paytm/Card/XtraPower/Bank (₹0 in every shift still empty). Credit has no separate "None today": a shift marked Done with no slips has no credit.
+- **Credit slip:** shift, company (search or add, D50), vehicle, slip number, fuel, ₹ or litres; the database works out the other at the day's confirmed price with the pump's rounding (D27) and refuses a slip before Confirm (H6) or a number used before, naming who has it (H7).
+- **Payments from customers:** company, amount, how paid. A payment method whose name contains "bank" carries no shift (only recorded, D47); any other is taken off the shift it's entered in. Bank ones show on every shift screen and in the day's totals.
+- The worked example of the real 15 Sep day was updated to D47 (bank ₹6,00,000 of dues outside the shift; XtraPower dues ₹9,65,052 taken off); Received and Should have are unchanged at ₹6,60,664.52. New case `day-23-d47-dues-by-method`.
+- The database's money check per shift is `v_shift_money` (drawer expenses join it in 4e); it gives the same answers as the app on every worked example with money.
+
 ## 27 Sep 2026 (slice 4c build, owner away: built to the approved plan)
 
 **D59. Tanker, as built in 4c:**

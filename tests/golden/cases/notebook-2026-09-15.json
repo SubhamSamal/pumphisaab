@@ -1,7 +1,7 @@
 {
   "kind": "day",
   "source": "Real notebook day: docs/data/notebook/Sept15-daily-report.pdf",
-  "description": "The real day of 15 Sep 2026, entered as one shift (the notebook keeps the day total; shift-wise numbers are in the shift notebook). MS: 4,536.78 − 4,307.24 = 229.54 L by tank vs 224.80 L by meters: -4.74 L (-2.07%); notebook circled −5. HSD: 5,074.74 + 13,972 (14,000 minus 28 L short) − 12,749.18 = 6297.56 L vs 6,250.45 L: -47.11 L (-0.75%); the notebook circled −75 because it added the full 14,000 L. Money: Should have ₹6,60,664.52; Received = cash in hand ₹22,919.99 − opening cash ₹36,013.04 + Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + bank ₹6,00,000 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − customer payments ₹15,65,052 = ₹6,60,664.52. Difference 0 because the notebook's cash in hand is the leftover figure, not a count. Nozzles 1 and 2 are not in use.",
+  "description": "The real day of 15 Sep 2026, entered as one shift (the notebook keeps the day total; shift-wise numbers are in the shift notebook). MS: 4,536.78 − 4,307.24 = 229.54 L by tank vs 224.80 L by meters: -4.74 L (-2.07%); notebook circled −5. HSD: 5,074.74 + 13,972 (14,000 minus 28 L short) − 12,749.18 = 6297.56 L vs 6,250.45 L: -47.11 L (-0.75%); the notebook circled −75 because it added the full 14,000 L. Money: Should have ₹6,60,664.52; Received = cash in hand ₹22,919.99 − opening cash ₹36,013.04 + Paytm ₹55,408.10 + card ₹2,560 + XtraPower ₹10,03,216.67 + credit ₹5,50,514.80 + drawer expenses ₹27,110 − XtraPower dues ₹9,65,052 = ₹6,60,664.52. The HDFC dues (₹6,00,000) came by bank, outside the shift (D47). Difference 0 because the notebook's cash in hand is the leftover figure, not a count. Nozzles 1 and 2 are not in use.",
   "input": {
     "businessDate": "2026-09-15",
     "priceConfirmed": true,
@@ -155,7 +155,7 @@
           },
           {
             "type": "Bank transfer",
-            "amount": "600000.00"
+            "amount": "0.00"
           }
         ],
         "creditSlips": [
@@ -503,8 +503,7 @@
       {
         "customer": "Bijay Ku Sahoo",
         "rupees": "300000",
-        "method": "Bank transfer",
-        "shift": "A"
+        "method": "Bank transfer"
       },
       {
         "customer": "Dord Logistics",
@@ -521,8 +520,7 @@
       {
         "customer": "Maa Bhawani Roadlines",
         "rupees": "300000",
-        "method": "Bank transfer",
-        "shift": "A"
+        "method": "Bank transfer"
       }
     ]
   },
@@ -555,7 +553,7 @@
         "withinLimit": true,
         "creditSlips": "550514.80",
         "drawerExpenses": "27110.00",
-        "customerPaymentsTakenOff": "1565052.00"
+        "customerPaymentsTakenOff": "965052.00"
       }
     },
     "hardErrors": [],
