@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ScrollView, useWindowDimensions, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions, View } from "react-native";
 
 /** Web at or above this width gets the left rail and wider padding. */
 export const WIDE_MIN = 1024;
@@ -15,8 +15,10 @@ export function useIsWide() {
  */
 export function ScreenBody({ children, sticky }: { children: ReactNode; sticky?: ReactNode }) {
   const wide = useIsWide();
+  // The keyboard pushes the screen up (Android draws edge to edge, so the window no longer
+  // shrinks by itself); the box being typed in and the sticky bar stay above the keyboard.
   return (
-    <View className="flex-1 bg-bg">
+    <KeyboardAvoidingView className="flex-1 bg-bg" behavior={Platform.OS === "web" ? undefined : "padding"}>
       <ScrollView
         className="flex-1"
         contentContainerClassName={wide ? "p-24" : "p-16"}
@@ -29,6 +31,6 @@ export function ScreenBody({ children, sticky }: { children: ReactNode; sticky?:
           <View className={`w-full ${wide ? "max-w-[496px]" : ""}`}>{sticky}</View>
         </View>
       ) : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }

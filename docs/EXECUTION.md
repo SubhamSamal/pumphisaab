@@ -120,7 +120,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - 4d Sales tab: cash note count, other types per shift, credit slips, Done
 - 4e Expenses with "paid from" drawer
 - 4f Closing dip, Review (tank vs meters, money by shift, flags list), Submit, "yesterday first", autosave + local drafts
-- [x] 4a built 27 Sep: migration 5, Today (price strip, sections, date picker, lock/unlock), Opening dip, SQL golden day loader (S3, S7, H3). Owner paste + phone check pending
+- [x] 4a built 27 Sep: migration 5, Today (price strip, sections, date picker, lock/unlock), Opening dip, SQL golden day loader (S3, S7, H3). Owner pasted migration 5 and checked it on Android as owner (27 Sep); keyboard and cut-off value fixed after
 - Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook

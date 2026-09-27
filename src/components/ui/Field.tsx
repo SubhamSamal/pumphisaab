@@ -281,13 +281,16 @@ export function TextField({
 export function AutoValueRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row items-center justify-between gap-12 rounded-sm bg-auto-field-bg px-12 py-[10px]">
-      <View className="flex-row items-center gap-4">
+      {/* The label wraps if it must; the number never gets cut off. */}
+      <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-4">
         <Text variant="body" tone="secondary">
           {label}
         </Text>
         <AutoTag />
       </View>
-      <Text variant="number-input">{value}</Text>
+      <Text variant="number-input" className="shrink-0">
+        {value}
+      </Text>
     </View>
   );
 }

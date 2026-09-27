@@ -32,6 +32,7 @@ import { useMembership } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
 import { track } from "@/lib/analytics";
 import { addDays } from "@/lib/businessDay";
+import { friendlyError } from "@/lib/errors";
 import { fmtDate } from "@/lib/format";
 
 /** How far back a manager can go (D49): today and the 2 days before. The owner can go back a year. */
@@ -136,7 +137,7 @@ export default function TodayScreen() {
         ) : failed || !model || !day.data ? (
           <ErrorState
             title="Couldn't open the day"
-            body={failed instanceof Error && failed.message ? failed.message : "Check the internet and try again. Nothing you typed is lost."}
+            body={friendlyError(failed, "Couldn't reach the server. Check the internet and try again. Nothing you typed is lost.")}
             onRetry={() => {
               setup.refetch();
               day.refetch();

@@ -10,5 +10,8 @@ it("turns technical errors into one plain sentence", () => {
   expect(friendlyError({ code: "23505", message: "duplicate key value" })).toBe("That name is already there.");
   expect(friendlyError({ code: "23514", message: "violates check constraint" })).toBe("That number can't be negative. Check it.");
   expect(friendlyError({ code: "P0001", message: "This day is locked. Ask the owner to unlock it." })).toBe("This day is locked. Ask the owner to unlock it.");
+  expect(friendlyError({ code: "PGRST202", message: "Could not find the function public.open_day" })).toBe(
+    "The app is newer than the database. The owner needs to paste the latest database update.",
+  );
   expect(friendlyError({ message: "weird" })).toBe("Something went wrong. Try again.");
 });

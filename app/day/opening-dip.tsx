@@ -285,7 +285,7 @@ function TankCard({
       />
       {gap ? (
         <AutoValueRow
-          label="Dip minus IOCL report"
+          label="Difference from IOCL"
           value={gap.isZero() ? "0 L" : `${gap.isNegative() ? MINUS : "+"}${fmtLitres(gap.abs())}`}
         />
       ) : null}
