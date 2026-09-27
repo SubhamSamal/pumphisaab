@@ -8,6 +8,14 @@ Newest first. Date, decision, why.
 
 **D65. Every chamber has its own dip before and dip after** (migration 10: `receipt_chambers.dip_before_cm`). Diesel may be sold between two chambers to make room, so a chamber's rise = its own after − its own before, and the tanker's rise (for the S6 dip check) = the chambers' rises added up, not last-after − first-before. Adding a chamber pre-fills its "before" with the previous chamber's "after" (editable). The separate "Tank dip before unloading" box is gone. Chambers saved earlier without a "before" use the previous chamber's "after".
 
+**D70. Offline = an outbox on the phone (28 Sep 2026, owner MCQ).** A box save that fails for no internet waits on the phone (AsyncStorage, D11) and is sent by itself, in order, when the internet is back; the header shows "Offline · N waiting". Forms with a Save button keep their draft (D67) and ask to tap Save again. No new library or app build. Submit needs the internet.
+
+**D71. Two phones editing the same box: last save wins (28 Sep 2026, owner MCQ).** The audit log keeps both values. A "someone else changed this" message comes with Phase 5 alerts. Replaces the parent plan's "row versions stop overwrites" for now.
+
+**D72. No S9 expense caps for now (28 Sep 2026, owner MCQ).** S9 is built and tested; caps get set from Settings in Phase 6.
+
+**D73. Anyone (owner or manager) can add any expense (28 Sep 2026, owner MCQ),** including those paid by the owner or bank: they're only recorded and don't change a shift's money. Everything is logged.
+
 **D68. Company picker is a type-ahead drop-down (28 Sep 2026)** (owner: there will be many companies). Type in the Company box; a list under it shows up to 5 matching companies (names starting with the typed text first, then names containing it; capitals and extra spaces ignored). Tap one to pick it (a tick shows in the box). If no company has exactly that name, the last row is "Add “ABCD” as a new company". Changing the name after picking un-picks it. Replaces the chip + "Tap the name to change it".
 
 **D69. Every typing box's text fills the box (28 Sep 2026)** (owner: a "0" in the cash boxes showed as "U"). Android measured the box for the smaller placeholder and kept that height once a digit was typed or filled in, cutting the top off. All TextInputs now share `typingText` (stretch to the box's height, no Android font padding, centred); a test checks every TextInput uses it.

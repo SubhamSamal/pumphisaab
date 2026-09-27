@@ -53,6 +53,8 @@ Not in this phase: stored flags, the bell, push, manager "Request unlock", owner
 - SQL: `v_shift_match` (Should have, Received and its parts, Difference).
 
 ### 4e. Expenses
+> **Full detail and owner answers (D70-D73): `docs/plans/phase-4ef-expenses-review-submit.md`** (28 Sep), which replaces the 4e and 4f sections below where they differ.
+
 - **Table:** `expenses` (day, type, description if Other, ₹, paid from: Shift A/B/C drawer, Owner, Bank).
 - **Screens** (canvas F7): list with "From Shift B cash" on each row, totals (from shift cash / by owner or bank), Add expense (type chips, amount, paid from with the one-line explanation), "No expenses today". S9 over-cap shown amber.
 - Drawer expenses flow into that shift's Received in both the app and `v_shift_match`.
