@@ -153,7 +153,7 @@ function OpeningDipForm({
     () =>
       evaluate(
         setup,
-        { id: dayId, businessDate, priceConfirmed, status: "DRAFT", isLocked: locked, ownerOpened: false, confirmed: {}, now: {}, noTanker: false, noExpenses: false, version: 0 },
+        { id: dayId, businessDate, priceConfirmed, status: "DRAFT", isLocked: locked, ownerOpened: false, confirmed: {}, now: {}, noTanker: false, noExpenses: false, isMatched: null, submittedAt: null, version: 0 },
         tankDays(setup, readings, yesterday, typed),
       ),
     [setup, dayId, businessDate, priceConfirmed, locked, readings, yesterday, typed],

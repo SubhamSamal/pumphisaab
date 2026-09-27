@@ -17,8 +17,11 @@ export type SetupTank = { id: string; label: string; product: Product; chartId: 
 export type SetupNozzle = { id: string; label: string; product: Product; tankId: string; inUse: boolean };
 /** An owner price row with its dealer margin (owner sets both, D64). */
 export type PriceRow = { id: string; product: Product; perLitre: string; startsOn: string; margin: string | null };
+/** An expense type (D33): Salary, Tiffin … Other. A daily limit makes S9 flag it (D72: none yet). */
+export type ExpenseType = { id: string; name: string; defaultType: "FIXED" | "VARIABLE"; dailyCap: string | null };
 export type DaySetup = {
   tanks: SetupTank[];
+  expenseTypes: ExpenseType[];
   priceRows: PriceRow[];
   /** In the order the pump lists them (HSD-3, HSD-4 …). */
   nozzles: SetupNozzle[];
@@ -33,12 +36,19 @@ export function useDaySetup(pumpId: string) {
     queryKey: ["daySetup", pumpId],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<DaySetup> => {
-      const [pump, tanks, prices, nozzles] = await Promise.all([
+      const [pump, tanks, prices, nozzles, expenseTypes] = await Promise.all([
         supabase.from("pumps").select("rules, first_business_date").eq("id", pumpId).single(),
         supabase.from("tanks").select("id, label, product, chart_id, is_active").eq("pump_id", pumpId).order("product").order("label"),
         supabase.from("fuel_prices").select("id, product, per_litre::text, starts_on, margin_per_l::text").eq("pump_id", pumpId),
         supabase.from("nozzles").select("id, label, product, tank_id, in_use").eq("pump_id", pumpId).order("sort_order").order("label"),
+        supabase
+          .from("expense_categories")
+          .select("id, name, default_type, daily_cap::text")
+          .eq("pump_id", pumpId)
+          .eq("is_active", true)
+          .order("sort_order"),
       ]);
+      if (expenseTypes.error) throw expenseTypes.error;
       if (nozzles.error) throw nozzles.error;
       if (pump.error) throw pump.error;
       if (tanks.error) throw tanks.error;
@@ -61,8 +71,14 @@ export function useDaySetup(pumpId: string) {
         charts,
         prices: prices.data.map((p) => ({ product: p.product, perLitre: p.per_litre, startsOn: p.starts_on })),
         priceRows: prices.data.map((p) => ({ id: p.id, product: p.product, perLitre: p.per_litre, startsOn: p.starts_on, margin: p.margin_per_l })),
+        expenseTypes: expenseTypes.data.map((e) => ({ id: e.id, name: e.name, defaultType: e.default_type, dailyCap: e.daily_cap })),
         // Same shape as src/calc/rules.ts (the seed test keeps them in step); defaults fill any gap.
-        rules: { ...DEFAULT_RULES, ...(pump.data.rules as Partial<Rules>) },
+        // S9 limits live on the expense types (one place, same as the database's v_expense_caps).
+        rules: {
+          ...DEFAULT_RULES,
+          ...(pump.data.rules as Partial<Rules>),
+          expenseDailyCaps: Object.fromEntries(expenseTypes.data.filter((e) => e.daily_cap !== null).map((e) => [e.name, e.daily_cap as string])),
+        },
         firstBusinessDate: pump.data.first_business_date,
       };
     },
@@ -83,11 +99,14 @@ export type Day = {
   priceConfirmed: boolean;
   noTanker: boolean;
   noExpenses: boolean;
+  /** Stored by submit_day (null until submitted). */
+  isMatched: boolean | null;
+  submittedAt: string | null;
   version: number;
 };
 
 const DAY_COLUMNS =
-  "id, business_date, status, is_locked, owner_opened, ms_price::text, hsd_price::text, ms_price_now::text, hsd_price_now::text, price_confirmed, no_tanker, no_expenses, version";
+  "id, business_date, status, is_locked, owner_opened, ms_price::text, hsd_price::text, ms_price_now::text, hsd_price_now::text, price_confirmed, no_tanker, no_expenses, is_matched, submitted_at, version";
 
 type DayRow = {
   id: string;
@@ -102,6 +121,8 @@ type DayRow = {
   price_confirmed: boolean;
   no_tanker: boolean;
   no_expenses: boolean;
+  is_matched: boolean | null;
+  submitted_at: string | null;
   version: number;
 };
 
@@ -118,6 +139,8 @@ function toDay(r: DayRow): Day {
     priceConfirmed: r.price_confirmed,
     noTanker: r.no_tanker,
     noExpenses: r.no_expenses,
+    isMatched: r.is_matched,
+    submittedAt: r.submitted_at,
     version: r.version,
   };
 }
@@ -868,5 +891,105 @@ export function useSetMargin(pumpId: string) {
     mutationFn: ({ priceId, margin }: { priceId: string; margin: string }) =>
       check(supabase.from("fuel_prices").update({ margin_per_l: margin }).eq("id", priceId).select("id").single()),
     onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
+  });
+}
+
+
+// ─── Expenses (slice 4e) ──────────────────────────────────────────────────
+export type PaidFrom = "SHIFT_A" | "SHIFT_B" | "SHIFT_C" | "OWNER" | "BANK";
+export type ExpenseRow = {
+  id: string;
+  typeId: string;
+  description: string | null;
+  amount: string;
+  paidFrom: PaidFrom;
+  customerId: string | null;
+};
+
+export function useExpenses(dayId: string | undefined) {
+  return useQuery({
+    queryKey: ["expenses", dayId],
+    enabled: Boolean(dayId),
+    queryFn: async (): Promise<ExpenseRow[]> => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("id, category_id, description, amount::text, paid_from, customer_id")
+        .eq("day_id", dayId as string)
+        .order("created_at");
+      if (error) throw error;
+      return data.map((e) => ({ id: e.id, typeId: e.category_id, description: e.description, amount: e.amount, paidFrom: e.paid_from, customerId: e.customer_id }));
+    },
+  });
+}
+
+function useExpenseSave<T>(pumpId: string, dayId: string | undefined, key: string, fn: (input: T) => Promise<void>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", key],
+    mutationFn: fn,
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["expenses", dayId] });
+      qc.invalidateQueries({ queryKey: ["day", pumpId] });
+    },
+  });
+}
+
+/** Adds or fixes an expense (id made on the phone, so a retry never makes two). */
+export function useSaveExpense(pumpId: string, dayId: string | undefined) {
+  return useExpenseSave(pumpId, dayId, "expense", async (input: ExpenseRow) => {
+    await check(
+      supabase.from("expenses").upsert(
+        {
+          id: input.id,
+          pump_id: pumpId,
+          day_id: dayId,
+          category_id: input.typeId,
+          description: input.description,
+          amount: input.amount,
+          paid_from: input.paidFrom,
+          customer_id: input.customerId,
+        },
+        { onConflict: "id" },
+      ),
+    );
+  });
+}
+
+export function useDeleteExpense(pumpId: string, dayId: string | undefined) {
+  return useExpenseSave(pumpId, dayId, "expenseDelete", (id: string) => check(supabase.from("expenses").delete().eq("id", id)));
+}
+
+/** "No expenses today" / "No tanker came today": one answer on the day (H4 counts it as done). */
+export function useSetDayAnswer(pumpId: string, dayId: string | undefined) {
+  return useExpenseSave(pumpId, dayId, "dayAnswer", (input: { field: "no_expenses" | "no_tanker"; value: boolean }) =>
+    check(
+      supabase
+        .from("business_days")
+        .update({ [input.field]: input.value })
+        .eq("id", dayId as string)
+        .select("id")
+        .single(),
+    ),
+  );
+}
+
+// ─── Submit (slice 4f) ────────────────────────────────────────────────────
+/**
+ * Submits the day through the database's submit_day(), which re-checks everything (locked,
+ * yesterday first, H6, H4, H2, H8, H9) and refuses with one plain sentence. Safe to tap twice.
+ */
+export function useSubmitDay(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["submit"],
+    mutationFn: async (dayId: string): Promise<{ isMatched: boolean }> => {
+      const { data, error } = await supabase.rpc("submit_day", { p_day: dayId });
+      if (error) throw new Error(friendlyError(error, "Couldn't submit. Check the internet and try again."), { cause: error });
+      return { isMatched: Boolean((data as { is_matched?: boolean } | null)?.is_matched) };
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["day", pumpId] });
+      qc.invalidateQueries({ queryKey: ["recentDays", pumpId] });
+    },
   });
 }

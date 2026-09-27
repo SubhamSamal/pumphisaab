@@ -19,6 +19,7 @@ export function ListItem({
   right,
   onPress,
   slashedZeroDetail,
+  warning,
 }: {
   title: string;
   detail?: string;
@@ -27,6 +28,8 @@ export function ListItem({
   right?: ReactNode;
   onPress?: () => void;
   slashedZeroDetail?: boolean;
+  /** An amber line for the owner (e.g. "More than the ₹300 daily limit"). Nothing to fill. */
+  warning?: string;
 }) {
   const t = tile[iconTone];
   return (
@@ -48,6 +51,11 @@ export function ListItem({
         {detail ? (
           <Text variant="label" weight="400" tone="secondary" slashedZero={slashedZeroDetail}>
             {detail}
+          </Text>
+        ) : null}
+        {warning ? (
+          <Text variant="label" weight="600" tone="warning">
+            {warning}
           </Text>
         ) : null}
       </View>

@@ -25,13 +25,14 @@ import {
   Text,
   useIsWide,
 } from "@/components/ui";
-import { explainReceived } from "@/calc";
+import { explainReceived, type Expense } from "@/calc";
 import { CustomerPicker } from "@/features/day/CustomerPicker";
-import { customerPaymentInputs, evaluate, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
+import { customerPaymentInputs, evaluate, expenseInputs, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
 import {
   useDay,
   useDaySetup,
   useDeleteCustomerPayment,
+  useExpenses,
   useSalesData,
   useSalesDone,
   useSalesSetup,
@@ -67,11 +68,12 @@ export default function ShiftSalesScreen() {
   const shifts = useShiftData(day.data?.id);
   const salesSetup = useSalesSetup(me.pump.id);
   const sales = useSalesData(day.data?.id);
+  const expenses = useExpenses(day.data?.id);
   const save = useSaveState();
 
   const shift = shifts.data?.shifts.find((s) => s.code === code);
-  const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error;
-  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data && shift;
+  const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error ?? expenses.error;
+  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data && expenses.data && shift;
 
   return (
     <>
@@ -87,7 +89,7 @@ export default function ShiftSalesScreen() {
           <ErrorState
             title="Couldn't load sales"
             body="Check the internet. Nothing you typed is lost."
-            onRetry={() => (setup.refetch(), day.refetch(), shifts.refetch(), salesSetup.refetch(), sales.refetch())}
+            onRetry={() => (setup.refetch(), day.refetch(), shifts.refetch(), salesSetup.refetch(), sales.refetch(), expenses.refetch())}
           />
         </ScreenBody>
       ) : !ready ? (
@@ -104,6 +106,7 @@ export default function ShiftSalesScreen() {
           shift={shift}
           salesSetup={salesSetup.data}
           data={sales.data}
+          expenses={expenseInputs(setup.data, expenses.data)}
           onAddSlip={(id) => router.push({ pathname: "/day/credit-slip", params: { date, code, ...(id ? { id } : {}) } })}
           onDone={() => router.back()}
         />
@@ -120,6 +123,7 @@ function SalesForm({
   shift,
   salesSetup,
   data,
+  expenses,
   onAddSlip,
   onDone,
 }: {
@@ -130,6 +134,7 @@ function SalesForm({
   shift: Shift;
   salesSetup: SalesSetup;
   data: SalesData;
+  expenses: Expense[];
   onAddSlip: (id?: string) => void;
   onDone: () => void;
 }) {
@@ -184,6 +189,7 @@ function SalesForm({
     shiftInputs(setup, { ...shiftData, shifts: shiftsForEngine }, {}, draft),
     [],
     customerPaymentInputs(shiftData.shifts, draft),
+    expenses,
   );
   const money = result.shifts.find((s) => s.shift === shift.code);
   const index = shiftData.shifts.findIndex((s) => s.id === shift.id);

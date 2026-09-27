@@ -13,12 +13,12 @@ import {
   Skeleton,
   StatusPill,
   StickyActionBar,
-  Text,
 } from "@/components/ui";
 import {
   customerPaymentInputs,
   daysNotSubmitted,
   evaluate,
+  expenseInputs,
   priceStrip,
   sectionsDone,
   shiftInputs,
@@ -32,6 +32,7 @@ import {
   useConfirmPrices,
   useDay,
   useDaySetup,
+  useExpenses,
   useLockDay,
   useRecentDays,
   useSalesData,
@@ -74,6 +75,7 @@ export default function TodayScreen() {
   const tankers = useTankers(day.data?.id);
   const salesSetup = useSalesSetup(pumpId);
   const sales = useSalesData(day.data?.id);
+  const expenses = useExpenses(day.data?.id);
   const recent = useRecentDays(pumpId, serverKnown ? today : undefined);
   const save = useSaveState();
   const confirm = useConfirmPrices(pumpId);
@@ -86,11 +88,11 @@ export default function TodayScreen() {
   }, [dayId, date, isToday]);
 
   const minDate = addDays(today, -(isOwner ? OWNER_DAYS_BACK : MANAGER_DAYS_BACK));
-  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending || salesSetup.isPending || sales.isPending;
-  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error ?? salesSetup.error ?? sales.error;
+  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending || salesSetup.isPending || sales.isPending || expenses.isPending;
+  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error ?? salesSetup.error ?? sales.error ?? expenses.error;
 
   const model = useMemo(() => {
-    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data) return null;
+    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data || !expenses.data) return null;
     const bundle: SalesBundle = { setup: salesSetup.data, data: sales.data };
     const result = evaluate(
       setup.data,
@@ -99,14 +101,15 @@ export default function TodayScreen() {
       shiftInputs(setup.data, shifts.data, {}, bundle),
       tankerInputs(tankers.data),
       customerPaymentInputs(shifts.data.shifts, bundle),
+      expenseInputs(setup.data, expenses.data),
     );
-    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle);
+    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle, expenses.data);
     // Shift codes with a meter change waiting for the owner (H2), for the owner's banner.
     const pendingMeter = shifts.data.lines
       .filter((l) => l.meterChange === "PENDING")
       .map((l) => shifts.data.shifts.find((s) => s.id === l.shiftId)?.code ?? "");
     return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data), pendingMeter };
-  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data]);
+  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data]);
 
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
 
@@ -116,16 +119,26 @@ export default function TodayScreen() {
     if (s.key === "openingDip") router.push({ pathname: "/day/opening-dip", params: { date } });
     if (s.key === "tanker") router.push("/tanker");
     if (s.key === "sales") router.push("/sales");
+    if (s.key === "expenses") router.push({ pathname: "/day/expenses", params: { date } });
+    if (s.key === "closingDip") router.push({ pathname: "/day/closing-dip", params: { date } });
     if (s.key === "shiftA" || s.key === "shiftB" || s.key === "shiftC") {
       router.push({ pathname: "/day/shift", params: { date, code: s.key.slice(-1) } });
     }
   };
 
-  const submitNote = !model
-    ? undefined
-    : !day.data?.priceConfirmed
-      ? "Confirm price and finish 8 sections"
-      : `Finish ${8 - model.done} more section${8 - model.done === 1 ? "" : "s"} to submit`;
+  // The bar (canvas F2): teal "Review and submit" once all 8 are done; otherwise what's left.
+  const allDone = Boolean(model && day.data?.priceConfirmed && model.done === 8);
+  const submitted = day.data?.status === "SUBMITTED";
+  const barLabel = !model
+    ? "Review and submit"
+    : submitted
+      ? "Review · Submit again"
+      : allDone
+        ? "Review and submit"
+        : !day.data?.priceConfirmed
+          ? "Confirm price and finish 8 sections"
+          : `Finish ${8 - model.done} more section${8 - model.done === 1 ? "" : "s"} to submit`;
+  const openReview = () => router.push({ pathname: "/day/review", params: { date } });
 
   return (
     <>
@@ -134,8 +147,11 @@ export default function TodayScreen() {
         sticky={
           model && !day.data?.isLocked ? (
             <StickyActionBar>
-              {/* Submit arrives with the Review screen (slice 4f); until then it stays off and says what's left. */}
-              <Button label={submitNote ?? "Submit"} disabled />
+              {allDone || submitted ? (
+                <Button label={barLabel} icon="send" onPress={openReview} variant={submitted ? "secondary" : "primary"} />
+              ) : (
+                <Button label={barLabel} disabled />
+              )}
             </StickyActionBar>
           ) : undefined
         }
@@ -183,6 +199,7 @@ export default function TodayScreen() {
               tankers.refetch();
               salesSetup.refetch();
               sales.refetch();
+              expenses.refetch();
             }}
           />
         ) : (
@@ -252,9 +269,6 @@ export default function TodayScreen() {
                 />
               ))}
             </View>
-            <Text variant="label" weight="400" tone="muted">
-              Sections marked &quot;Coming soon&quot; arrive over the next few updates.
-            </Text>
           </>
         )}
       </ScreenBody>

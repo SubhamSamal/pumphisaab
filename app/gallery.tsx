@@ -347,6 +347,7 @@ function GalleryContent() {
           />
           <View>
             <ListItem title="Mahanadi Coalfields" detail="OD05AB1234 · Slip 4471 · HSD 320 L" icon="wallet" right="₹28,800" slashedZeroDetail />
+            <ListItem title="Bakshis" detail="From Shift B cash" warning="More than the ₹300 daily limit" right="₹500" onPress={() => {}} />
             <ListItem title="Diesel short 42 L" detail="01 Oct · Tank vs meters" icon="warning" iconTone="danger" onPress={() => {}} />
             <ListItem title="Shift C excess ₹300" detail="01 Oct · Sales" icon="flag" iconTone="warning" onPress={() => {}} />
           </View>

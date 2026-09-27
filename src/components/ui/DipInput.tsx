@@ -11,13 +11,14 @@ export type DipInputProps = {
   /** e.g. "Last night's closing dip: 128.5 cm" */
   reference?: string;
   error?: string;
+  disabled?: boolean;
 };
 
 /** Manager types cm (1 decimal); the app shows litres from the tank chart right below. */
-export function DipInput({ label = "Dip reading", cm, onChangeCm, onBlur, litres, reference, error }: DipInputProps) {
+export function DipInput({ label = "Dip reading", cm, onChangeCm, onBlur, litres, reference, error, disabled }: DipInputProps) {
   return (
     <View className="gap-12">
-      <NumericInput label={label} value={cm} onChangeText={onChangeCm} onBlur={onBlur} unit="cm" error={error} />
+      <NumericInput label={label} value={cm} onChangeText={onChangeCm} onBlur={onBlur} unit="cm" error={error} disabled={disabled} />
       {reference && !error ? <FieldHint>{reference}</FieldHint> : null}
       <AutoValueRow label="Dip in litres" value={litres ?? "—"} />
     </View>

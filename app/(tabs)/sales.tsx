@@ -18,8 +18,8 @@ import {
   Text,
 } from "@/components/ui";
 import { explainReceived } from "@/calc";
-import { customerPaymentInputs, evaluate, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
-import { useDay, useDaySetup, useSalesData, useSalesSetup, useSaveShiftPayment, useShiftData, type PaymentType, type Shift } from "@/features/day/queries";
+import { customerPaymentInputs, expenseInputs, evaluate, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
+import { useDay, useDaySetup, useExpenses, useSalesData, useSalesSetup, useSaveShiftPayment, useShiftData, type PaymentType, type Shift } from "@/features/day/queries";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useMembership } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
@@ -38,11 +38,12 @@ export default function SalesScreen() {
   const shifts = useShiftData(day.data?.id);
   const salesSetup = useSalesSetup(me.pump.id);
   const sales = useSalesData(day.data?.id);
+  const expenses = useExpenses(day.data?.id);
   const saveOther = useSaveShiftPayment(me.pump.id, day.data?.id);
   const [view, setView] = useState<SalesView>("shift");
 
-  const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error;
-  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data;
+  const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error ?? expenses.error;
+  const ready = setup.data && day.data && shifts.data && salesSetup.data && sales.data && expenses.data;
 
   const openShift = (s: Shift) => router.push({ pathname: "/day/sales", params: { date, code: s.code } });
 
@@ -52,7 +53,7 @@ export default function SalesScreen() {
       <ErrorState
         title="Couldn't load sales"
         body="Check the internet and try again. Nothing you typed is lost."
-        onRetry={() => (setup.refetch(), day.refetch(), shifts.refetch(), salesSetup.refetch(), sales.refetch())}
+        onRetry={() => (setup.refetch(), day.refetch(), shifts.refetch(), salesSetup.refetch(), sales.refetch(), expenses.refetch())}
       />
     );
   } else if (!ready) {
@@ -72,6 +73,7 @@ export default function SalesScreen() {
       shiftInputs(setup.data, shifts.data, {}, bundle),
       [],
       customerPaymentInputs(shifts.data.shifts, bundle),
+      expenseInputs(setup.data, expenses.data),
     );
     const list = shifts.data.shifts;
     const received = result.shifts.reduce((s, m) => s.plus(m.received), new Decimal(0));

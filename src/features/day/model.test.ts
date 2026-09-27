@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RULES } from "@/calc";
-import { customerPaymentInputs, daysNotSubmitted, evaluate, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
-import type { Day, DaySetup, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
+import { DEFAULT_RULES, type DayResult } from "@/calc";
+import { Decimal } from "@/lib/decimal";
+import { reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import type { Day, DaySetup, ExpenseRow, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
   ([dipCm, litres]) => ({ dipCm, litres }),
@@ -29,6 +30,10 @@ const setup: DaySetup = {
     { id: "p1", product: "MS", perLitre: "110.07", startsOn: "2026-09-15", margin: null },
     { id: "p2", product: "HSD", perLitre: "101.74", startsOn: "2026-09-15", margin: "2.60" },
   ],
+  expenseTypes: [
+    { id: "tiffin", name: "Tiffin", defaultType: "VARIABLE", dailyCap: null },
+    { id: "salary", name: "Salary", defaultType: "FIXED", dailyCap: null },
+  ],
   rules: DEFAULT_RULES,
   firstBusinessDate: "2026-09-28",
 };
@@ -44,6 +49,8 @@ const day = (over: Partial<Day> = {}): Day => ({
   priceConfirmed: false,
   noTanker: false,
   noExpenses: false,
+  isMatched: null,
+  submittedAt: null,
   version: 1,
   ...over,
 });
@@ -85,12 +92,12 @@ describe("opening dip on Today", () => {
     expect(tankDays(setup, saved, [], { hsd: { openingDipCm: null } })).toEqual([]);
   });
 
-  it("shows every section locked on a locked day, and only the opening dip opens for now", () => {
+  it("shows every section locked on a locked day; the dips open, the rest wait for their data", () => {
     const result = evaluate(setup, day({ isLocked: true }), []);
     const sections = todaySections(setup, day({ isLocked: true }), [], result);
     expect(sections).toHaveLength(8);
     expect(sections.every((s) => s.status === "locked")).toBe(true);
-    expect(sections.filter((s) => s.ready).map((s) => s.key)).toEqual(["openingDip"]);
+    expect(sections.filter((s) => s.ready).map((s) => s.key)).toEqual(["openingDip", "closingDip"]);
     expect(sectionsDone(sections)).toBe(0);
   });
 });
@@ -220,7 +227,7 @@ describe("shift meters (slice 4b)", () => {
       ["shiftC", "After Shift B · 10 PM to 6 AM", "todo"],
       ["sales", "Coming soon", "todo"],
       ["expenses", "Coming soon", "todo"],
-      ["closingDip", "Coming soon", "todo"],
+      ["closingDip", "To do · 2 tanks", "todo"],
     ]);
     const done = data(
       [line("A", "hsd3", { opening: "1000", closing: "1100" }), line("A", "hsd4", { opening: "2000", closing: "2050" }), line("A", "ms3", { opening: "500", closing: "520.5" })],
@@ -368,5 +375,133 @@ describe("margin with the price (D64)", () => {
     const later = { ...setup, priceRows: [...setup.priceRows, { id: "p3", product: "HSD" as const, perLitre: "102.00", startsOn: "2026-10-01", margin: null }] };
     expect(priceRowFor(later, "HSD", "2026-10-01")?.id).toBe("p3");
     expect(priceRowFor(later, "HSD", "2026-09-30")?.id).toBe("p2");
+  });
+});
+
+describe("expenses (slice 4e)", () => {
+  const rows: ExpenseRow[] = [
+    { id: "e1", typeId: "tiffin", description: null, amount: "450", paidFrom: "SHIFT_B", customerId: null },
+    { id: "e2", typeId: "salary", description: null, amount: "18000", paidFrom: "OWNER", customerId: null },
+  ];
+
+  it("gives the engine each expense with its type's name", () => {
+    expect(expenseInputs(setup, rows)).toEqual([
+      { id: "e1", type: "Tiffin", rupees: "450", paidFrom: "SHIFT_B" },
+      { id: "e2", type: "Salary", rupees: "18000", paidFrom: "OWNER" },
+    ]);
+  });
+
+  it("totals from shift cash and by owner or bank, and says where each came from", () => {
+    const t = expenseTotals(rows);
+    expect([t.fromShifts.toString(), t.byOwnerOrBank.toString(), t.total.toString()]).toEqual(["450", "18000", "18450"]);
+    expect(rows.map((r) => paidFromLabel(r.paidFrom))).toEqual(["From Shift B cash", "Paid by owner"]);
+    expect(paidFromLabel("BANK")).toBe("Paid by bank");
+  });
+
+  it("is done with an expense or with No expenses today", () => {
+    const result = evaluate(setup, day(), []);
+    expect(expensesSection(day(), [], result)).toMatchObject({ status: "todo" });
+    expect(expensesSection(day({ noExpenses: true }), [], result)).toMatchObject({ status: "done", subtitle: "Done · No expenses today" });
+    expect(expensesSection(day(), rows, result)).toMatchObject({ status: "done", subtitle: "Done · ₹18,450" });
+  });
+
+  it("adds drawer expenses back to that shift's money", () => {
+    const withCap = { ...setup, rules: { ...setup.rules, expenseDailyCaps: { Tiffin: "300" } } };
+    const result = evaluate(withCap, day(), [], [], [], [], expenseInputs(setup, rows));
+    expect(result.flags.map((f) => f.code)).toContain("S9");
+  });
+
+  it("picks the shift running now for Paid from", () => {
+    const shifts = (["A", "B", "C"] as const).map((code, i) => ({
+      id: code,
+      code,
+      startsAt: new Date(Date.UTC(2026, 9, 1, 0, 30) + i * 8 * 3600_000).toISOString(),
+      endsAt: new Date(Date.UTC(2026, 9, 1, 8, 30) + i * 8 * 3600_000).toISOString(),
+      openingCash: null,
+      salesDoneAt: null,
+    }));
+    expect(shiftNow(shifts, Date.UTC(2026, 9, 1, 10))).toBe("SHIFT_B");
+    expect(shiftNow(shifts, Date.UTC(2026, 9, 1, 20))).toBe("SHIFT_C");
+    expect(shiftNow(shifts, Date.UTC(2026, 9, 3))).toBe("SHIFT_C");
+    expect(shiftNow(shifts, Date.UTC(2026, 8, 1))).toBe("SHIFT_A");
+  });
+});
+
+describe("review and submit (slice 4f)", () => {
+  const D = (v: string) => new Decimal(v);
+  const result = (over: Partial<DayResult> = {}): DayResult => ({
+    prices: { HSD: D("90"), MS: D("101") },
+    products: [
+      { product: "HSD", openingDipLitres: D("14820"), receivedLitres: D("11980"), closingDipLitres: D("18681"), soldAsPerTank: D("8119"), meterLitres: D("8087"), testLitres: D("10"), soldAsPerMeters: D("8077"), difference: D("-42"), differencePercent: D("-0.517"), withinLimit: false },
+      { product: "MS", openingDipLitres: D("8235"), receivedLitres: D("3980"), closingDipLitres: D("9303"), soldAsPerTank: D("2912"), meterLitres: D("2912"), testLitres: D("0"), soldAsPerMeters: D("2912"), difference: D("0"), differencePercent: D("0"), withinLimit: true },
+    ],
+    shifts: (["A", "B", "C"] as const).map((shift, i) => ({
+      shift,
+      litres: { MS: D("0"), HSD: D("0") },
+      shouldHave: D("1000"),
+      received: D(["1000", "-250", "1300"][i]).plus(i === 1 ? 0 : 0),
+      receivedParts: { cashCounted: D("0"), openingCash: D("0"), otherPayments: [], creditSlips: D("0"), drawerExpenses: D("0"), customerPaymentsTakenOff: D("0") },
+      difference: D(["0", "-1250", "300"][i]),
+      withinLimit: i === 0,
+    })),
+    tankers: [],
+    hardErrors: [],
+    flags: [
+      { code: "S1", severity: "soft", message: "Diesel short 42 L (0.52%): tank vs meters. The owner will see this." },
+      { code: "S2", severity: "soft", message: "Shift B short ₹1,250. The owner will see this.", where: { shift: "B" } },
+      { code: "S2", severity: "soft", message: "Shift C excess ₹300. The owner will see this.", where: { shift: "C" } },
+      { code: "S3", severity: "soft", message: "Opening dip 80 L below IOCL. The owner will see this." },
+    ],
+    isMatched: false,
+    ...over,
+  });
+  const done = (keys: string[] = []) =>
+    (["openingDip", "tanker", "shiftA", "shiftB", "shiftC", "sales", "expenses", "closingDip"] as const).map((key) => ({
+      key,
+      title: key,
+      subtitle: "",
+      status: keys.includes(key) ? ("todo" as const) : ("done" as const),
+      errors: 0,
+      flags: 0,
+      ready: true,
+    }));
+  const receipt = [{ id: "r" }] as unknown as Receipt[];
+
+  it("builds the canvas F8 review: fuel limit in litres and rupees, day total, owner's message", () => {
+    const r = reviewModel(setup, day({ priceConfirmed: true }), result(), done(), receipt);
+    expect(r.fuels[0].note).toBe("About ₹3,780 · limit is 40.60 L (0.5%)");
+    expect(r.dayTotal?.toString()).toBe("-950");
+    expect(r.flags.map((f) => [f.text, f.section])).toEqual([
+      ["Diesel short 42 L (0.52%): tank vs meters.", "closingDip"],
+      ["Shift B short ₹1,250.", "sales"],
+      ["Shift C excess ₹300.", "sales"],
+      ["Opening dip 80 L below IOCL.", "openingDip"],
+    ]);
+    expect(r.ownerMessage).toBe("01 Oct submitted. Diesel short 42 L, Shift B short ₹1,250, Shift C excess ₹300, 1 more flag");
+    expect(r.canSubmit).toBe(true);
+  });
+
+  it("says Day matched when nothing is off", () => {
+    const r = reviewModel(setup, day({ priceConfirmed: true }), result({ flags: [], products: [], shifts: [] }), done(), receipt);
+    expect(r.ownerMessage).toBe("01 Oct submitted. Day matched.");
+  });
+
+  it("blocks submit on a section not done, a red box, no price, a locked day, or an unanswered tanker", () => {
+    const ok = day({ priceConfirmed: true });
+    expect(reviewModel(setup, ok, result(), done(["closingDip"]), receipt)).toMatchObject({ notDone: ["closingDip"], canSubmit: false });
+    const h8 = result({ hardErrors: [{ code: "H8", severity: "hard", message: "HSD-3: 12 L tested…", where: { shift: "B" } }] });
+    expect(reviewModel(setup, ok, h8, done(), receipt)).toMatchObject({ canSubmit: false, errors: [{ code: "H8", section: "shiftB" }] });
+    expect(reviewModel(setup, day(), result(), done(), receipt).canSubmit).toBe(false);
+    expect(reviewModel(setup, day({ priceConfirmed: true, isLocked: true }), result(), done(), receipt).canSubmit).toBe(false);
+    expect(reviewModel(setup, ok, result(), done(), [])).toMatchObject({ askNoTanker: true, canSubmit: false });
+    expect(reviewModel(setup, day({ priceConfirmed: true, noTanker: true }), result(), done(), [])).toMatchObject({ askNoTanker: false, canSubmit: true });
+  });
+
+  it("sends each issue to the place to check it", () => {
+    expect(sectionFor({ code: "S6", severity: "soft", message: "" })).toBe("tanker");
+    expect(sectionFor({ code: "S9", severity: "soft", message: "" })).toBe("expenses");
+    expect(sectionFor({ code: "H6", severity: "hard", message: "" })).toBe("today");
+    expect(sectionFor({ code: "H3", severity: "hard", message: "HSD-1 closing dip is outside" })).toBe("closingDip");
+    expect(sectionFor({ code: "H1", severity: "hard", message: "", where: { shift: "C" } })).toBe("shiftC");
   });
 });

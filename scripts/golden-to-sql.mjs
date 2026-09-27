@@ -312,7 +312,32 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
       );
     }
 
+    // Expenses (slice 4e): one expense type per name used, with the case's daily limits (S9).
+    const caps = c.rules?.expenseDailyCaps ?? {};
+    const expenseTypes = new Set([...input.expenses.map((e) => e.type), ...Object.keys(caps)]);
+    [...expenseTypes].forEach((name, k) => {
+      lines.push(
+        `insert into public.expense_categories (pump_id, name, daily_cap, sort_order) values (${pump}, ${sqlText(name)}, ${caps[name] ?? "null"}, ${k});`,
+      );
+    });
+    for (const e of input.expenses) {
+      const insert = `insert into public.expenses (pump_id, day_id, category_id, description, amount, paid_from) values (${pump}, ${day}, (select id from public.expense_categories where pump_id = ${pump} and name = ${sqlText(e.type)}), ${sqlText(e.description ?? e.type)}, ${e.rupees}, '${e.paidFrom}')`;
+      if (Number(e.rupees) <= 0) {
+        tests.push(`select throws_ok(${sqlText(insert)}, '23514', null, ${sqlText(`${c.file}: H5, expense ₹${e.rupees} is refused`)});`);
+        continue;
+      }
+      lines.push(`${insert};`);
+    }
+
     setup.push(lines.join("\n"));
+
+    // S9 through v_expense_caps.
+    if (c.expected.flags) {
+      const want = c.expected.flags.filter((f) => f === "S9").length;
+      tests.push(
+        `select is((select count(*)::int from public.v_expense_caps where day_id = ${day} and s9_flag), ${want}, ${sqlText(`${c.file}: expense limit flags (S9) = ${want}`)});`,
+      );
+    }
 
     // Tanker flags (S6) through v_receipt_lines, compared with the case's S6 flags.
     if (c.expected.flags) {
@@ -345,8 +370,7 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
       );
     }
 
-    // The money check per shift through v_shift_money (slice 4d). Received and Difference also
-    // depend on drawer expenses, which arrive in slice 4e: for cases with expenses they wait.
+    // The money check per shift through v_shift_money (slices 4d, 4e).
     const moneyCols = {
       shouldHave: "should_have",
       received: "received",
@@ -354,12 +378,11 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
       cashCounted: "cash_counted",
       openingCash: "opening_cash",
       creditSlips: "credit_slips",
+      drawerExpenses: "drawer_expenses",
       customerPaymentsTakenOff: "dues_taken_off",
     };
-    const waitsForExpenses = new Set(["received", "difference", "withinLimit", "drawerExpenses"]);
     for (const [code, want] of Object.entries(c.expected.shifts ?? {})) {
       for (const [key, value] of Object.entries(want)) {
-        if (input.expenses.length && waitsForExpenses.has(key)) continue;
         const from = `public.v_shift_money where day_id = ${day} and shift_code = '${code}'`;
         if (key === "withinLimit") {
           tests.push(`select is((select not s2_flag from ${from}), ${value}, ${sqlText(`${c.file}: Shift ${code} within the money limit = ${value}`)});`);
@@ -369,6 +392,39 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
           );
         }
       }
+    }
+
+    // The fuel check per day through v_day_match (slice 4f). Two made-up PRD/canvas cases use
+    // dips with 2 decimals (so the linear chart gives round litres); the database keeps dips to
+    // 1 decimal as typed on the phone (hard rule 14), so their litres can't be the same: skipped.
+    const twoDecimalDips = input.tankDays.some((td) =>
+      [td.openingDipCm, td.closingDipCm].some((v) => v !== undefined && v.includes(".") && v.split(".")[1].replace(/0+$/, "").length > 1),
+    );
+    const productCols = { soldAsPerTank: "sold_as_per_tank", difference: "difference", receivedLitres: "received_l", openingDipLitres: "opening_dip_l", closingDipLitres: "closing_dip_l" };
+    for (const [fuel, want] of Object.entries(twoDecimalDips ? {} : (c.expected.products ?? {}))) {
+      const from = `public.v_day_match where day_id = ${day} and product = '${fuel}'`;
+      for (const [key, value] of Object.entries(want)) {
+        if (key === "withinLimit") {
+          tests.push(`select is((select within_limit from ${from}), ${value}, ${sqlText(`${c.file}: ${fuel} within the fuel limit = ${value}`)});`);
+        } else if (key === "differencePercent") {
+          tests.push(
+            value === null
+              ? `select is((select difference_pct from ${from}), null, ${sqlText(`${c.file}: ${fuel} difference % = none`)});`
+              : `select is((select round(difference_pct, ${decimals(value)}) from ${from}), ${value}::numeric, ${sqlText(`${c.file}: ${fuel} difference % = ${value}`)});`,
+          );
+        } else if (productCols[key]) {
+          tests.push(`select is((select round(${productCols[key]}, ${decimals(value)}) from ${from}), ${value}::numeric, ${sqlText(`${c.file}: ${fuel} ${key} = ${value}`)});`);
+        }
+      }
+    }
+    // R1 (IOCL limit) through v_day_match.
+    if (c.expected.flags) {
+      const want = c.expected.flags.filter((f) => f === "R1").length;
+      tests.push(`select is((select count(*)::int from public.v_day_match where day_id = ${day} and r1_flag), ${want}, ${sqlText(`${c.file}: IOCL limit flags (R1) = ${want}`)});`);
+    }
+    // Matched, as submit_day stores it: only for days with nothing that blocks (submit refuses those).
+    if (c.expected.isMatched !== undefined && !(c.expected.hardErrors ?? []).length && c.kind === "day" && !twoDecimalDips) {
+      tests.push(`select is(public.day_is_matched(${day}), ${c.expected.isMatched}, ${sqlText(`${c.file}: matched = ${c.expected.isMatched}`)});`);
     }
 
     if (c.expected.flags) {

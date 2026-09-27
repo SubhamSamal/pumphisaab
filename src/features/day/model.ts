@@ -10,6 +10,7 @@ import {
   shiftLitres,
   type DayInput,
   type DayResult,
+  type Expense,
   type Issue,
   type Product,
   type CustomerPayment,
@@ -20,12 +21,13 @@ import {
 } from "@/calc";
 import { addDays } from "@/lib/businessDay";
 import { Decimal, toDecimal } from "@/lib/decimal";
-import { fmtClock, fmtDifference, fmtLitres, fmtRupees } from "@/lib/format";
+import { fmtClock, fmtDate, fmtDifference, fmtLitres, fmtRupees } from "@/lib/format";
 import type { SectionStatus } from "@/components/ui";
 import type {
   Day,
   DaySetup,
   DayStatus,
+  ExpenseRow,
   NozzleLine,
   Receipt,
   SalesData,
@@ -87,6 +89,7 @@ export function evaluate(
   shifts: ShiftInput[] = [],
   tankers: TankerReceipt[] = [],
   customerPayments: CustomerPayment[] = [],
+  expenses: Expense[] = [],
 ): DayResult {
   const input: DayInput = {
     businessDate: day.businessDate,
@@ -96,7 +99,7 @@ export function evaluate(
     tankDays: days,
     tankers,
     shifts,
-    expenses: [],
+    expenses,
     customerPayments,
   };
   return evaluateDay(input, setup.rules);
@@ -140,13 +143,8 @@ function dipSection(
       : typed > 0
         ? `${typed} of ${plural(tanks.length, "tank")}`
         : `To do · ${plural(tanks.length, "tank")}`;
-  return { key, title, subtitle, status, errors, flags, ready: key === "openingDip" };
+  return { key, title, subtitle, status, errors, flags, ready: true };
 }
-
-const COMING: { key: SectionKey; title: string }[] = [
-  { key: "sales", title: "Sales" },
-  { key: "expenses", title: "Expenses" },
-];
 
 function comingSoon(key: SectionKey, title: string, locked: boolean): Section {
   return { key, title, subtitle: "Coming soon", status: locked ? "locked" : "todo", errors: 0, flags: 0, ready: false };
@@ -161,6 +159,7 @@ export function todaySections(
   typed: TypedClosings = {},
   receipts?: Receipt[],
   sales?: SalesBundle,
+  expenses?: ExpenseRow[],
 ): Section[] {
   const opening = dipSection("openingDip", "Opening dip", setup, readings, result, day.isLocked);
   const shiftCards = (["A", "B", "C"] as const).map((code) => {
@@ -168,12 +167,11 @@ export function todaySections(
     const shift = shiftData?.shifts.find((s) => s.code === code);
     return shift && shiftData ? shiftSection(key, shift, setup, shiftData, result, day.isLocked, typed) : comingSoon(key, `Shift ${code} readings`, day.isLocked);
   });
-  const later = COMING.map(({ key, title }) =>
-    key === "sales" && sales && shiftData ? salesSection(day, shiftData.shifts, result, sales.data) : comingSoon(key, title, day.isLocked),
-  );
-  const closing = { ...dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked), ready: false, subtitle: "Coming soon" };
+  const salesCard = sales && shiftData ? salesSection(day, shiftData.shifts, result, sales.data) : comingSoon("sales", "Sales", day.isLocked);
+  const expensesCard = expenses ? expensesSection(day, expenses, result) : comingSoon("expenses", "Expenses", day.isLocked);
+  const closing = dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked);
   const tanker = receipts ? tankerSection(day, receipts, result) : comingSoon("tanker", "Tanker", day.isLocked);
-  return [opening, tanker, ...shiftCards, ...later, closing];
+  return [opening, tanker, ...shiftCards, salesCard, expensesCard, closing];
 }
 
 // ─── Shift meters and testing (slice 4b) ──────────────────────────────────
@@ -478,4 +476,149 @@ export function priceRowFor(setup: DaySetup, product: Product, date: string) {
       .filter((r) => r.product === product && r.startsOn <= date)
       .sort((a, b) => (a.startsOn < b.startsOn ? 1 : -1))[0] ?? null
   );
+}
+
+// ─── Expenses (slice 4e) ──────────────────────────────────────────────────
+/** Saved expenses as the engine wants them: the type's name (S9 limits are per type). */
+export function expenseInputs(setup: DaySetup, rows: ExpenseRow[]): Expense[] {
+  return rows.map((e) => ({
+    id: e.id,
+    type: setup.expenseTypes.find((t) => t.id === e.typeId)?.name ?? "",
+    rupees: e.amount,
+    paidFrom: e.paidFrom,
+  }));
+}
+
+/** "From Shift B cash" / "Paid by owner" / "Paid by bank" (canvas F7). */
+export const paidFromLabel = (p: ExpenseRow["paidFrom"]) =>
+  p === "OWNER" ? "Paid by owner" : p === "BANK" ? "Paid by bank" : `From Shift ${p.slice(-1)} cash`;
+
+/** Totals under the list: from shift cash, paid by owner or bank, total. */
+export function expenseTotals(rows: ExpenseRow[]) {
+  const sumOf = (list: ExpenseRow[]) => list.reduce((t, e) => t.plus(e.amount), new Decimal(0));
+  const fromShifts = sumOf(rows.filter((e) => e.paidFrom.startsWith("SHIFT_")));
+  const byOwnerOrBank = sumOf(rows.filter((e) => !e.paidFrom.startsWith("SHIFT_")));
+  return { fromShifts, byOwnerOrBank, total: fromShifts.plus(byOwnerOrBank) };
+}
+
+/** Done when at least one expense is added or "No expenses today" is tapped (PRD F8). */
+export function expensesSection(day: Day, rows: ExpenseRow[], result: DayResult): Section {
+  const done = rows.length > 0 || day.noExpenses;
+  const subtitle = rows.length > 0 ? `Done · ${fmtRupees(expenseTotals(rows).total)}` : day.noExpenses ? "Done · No expenses today" : "To do · Tiffin, salary, anything paid out";
+  return {
+    key: "expenses",
+    title: "Expenses",
+    subtitle,
+    status: day.isLocked ? "locked" : done ? "done" : "todo",
+    errors: 0,
+    flags: result.flags.filter((f) => f.code === "S9").length,
+    ready: true,
+  };
+}
+
+/** The shift running at this moment (for "Paid from"), from the day's shift times; A if none. */
+export function shiftNow(shifts: Shift[], nowMs: number): "SHIFT_A" | "SHIFT_B" | "SHIFT_C" {
+  const running = shifts.find((s) => Date.parse(s.startsAt) <= nowMs && nowMs < Date.parse(s.endsAt));
+  const code = running?.code ?? (shifts.length && nowMs >= Date.parse(shifts[shifts.length - 1].endsAt) ? "C" : "A");
+  return `SHIFT_${code}` as "SHIFT_A" | "SHIFT_B" | "SHIFT_C";
+}
+
+// ─── Review and submit (slice 4f, canvas F8) ──────────────────────────────
+const FUEL_WORD: Record<Product, string> = { HSD: "Diesel", MS: "Petrol" };
+const OWNER_SEES = / The owner will see this\.$/;
+
+/** Where to go to check a flag or fix an error (tap on the Review list). "today" = the Today screen (price). */
+export type ReviewTarget = SectionKey | "today";
+export function sectionFor(issue: Issue): ReviewTarget {
+  switch (issue.code) {
+    case "S2":
+    case "H7":
+    case "H9":
+      return "sales";
+    case "S3":
+    case "S7":
+      return "openingDip";
+    case "S6":
+      return "tanker";
+    case "S9":
+      return "expenses";
+    case "S1":
+    case "R1":
+      return "closingDip";
+    case "H6":
+      return "today";
+    case "H3":
+      return issue.message.toLowerCase().includes("closing") ? "closingDip" : "openingDip";
+  }
+  return issue.where?.shift ? (`shift${issue.where.shift}` as SectionKey) : "today";
+}
+
+export type ReviewFuel = {
+  product: Product;
+  name: string;
+  soldAsPerTank: Decimal;
+  soldAsPerMeters: Decimal;
+  difference: Decimal;
+  withinLimit: boolean;
+  /** "About ₹3,780 · limit is 40 L (0.5%)" */
+  note: string;
+};
+
+export type ReviewModel = {
+  fuels: ReviewFuel[];
+  /** Fuels in use whose check can't be worked out yet (a dip missing). */
+  fuelsWaiting: string[];
+  shifts: DayResult["shifts"];
+  dayTotal: Decimal | null;
+  flags: { code: string; text: string; section: ReviewTarget }[];
+  errors: { code: string; text: string; section: ReviewTarget }[];
+  /** Today sections not done (H4), by title. */
+  notDone: string[];
+  /** No tanker added and "none came" not answered yet (asked once on Review). */
+  askNoTanker: boolean;
+  ownerMessage: string;
+  canSubmit: boolean;
+};
+
+/** Everything the 3 Review steps show, from the engine's result and Today's sections. */
+export function reviewModel(setup: DaySetup, day: Day, result: DayResult, sections: Section[], receipts: Receipt[]): ReviewModel {
+  const flagPct = new Decimal(setup.rules.stockDifference.flagBeyondPercent);
+  const fuels = result.products.map((p): ReviewFuel => {
+    const price = result.prices[p.product];
+    const about = price && !p.difference.isZero() ? `About ${fmtRupees(p.difference.abs().times(price))} · ` : "";
+    return {
+      product: p.product,
+      name: FUEL_WORD[p.product],
+      soldAsPerTank: p.soldAsPerTank,
+      soldAsPerMeters: p.soldAsPerMeters,
+      difference: p.difference,
+      withinLimit: p.withinLimit,
+      note: `${about}limit is ${fmtLitres(p.soldAsPerTank.abs().times(flagPct).div(100))} (${flagPct.toString()}%)`,
+    };
+  });
+  const inUse = [...new Set(activeTanks(setup).map((t) => t.product))];
+  const fuelsWaiting = inUse.filter((f) => !result.products.some((p) => p.product === f)).map((f) => FUEL_WORD[f]);
+  const dayTotal = result.shifts.length ? result.shifts.reduce((t, s) => t.plus(s.difference), new Decimal(0)) : null;
+
+  const flags = result.flags.map((f) => ({ code: f.code, text: f.message.replace(OWNER_SEES, ""), section: sectionFor(f) }));
+  // H4 is shown as "not done" below; the other hard errors are red boxes somewhere.
+  const errors = result.hardErrors.filter((e) => e.code !== "H4").map((e) => ({ code: e.code, text: e.message, section: sectionFor(e) }));
+  const tankerCard = sections.find((s) => s.key === "tanker");
+  const notDone = sections.filter((s) => s.key !== "tanker" && s.status !== "done").map((s) => s.title);
+  const askNoTanker = receipts.length === 0 && !day.noTanker && tankerCard?.status !== "locked";
+
+  // The message the owner will get (canvas F8): the fuel and money headlines, then the rest as a count.
+  const parts: string[] = [];
+  for (const p of result.products) {
+    if (!p.withinLimit) parts.push(`${FUEL_WORD[p.product]} ${p.difference.isNegative() ? "short" : "excess"} ${fmtLitres(p.difference.abs())}`);
+  }
+  for (const s of result.shifts) {
+    if (!s.withinLimit) parts.push(`Shift ${s.shift} ${s.difference.isNegative() ? "short" : "excess"} ${fmtRupees(s.difference.abs())}`);
+  }
+  const others = result.flags.filter((f) => f.code !== "S1" && f.code !== "S2").length;
+  if (others) parts.push(`${others} more flag${others === 1 ? "" : "s"}`);
+  const ownerMessage = `${fmtDate(day.businessDate, "short")} submitted. ${parts.length ? parts.join(", ") : "Day matched."}`;
+
+  const canSubmit = day.priceConfirmed && notDone.length === 0 && errors.length === 0 && !askNoTanker && !day.isLocked;
+  return { fuels, fuelsWaiting, shifts: result.shifts, dayTotal, flags, errors, notDone, askNoTanker, ownerMessage, canSubmit };
 }
