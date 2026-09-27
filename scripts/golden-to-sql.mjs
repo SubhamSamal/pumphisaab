@@ -100,7 +100,10 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
 
     // Yesterday, rebuilt from what the case says about it: its closing dip (S7) and its
     // IOCL gap (S3: opening dip 0 cm = 0 L, so the IOCL report stock is the gap itself).
-    const needsYesterday = input.tankDays.some((td) => td.yesterdayClosingDipCm !== undefined || td.yesterdayBookGapLitres !== undefined);
+    const allNozzles = input.shifts.flatMap((sh) => sh.nozzles);
+    const needsYesterday =
+      input.tankDays.some((td) => td.yesterdayClosingDipCm !== undefined || td.yesterdayBookGapLitres !== undefined) ||
+      allNozzles.some((n) => n.previousClosing !== undefined);
     if (needsYesterday) {
       lines.push(`insert into public.business_days (id, pump_id, business_date) values (${yesterday}, ${pump}, '${input.businessDate}'::date - 1);`);
     }
@@ -125,7 +128,77 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
         lines.push(`${reading(day, td, type, cm, book)};`);
       }
     }
+    // Nozzles, shifts, meter readings and testing (slice 4b).
+    const nozzleIds = [...new Map(allNozzles.map((n) => [n.nozzleId, n])).values()];
+    nozzleIds.forEach((nz, k) => {
+      lines.push(
+        `insert into public.nozzles (pump_id, label, product, tank_id, in_use, sort_order) values (${pump}, ${sqlText(nz.label)}, '${nz.product}', ${tank(nz.tankId)}, ${nz.inUse}, ${k});`,
+      );
+    });
+    const nozzle = (id) => `(select id from public.nozzles where pump_id = ${pump} and label = ${sqlText(nozzleIds.find((n) => n.nozzleId === id).label)})`;
+    const START = { A: "06:00", B: "14:00", C: "22:00" };
+    const shiftRef = (dayId, code) => `(select id from public.shifts where day_id = ${dayId} and shift_code = '${code}')`;
+    const addShift = (dayId, date, code) =>
+      lines.push(
+        `insert into public.shifts (pump_id, day_id, shift_code, starts_at, ends_at) values (${pump}, ${dayId}, '${code}', (${date} + time '${START[code]}') at time zone 'Asia/Kolkata', (${date} + time '${START[code]}') at time zone 'Asia/Kolkata' + interval '8 hours');`,
+      );
+    // Last night's closings (H2 compares today's opening with them): yesterday's Shift C.
+    const withPrevious = allNozzles.filter((n) => n.previousClosing !== undefined);
+    if (withPrevious.length) {
+      addShift(yesterday, `'${input.businessDate}'::date - 1`, "C");
+      for (const n of withPrevious) {
+        lines.push(
+          `insert into public.nozzle_readings (pump_id, day_id, shift_id, nozzle_id, closing) values (${pump}, ${yesterday}, ${shiftRef(yesterday, "C")}, ${nozzle(n.nozzleId)}, ${n.previousClosing});`,
+        );
+      }
+    }
+    for (const sh of input.shifts) {
+      addShift(day, `'${input.businessDate}'::date`, sh.code);
+      for (const n of sh.nozzles) {
+        if (n.opening === undefined && n.closing === undefined) continue;
+        const insert = `insert into public.nozzle_readings (pump_id, day_id, shift_id, nozzle_id, opening, opening_typed, closing) values (${pump}, ${day}, ${shiftRef(day, sh.code)}, ${nozzle(n.nozzleId)}, ${n.opening ?? "null"}, ${n.opening !== undefined}, ${n.closing ?? "null"})`;
+        if (n.opening !== undefined && n.closing !== undefined && Number(n.closing) < Number(n.opening)) {
+          tests.push(`select throws_ok(${sqlText(insert)}, '23514', null, ${sqlText(`${c.file}: H1, ${n.label} closing below opening is refused`)});`);
+          continue;
+        }
+        lines.push(`${insert};`);
+        if (n.meterChangeApproved) {
+          lines.push(
+            `update public.nozzle_readings set meter_change_status = 'APPROVED' where shift_id = ${shiftRef(day, sh.code)} and nozzle_id = ${nozzle(n.nozzleId)};`,
+          );
+        }
+      }
+      for (const t of sh.tests) {
+        lines.push(
+          `insert into public.nozzle_tests (pump_id, day_id, shift_id, nozzle_id, litres) values (${pump}, ${day}, ${shiftRef(day, sh.code)}, ${nozzle(t.nozzleId)}, ${t.litres});`,
+        );
+      }
+    }
+
     setup.push(lines.join("\n"));
+
+    // Litres per fuel for the day, through v_shift_litres (only what the case states).
+    for (const [fuel, want] of Object.entries(c.expected.products ?? {})) {
+      const sql = {
+        meterLitres: "sum(meter_litres)",
+        testLitres: "sum(test_litres)",
+        soldAsPerMeters: "sum(meter_litres - test_litres)",
+      };
+      for (const [key, expr] of Object.entries(sql)) {
+        if (want[key] === undefined) continue;
+        tests.push(
+          `select is((select round(${expr}, ${decimals(want[key])}) from public.v_shift_litres where day_id = ${day} and product = '${fuel}'), ${want[key]}::numeric, ${sqlText(`${c.file}: ${fuel} ${key} = ${want[key]}`)});`,
+        );
+      }
+    }
+
+    // What blocks the day that the database can see so far (H2, H8) through day_problems().
+    if (c.expected.hardErrors) {
+      const want = c.expected.hardErrors.filter((h) => h === "H2" || h === "H8").sort();
+      tests.push(
+        `select is((select coalesce(array_agg(code order by code), '{}') from public.day_problems(${day})), array[${want.map((h) => `'${h}'`).join(", ")}]::text[], ${sqlText(`${c.file}: meter problems (H2, H8) are ${want.join(", ") || "none"}`)});`,
+      );
+    }
 
     if (c.expected.flags) {
       const want = c.expected.flags.filter((f) => f === "S3" || f === "S7").sort();

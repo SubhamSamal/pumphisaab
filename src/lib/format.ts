@@ -82,6 +82,23 @@ export function fmtDate(isoDate: string, style: "default" | "weekday" | "short" 
   return `${base} ${y}`;
 }
 
+/**
+ * Clock time in India (IST, UTC+05:30, no daylight saving) from a stored instant:
+ * "6 AM", "2 PM", "10:30 PM". Used for shift times ("6 AM to 2 PM").
+ */
+export function fmtClock(isoInstant: string): string {
+  const ist = new Date(Date.parse(isoInstant) + (5 * 60 + 30) * 60_000);
+  const h24 = ist.getUTCHours();
+  const min = ist.getUTCMinutes();
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}${min ? `:${String(min).padStart(2, "0")}` : ""} ${h24 < 12 ? "AM" : "PM"}`;
+}
+
+/** The calendar date in India (YYYY-MM-DD) of a stored instant, e.g. the morning Shift C ends. */
+export function istDate(isoInstant: string): string {
+  return new Date(Date.parse(isoInstant) + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
+}
+
 /** Vehicle numbers: uppercase, no spaces or dashes (OD05AB1234). */
 export function fmtVehicle(value: string): string {
   return value.toUpperCase().replace(/[\s-]/g, "");

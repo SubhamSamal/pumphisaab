@@ -42,3 +42,43 @@ One section per slice. Do the steps in order and send back what each step asks f
 - From tomorrow a red banner will say yesterday isn't submitted. That's correct: **Submit** arrives in slice 4f. Until then the Submit button stays grey and says what's left.
 - Everything typed now is test data on the real pump (D45). The clean-up file before the pilot removes it.
 - Lock and Unlock buttons show only on submitted days, so you'll see them after 4f.
+
+---
+
+## Slice 4b: shift meters and testing (27 Sep 2026)
+
+**What's new:** Today's three shift cards open. Each shift has: who worked it (chips from Profile › Staff), one row per nozzle in use (HSD-3, HSD-4, MS-3, MS-4), the opening copied from the last shift and locked, the closing you type, and the litres sold. Tap a locked opening to report a meter change; the owner approves it. Testing is nozzle + litres. When every closing is typed, a card shows litres × price = Should have.
+
+> Your phone picks up the new app code straight away, so **Today will say "The app is newer than the database" until you finish Step 1.** That's expected.
+
+### Step 1: paste migration 6 (about 3 minutes)
+1. Supabase › **SQL Editor** › **New query**.
+2. Open `supabase/migrations/20260927130000_shift_meters.sql`, read the **DATA SAFETY** box (new tables only; it replaces the "open a day" function with one that also makes the shifts; nothing deleted).
+3. Copy all, paste, **Run** → "Success. No rows returned".
+4. New query, paste, **Run**:
+   ```sql
+   select (select count(*) from schema_migrations_applied) as migrations,
+          (select string_agg(shift_code, ', ' order by starts_at) from shifts) as shifts_so_far;
+   ```
+5. **Send me** the result. Expected: migrations = 6. shifts_so_far is empty until someone opens Today; after Step 2 it shows "A, B, C".
+
+### Step 2: Shift A on Android (as owner, about 5 minutes)
+1. Open Today (tap **Try again** if it shows the old message). The three shift cards say "To do · 6 AM to 2 PM", "After Shift A · 2 PM to 10 PM", "After Shift B · 10 PM to 6 AM".
+2. Tap **Shift A readings**. Tick one attendant.
+3. This is the first shift in the app, so each opening says **Tap to type**. Tap **HSD-3**'s opening, type `126942.71`, **Save opening**. Do the same for HSD-4 `100000`, MS-3 `50000`, MS-4 `60000`.
+4. Type closings: HSD-3 `127165.97` (sale **223.26**), HSD-4 `100500`, MS-3 `50100`, MS-4 `50050`: MS-4 shows a **red message** (closing below opening, H1). Change it to `60050`.
+5. Turn on **Testing done this shift?**: it adds a 5 L test. Change litres to `10`.
+6. The **Shift A meter sale** card shows HSD and MS litres × price and **Should have**. Tap **Done**. Today: Shift A has a green tick, "Done · … L sold".
+7. **Send me** screenshots of the shift screen (step 6) and Today.
+
+### Step 3: meter change on Shift B (Android as `manager.test`, then owner, about 4 minutes)
+1. Sign in as `manager.test`. Open **Shift B readings**: openings are copied from Shift A's closings (locked).
+2. Tap **HSD-4**'s opening › New opening `100510` › **Send to owner**. The row shows an amber note: waiting for the owner's approval. Today's Shift B card shows a red **1**.
+3. Type all Shift B closings (any numbers above the openings) and tick an attendant.
+4. Tap **‹** on Today three times: the manager can go back only 2 days.
+5. Sign in as `subham`. Open Shift B, tap HSD-4's opening › **Approve new opening**. The red 1 on Today goes away.
+6. **Send me** a screenshot of the Shift B screen before approving (step 2) and Today after (step 5).
+
+### Good to know
+- If an earlier shift has no closing yet, the next shift's closing box says "After Shift A". You can still tap the opening and type it from the meter; if Shift A's closing later differs, it becomes a meter change for the owner.
+- Fixing a closing later (for example Shift A) updates the next shift's copied opening by itself.

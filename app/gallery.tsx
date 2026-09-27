@@ -232,7 +232,8 @@ function GalleryContent() {
           <NozzleRow label="HSD-B" opening="31,455.50" closing="31265.50" error="Closing can't be less than opening (31,455.50). Check the meter again." />
           <NozzleRow label="HSD-C" opening="52,904.00" closing="" />
           <NozzleGroupHeader product="MS" detail="· ₹101.00/L" />
-          <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingChanged />
+          <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingChanged note="New opening waits for the owner's approval." />
+          <NozzleRow label="MS-B" opening="—" closing="" editable={false} placeholder="After Shift A" />
         </Section>
 
         <Section title="Price confirm strip">

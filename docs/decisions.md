@@ -2,6 +2,16 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (slice 4b build)
+
+**D54. Meter readings, as built in 4b** (inside the approved plan):
+- A day's shifts (A, B, C) are made when the day is opened, from the shift timings in force on that date; Shift C ends at 06:00 next morning and belongs to the day it started.
+- The database copies each opening from the **previous shift's** closing (across days: Shift A from last night's C). When a closing is fixed later, the next shift's copied opening follows.
+- A typed opening that differs from the previous closing waits for the owner (H2); the owner approves it on the reading (Approve button in the opening sheet). Changing an approved opening again needs a new approval. The very first reading in the app, or a shift whose earlier shift has no closing yet, takes a typed opening with nothing to approve.
+- A shift is **done** when every in-use nozzle has an opening and a closing **and** at least one attendant is ticked (PRD F5). Testing is optional.
+- H1 and H5 are refused on save; H2 and H8 are listed by `day_problems()` and will block Submit (4f).
+- Meter readings are saved without the row-version check (the next shift's row changes by itself when a closing is fixed, which would otherwise make the manager's next save look like a clash). Two people typing the same nozzle at once: last save wins; both are in the audit log.
+
 ## 27 Sep 2026 (slice 4a build)
 
 **D53. Small rules settled while building 4a** (inside the approved plan):

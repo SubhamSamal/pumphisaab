@@ -61,6 +61,12 @@ export type NozzleRowProps = {
   onPressOpening?: () => void;
   inputRef?: React.Ref<TextInput>;
   onSubmitEditing?: () => void;
+  /** false while the closing can't be typed yet (opening unknown) or the day is locked. */
+  editable?: boolean;
+  /** Placeholder when empty ("Type here", or why it can't be typed yet). */
+  placeholder?: string;
+  /** Amber line under the row (e.g. a meter change waiting for the owner). Never blocks typing. */
+  note?: string;
 };
 
 /** The key entry row: one per nozzle, 64 px. Only Closing is typed. */
@@ -76,6 +82,9 @@ export function NozzleRow({
   onPressOpening,
   inputRef,
   onSubmitEditing,
+  editable = true,
+  placeholder = "Type here",
+  note,
 }: NozzleRowProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
@@ -102,7 +111,7 @@ export function NozzleRow({
           </View>
         </Pressable>
         <View
-          className={`h-tap flex-1 flex-row items-center rounded-sm border-1.5 bg-bg px-[10px] ${border}`}
+          className={`h-tap flex-1 flex-row items-center rounded-sm border-1.5 px-[10px] ${border} ${editable ? "bg-bg" : "bg-surface"}`}
           style={focused && !error ? { boxShadow: `0 0 0 3px ${colors["primary-subtle"]}` } : undefined}
         >
           <TextInput
@@ -115,11 +124,12 @@ export function NozzleRow({
               setFocused(false);
               onBlur?.();
             }}
+            editable={editable}
             keyboardType="decimal-pad"
             inputMode="decimal"
             returnKeyType="next"
             onSubmitEditing={onSubmitEditing}
-            placeholder="Type here"
+            placeholder={placeholder}
             placeholderTextColor={colors["text-muted"]}
             selectionColor={colors.primary}
             style={{
@@ -147,6 +157,15 @@ export function NozzleRow({
       {error ? (
         <View className="pt-4">
           <FieldError message={error} />
+        </View>
+      ) : note ? (
+        <View className="flex-row items-start gap-4 pt-4">
+          <View className="mt-[2px]">
+            <Icon name="clock" size="small" color="warning" />
+          </View>
+          <Text variant="label" tone="warning" className="flex-1">
+            {note}
+          </Text>
         </View>
       ) : null}
     </View>

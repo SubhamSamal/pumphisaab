@@ -15,13 +15,14 @@ import {
   StickyActionBar,
   Text,
 } from "@/components/ui";
-import { daysNotSubmitted, evaluate, priceStrip, sectionsDone, tankDays, todaySections, type Section } from "@/features/day/model";
+import { daysNotSubmitted, evaluate, priceStrip, sectionsDone, shiftInputs, tankDays, todaySections, type Section } from "@/features/day/model";
 import {
   useConfirmPrices,
   useDay,
   useDaySetup,
   useLockDay,
   useRecentDays,
+  useShiftData,
   useTankReadings,
   useUnlockDay,
   type Day,
@@ -54,6 +55,7 @@ export default function TodayScreen() {
   const setup = useDaySetup(pumpId);
   const day = useDay(pumpId, serverKnown ? date : undefined);
   const tanks = useTankReadings(day.data?.id);
+  const shifts = useShiftData(day.data?.id);
   const recent = useRecentDays(pumpId, serverKnown ? today : undefined);
   const save = useSaveState();
   const confirm = useConfirmPrices(pumpId);
@@ -66,15 +68,20 @@ export default function TodayScreen() {
   }, [dayId, date, isToday]);
 
   const minDate = addDays(today, -(isOwner ? OWNER_DAYS_BACK : MANAGER_DAYS_BACK));
-  const loading = setup.isPending || day.isPending || tanks.isPending;
-  const failed = setup.error ?? day.error ?? tanks.error;
+  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending;
+  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error;
 
   const model = useMemo(() => {
-    if (!setup.data || !day.data || !tanks.data) return null;
-    const result = evaluate(setup.data, day.data, tankDays(setup.data, tanks.data.readings, tanks.data.yesterday));
-    const sections = todaySections(setup.data, day.data, tanks.data.readings, result);
+    if (!setup.data || !day.data || !tanks.data || !shifts.data) return null;
+    const result = evaluate(
+      setup.data,
+      day.data,
+      tankDays(setup.data, tanks.data.readings, tanks.data.yesterday),
+      shiftInputs(setup.data, shifts.data),
+    );
+    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data);
     return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data) };
-  }, [setup.data, day.data, tanks.data]);
+  }, [setup.data, day.data, tanks.data, shifts.data]);
 
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
 
@@ -82,6 +89,9 @@ export default function TodayScreen() {
     if (!s.ready) return;
     track("section_opened", { section: s.key });
     if (s.key === "openingDip") router.push({ pathname: "/day/opening-dip", params: { date } });
+    if (s.key === "shiftA" || s.key === "shiftB" || s.key === "shiftC") {
+      router.push({ pathname: "/day/shift", params: { date, code: s.key.slice(-1) } });
+    }
   };
 
   const submitNote = !model
@@ -142,6 +152,7 @@ export default function TodayScreen() {
               setup.refetch();
               day.refetch();
               tanks.refetch();
+              shifts.refetch();
             }}
           />
         ) : (

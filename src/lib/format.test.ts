@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Decimal } from "./decimal";
 import {
+  fmtClock,
   fmtDate,
+  istDate,
   fmtDifference,
   fmtDip,
   fmtLitres,
@@ -120,5 +122,22 @@ describe("fmtDifference (sign rule)", () => {
 
   it("litres keep up to 2 decimals", () => {
     expect(fmtDifference("12.5", "litres").text).toBe("+12.50 L");
+  });
+});
+
+describe("fmtClock and istDate (shift times in India)", () => {
+  it("shows the Indian clock time of an instant", () => {
+    expect(fmtClock("2026-10-01T00:30:00Z")).toBe("6 AM");
+    expect(fmtClock("2026-10-01T08:30:00Z")).toBe("2 PM");
+    expect(fmtClock("2026-10-01T16:30:00Z")).toBe("10 PM");
+    expect(fmtClock("2026-10-01T18:30:00Z")).toBe("12 AM");
+    expect(fmtClock("2026-10-01T06:30:00Z")).toBe("12 PM");
+    expect(fmtClock("2026-10-01T17:00:00+05:30")).toBe("5 PM");
+    expect(fmtClock("2026-10-01T22:30:00+05:30")).toBe("10:30 PM");
+  });
+  it("gives the Indian date, so Shift C ends on the next morning", () => {
+    expect(istDate("2026-10-02T00:30:00Z")).toBe("2026-10-02");
+    expect(istDate("2026-10-01T20:00:00Z")).toBe("2026-10-02");
+    expect(istDate("2026-10-01T18:00:00Z")).toBe("2026-10-01");
   });
 });

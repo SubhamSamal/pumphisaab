@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES } from "@/calc";
-import { daysNotSubmitted, evaluate, priceStrip, sectionsDone, tankDays, todaySections } from "./model";
-import type { Day, DaySetup, TankReading } from "./queries";
+import { daysNotSubmitted, evaluate, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, todaySections } from "./model";
+import type { Day, DaySetup, NozzleLine, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
   ([dipCm, litres]) => ({ dipCm, litres }),
@@ -13,6 +13,12 @@ const setup: DaySetup = {
   tanks: [
     { id: "ms", label: "MS-1", product: "MS", chartId: "c", isActive: true },
     { id: "hsd", label: "HSD-1", product: "HSD", chartId: "c", isActive: true },
+  ],
+  nozzles: [
+    { id: "hsd3", label: "HSD-3", product: "HSD", tankId: "hsd", inUse: true },
+    { id: "hsd4", label: "HSD-4", product: "HSD", tankId: "hsd", inUse: true },
+    { id: "ms3", label: "MS-3", product: "MS", tankId: "ms", inUse: true },
+    { id: "ms1", label: "MS-1", product: "MS", tankId: "ms", inUse: false },
   ],
   charts: { c: chart },
   prices: [
@@ -133,5 +139,86 @@ describe("price Confirm strip (H6)", () => {
   it("shows the confirmed prices once confirmed, and names a missing price", () => {
     expect(priceStrip(setup, day({ priceConfirmed: true, confirmed: { MS: "110.07", HSD: "101.74" } })).state).toBe("confirmed");
     expect(priceStrip(setup, day({ now: { HSD: "101.74" } })).missing).toEqual(["MS"]);
+  });
+});
+
+describe("shift meters (slice 4b)", () => {
+  const shifts = [
+    { id: "A", code: "A", startsAt: "2026-10-01T00:30:00Z", endsAt: "2026-10-01T08:30:00Z" },
+    { id: "B", code: "B", startsAt: "2026-10-01T08:30:00Z", endsAt: "2026-10-01T16:30:00Z" },
+    { id: "C", code: "C", startsAt: "2026-10-01T16:30:00Z", endsAt: "2026-10-02T00:30:00Z" },
+  ];
+  const line = (shiftId: string, nozzleId: string, over: Partial<NozzleLine> = {}): NozzleLine => ({
+    shiftId,
+    nozzleId,
+    readingId: null,
+    version: null,
+    opening: null,
+    openingTyped: false,
+    closing: null,
+    meterChange: "NONE",
+    hasPrevious: true,
+    previousClosing: null,
+    ...over,
+  });
+  const data = (lines: NozzleLine[], extra: Partial<ShiftData> = {}): ShiftData => ({ shifts, lines, attendants: [], tests: [], ...extra });
+
+  it("copies the opening from the previous closing until one is typed", () => {
+    expect(openingOf(line("B", "hsd3", { previousClosing: "1100" }))).toBe("1100");
+    expect(openingOf(line("B", "hsd3", { opening: "1300", openingTyped: true, previousClosing: "1100" }))).toBe("1300");
+    expect(openingOf(line("B", "hsd3"))).toBeNull();
+  });
+
+  it("feeds the engine: sale = closing − opening, testing taken off, H2 when the opening moved", () => {
+    const d = data(
+      [
+        line("A", "hsd3", { opening: "1000", closing: "1100", hasPrevious: false }),
+        line("B", "hsd3", { opening: "1300", openingTyped: true, closing: "1400", previousClosing: "1100", meterChange: "PENDING" }),
+      ],
+      { tests: [{ id: "t", shiftId: "A", nozzleId: "hsd3", litres: "10", version: 1 }] },
+    );
+    const inputs = shiftInputs(setup, d);
+    const result = evaluate(setup, day(), [], inputs);
+    expect(result.hardErrors.filter((e) => e.code === "H2").map((e) => e.where?.shift)).toEqual(["B"]);
+    expect(result.products.find((p) => p.product === "HSD")).toBeUndefined(); // no dips yet, so no tank match
+    expect(inputs[0].tests).toEqual([{ nozzleId: "hsd3", litres: "10" }]);
+    const approved = shiftInputs(setup, data([line("B", "hsd3", { opening: "1300", openingTyped: true, closing: "1400", previousClosing: "1100", meterChange: "APPROVED" })]));
+    expect(evaluate(setup, day(), [], approved).hardErrors.filter((e) => e.code === "H2")).toEqual([]);
+  });
+
+  it("is done when every in-use nozzle has both readings and someone is ticked", () => {
+    const lines = [
+      line("A", "hsd3", { opening: "1000", closing: "1100" }),
+      line("A", "hsd4", { opening: "2000", closing: "2050" }),
+      line("A", "ms3", { opening: "500" }),
+    ];
+    const shift = shifts[0];
+    expect(shiftProgress(shift, setup, data(lines))).toMatchObject({ typedCount: 2, total: 3, done: false, started: true });
+    expect(shiftProgress(shift, setup, data(lines), { "A:ms3": "520" })).toMatchObject({ typedCount: 3, people: 0, done: false });
+    const withPeople = data(lines, { attendants: [{ id: "x", shiftId: "A", staffId: "s" }] });
+    expect(shiftProgress(shift, setup, withPeople, { "A:ms3": "520" }).done).toBe(true);
+  });
+
+  it("shows each shift card's one line", () => {
+    const d = data([line("A", "hsd3", { opening: "1000", closing: "1100" })]);
+    const result = evaluate(setup, day(), [], shiftInputs(setup, d));
+    const cards = todaySections(setup, day(), [], result, d);
+    expect(cards.map((c) => [c.key, c.subtitle, c.status])).toEqual([
+      ["openingDip", "To do · 2 tanks", "todo"],
+      ["tanker", "Coming soon", "todo"],
+      ["shiftA", "1 of 3 nozzles", "inProgress"],
+      ["shiftB", "After Shift A · 2 PM to 10 PM", "todo"],
+      ["shiftC", "After Shift B · 10 PM to 6 AM", "todo"],
+      ["sales", "Coming soon", "todo"],
+      ["expenses", "Coming soon", "todo"],
+      ["closingDip", "Coming soon", "todo"],
+    ]);
+    const done = data(
+      [line("A", "hsd3", { opening: "1000", closing: "1100" }), line("A", "hsd4", { opening: "2000", closing: "2050" }), line("A", "ms3", { opening: "500", closing: "520.5" })],
+      { attendants: [{ id: "x", shiftId: "A", staffId: "s" }] },
+    );
+    const r2 = evaluate(setup, day(), [], shiftInputs(setup, done));
+    const [, , a, b] = todaySections(setup, day(), [], r2, done);
+    expect([a.subtitle, a.status, b.subtitle]).toEqual(["Done · 170.50 L sold", "done", "To do · 2 PM to 10 PM"]);
   });
 });

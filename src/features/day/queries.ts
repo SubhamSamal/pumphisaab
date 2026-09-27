@@ -14,8 +14,11 @@ import { supabase } from "@/lib/supabase";
 
 // ─── Setup the day needs (tanks, charts, prices, rules) ───────────────────
 export type SetupTank = { id: string; label: string; product: Product; chartId: string; isActive: boolean };
+export type SetupNozzle = { id: string; label: string; product: Product; tankId: string; inUse: boolean };
 export type DaySetup = {
   tanks: SetupTank[];
+  /** In the order the pump lists them (HSD-3, HSD-4 …). */
+  nozzles: SetupNozzle[];
   charts: Record<string, DipChartRow[]>;
   prices: Price[];
   rules: Rules;
@@ -27,11 +30,13 @@ export function useDaySetup(pumpId: string) {
     queryKey: ["daySetup", pumpId],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<DaySetup> => {
-      const [pump, tanks, prices] = await Promise.all([
+      const [pump, tanks, prices, nozzles] = await Promise.all([
         supabase.from("pumps").select("rules, first_business_date").eq("id", pumpId).single(),
         supabase.from("tanks").select("id, label, product, chart_id, is_active").eq("pump_id", pumpId).order("product").order("label"),
         supabase.from("fuel_prices").select("product, per_litre::text, starts_on").eq("pump_id", pumpId),
+        supabase.from("nozzles").select("id, label, product, tank_id, in_use").eq("pump_id", pumpId).order("sort_order").order("label"),
       ]);
+      if (nozzles.error) throw nozzles.error;
       if (pump.error) throw pump.error;
       if (tanks.error) throw tanks.error;
       if (prices.error) throw prices.error;
@@ -49,6 +54,7 @@ export function useDaySetup(pumpId: string) {
 
       return {
         tanks: tanks.data.map((t) => ({ id: t.id, label: t.label, product: t.product, chartId: t.chart_id, isActive: t.is_active })),
+        nozzles: nozzles.data.map((n) => ({ id: n.id, label: n.label, product: n.product, tankId: n.tank_id, inUse: n.in_use })),
         charts,
         prices: prices.data.map((p) => ({ product: p.product, perLitre: p.per_litre, startsOn: p.starts_on })),
         // Same shape as src/calc/rules.ts (the seed test keeps them in step); defaults fill any gap.
@@ -235,3 +241,147 @@ function useDayAction(pumpId: string, fn: "confirm_prices" | "lock_day" | "unloc
 export const useConfirmPrices = (pumpId: string) => useDayAction(pumpId, "confirm_prices");
 export const useLockDay = (pumpId: string) => useDayAction(pumpId, "lock_day");
 export const useUnlockDay = (pumpId: string) => useDayAction(pumpId, "unlock_day");
+
+// ─── Shifts: meters, attendants, testing (slice 4b) ───────────────────────
+export type Shift = { id: string; code: string; startsAt: string; endsAt: string };
+export type MeterChange = "NONE" | "PENDING" | "APPROVED";
+/** One in-use nozzle in one shift, saved or not yet (from v_nozzle_readings). */
+export type NozzleLine = {
+  shiftId: string;
+  nozzleId: string;
+  readingId: string | null;
+  version: number | null;
+  opening: string | null;
+  openingTyped: boolean;
+  closing: string | null;
+  meterChange: MeterChange;
+  /** Whether any shift came before this one (false on the very first shift in the app). */
+  hasPrevious: boolean;
+  previousClosing: string | null;
+};
+export type Attendant = { id: string; shiftId: string; staffId: string };
+export type Test = { id: string; shiftId: string; nozzleId: string; litres: string; version: number };
+export type ShiftData = { shifts: Shift[]; lines: NozzleLine[]; attendants: Attendant[]; tests: Test[] };
+
+export function useShiftData(dayId: string | undefined) {
+  return useQuery({
+    queryKey: ["shiftData", dayId],
+    enabled: Boolean(dayId),
+    queryFn: async (): Promise<ShiftData> => {
+      const id = dayId as string;
+      const [shifts, lines, attendants, tests] = await Promise.all([
+        supabase.from("shifts").select("id, shift_code, starts_at, ends_at").eq("day_id", id).order("starts_at"),
+        supabase
+          .from("v_nozzle_readings")
+          .select(
+            "shift_id, nozzle_id, reading_id, version, opening::text, opening_typed, closing::text, meter_change_status, has_previous, previous_closing::text",
+          )
+          .eq("day_id", id),
+        supabase.from("shift_attendants").select("id, shift_id, staff_id").eq("day_id", id),
+        supabase.from("nozzle_tests").select("id, shift_id, nozzle_id, litres::text, version").eq("day_id", id).order("created_at"),
+      ]);
+      for (const r of [shifts, lines, attendants, tests]) if (r.error) throw r.error;
+      return {
+        shifts: shifts.data!.map((s) => ({ id: s.id, code: s.shift_code, startsAt: s.starts_at, endsAt: s.ends_at })),
+        lines: lines.data!.map(
+          (l): NozzleLine => ({
+            shiftId: l.shift_id,
+            nozzleId: l.nozzle_id,
+            readingId: l.reading_id,
+            version: l.version,
+            opening: l.opening,
+            openingTyped: Boolean(l.opening_typed),
+            closing: l.closing,
+            meterChange: (l.meter_change_status ?? "NONE") as MeterChange,
+            hasPrevious: l.has_previous,
+            previousClosing: l.previous_closing,
+          }),
+        ),
+        attendants: attendants.data!.map((a) => ({ id: a.id, shiftId: a.shift_id, staffId: a.staff_id })),
+        tests: tests.data!.map((t) => ({ id: t.id, shiftId: t.shift_id, nozzleId: t.nozzle_id, litres: t.litres, version: t.version })),
+      };
+    },
+  });
+}
+
+function useShiftSave<T>(dayId: string | undefined, key: string, fn: (input: T) => Promise<void>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", key],
+    mutationFn: fn,
+    onSettled: () => qc.invalidateQueries({ queryKey: ["shiftData", dayId] }),
+  });
+}
+
+async function check<T extends { error: unknown }>(p: PromiseLike<T>) {
+  const { error } = await p;
+  if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
+}
+
+/**
+ * Saves a closing reading, or a typed opening (meter change / first reading). The database copies
+ * the opening from the previous closing unless `openingTyped`. Keyed by shift + nozzle (safe to repeat).
+ */
+export function useSaveNozzleReading(pumpId: string, dayId: string | undefined) {
+  return useShiftSave(
+    dayId,
+    "nozzleReading",
+    (input: { shiftId: string; nozzleId: string; closing?: string | null; opening?: string | null; openingTyped?: boolean; version?: number | null }) =>
+      check(
+        supabase.from("nozzle_readings").upsert(
+          {
+            pump_id: pumpId,
+            day_id: dayId,
+            shift_id: input.shiftId,
+            nozzle_id: input.nozzleId,
+            ...(input.closing !== undefined ? { closing: input.closing } : {}),
+            ...(input.openingTyped !== undefined ? { opening_typed: input.openingTyped, opening: input.openingTyped ? input.opening : null } : {}),
+            ...(input.version ? { version: input.version } : {}),
+          },
+          { onConflict: "shift_id,nozzle_id" },
+        ),
+      ),
+  );
+}
+
+export function useSetAttendant(pumpId: string, dayId: string | undefined) {
+  return useShiftSave(dayId, "attendant", async (input: { shiftId: string; staffId: string; on: boolean; attendantId?: string }) => {
+    if (input.on) {
+      await check(
+        supabase
+          .from("shift_attendants")
+          .upsert({ pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, staff_id: input.staffId }, { onConflict: "shift_id,staff_id", ignoreDuplicates: true }),
+      );
+    } else if (input.attendantId) {
+      await check(supabase.from("shift_attendants").delete().eq("id", input.attendantId));
+    }
+  });
+}
+
+/** Adds or changes one test (id made on the phone, so a retry never adds it twice). */
+export function useSaveTest(pumpId: string, dayId: string | undefined) {
+  return useShiftSave(dayId, "test", (input: { id: string; shiftId: string; nozzleId: string; litres: string; version?: number }) =>
+    check(
+      supabase.from("nozzle_tests").upsert(
+        {
+          id: input.id,
+          pump_id: pumpId,
+          day_id: dayId,
+          shift_id: input.shiftId,
+          nozzle_id: input.nozzleId,
+          litres: input.litres,
+          ...(input.version ? { version: input.version } : {}),
+        },
+        { onConflict: "id" },
+      ),
+    ),
+  );
+}
+
+export function useDeleteTest(dayId: string | undefined) {
+  return useShiftSave(dayId, "testDelete", (id: string) => check(supabase.from("nozzle_tests").delete().eq("id", id)));
+}
+
+export function useApproveMeterChange(dayId: string | undefined) {
+  return useShiftSave(dayId, "approveMeter", (readingId: string) => check(supabase.rpc("approve_meter_change", { p_reading: readingId })));
+}

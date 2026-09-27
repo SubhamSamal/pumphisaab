@@ -4,12 +4,12 @@
  * so they are tested directly (model.test.ts).
  */
 
-import { evaluateDay, priceFor, type DayInput, type DayResult, type Issue, type Product, type TankDay } from "@/calc";
+import { evaluateDay, priceFor, shiftLitres, type DayInput, type DayResult, type Issue, type Product, type ShiftCode, type ShiftInput, type TankDay } from "@/calc";
 import { addDays } from "@/lib/businessDay";
 import { toDecimal } from "@/lib/decimal";
-import { fmtRupees } from "@/lib/format";
+import { fmtClock, fmtLitres, fmtRupees } from "@/lib/format";
 import type { SectionStatus } from "@/components/ui";
-import type { Day, DaySetup, DayStatus, TankReading, TankYesterday } from "./queries";
+import type { Day, DaySetup, DayStatus, NozzleLine, SetupNozzle, Shift, ShiftData, TankReading, TankYesterday } from "./queries";
 
 /**
  * What's typed on screen right now for a tank, before or after it is saved.
@@ -54,7 +54,7 @@ export function tankDays(
 }
 
 /** Everything known about the day so far, through the calculation engine (src/calc). */
-export function evaluate(setup: DaySetup, day: Day, days: TankDay[]): DayResult {
+export function evaluate(setup: DaySetup, day: Day, days: TankDay[], shifts: ShiftInput[] = []): DayResult {
   const input: DayInput = {
     businessDate: day.businessDate,
     priceConfirmed: day.priceConfirmed,
@@ -62,7 +62,7 @@ export function evaluate(setup: DaySetup, day: Day, days: TankDay[]): DayResult 
     tanks: activeTanks(setup).map((t) => ({ id: t.id, label: t.label, product: t.product, chart: setup.charts[t.chartId] ?? [] })),
     tankDays: days,
     tankers: [],
-    shifts: [],
+    shifts,
     expenses: [],
     customerPayments: [],
   };
@@ -111,21 +111,120 @@ function dipSection(
 }
 
 const COMING: { key: SectionKey; title: string }[] = [
-  { key: "tanker", title: "Tanker" },
-  { key: "shiftA", title: "Shift A readings" },
-  { key: "shiftB", title: "Shift B readings" },
-  { key: "shiftC", title: "Shift C readings" },
   { key: "sales", title: "Sales" },
   { key: "expenses", title: "Expenses" },
 ];
 
-export function todaySections(setup: DaySetup, day: Day, readings: TankReading[], result: DayResult): Section[] {
+function comingSoon(key: SectionKey, title: string, locked: boolean): Section {
+  return { key, title, subtitle: "Coming soon", status: locked ? "locked" : "todo", errors: 0, flags: 0, ready: false };
+}
+
+export function todaySections(
+  setup: DaySetup,
+  day: Day,
+  readings: TankReading[],
+  result: DayResult,
+  shiftData?: ShiftData,
+  typed: TypedClosings = {},
+): Section[] {
   const opening = dipSection("openingDip", "Opening dip", setup, readings, result, day.isLocked);
-  const later = COMING.map(
-    ({ key, title }): Section => ({ key, title, subtitle: "Coming soon", status: day.isLocked ? "locked" : "todo", errors: 0, flags: 0, ready: false }),
-  );
+  const shiftCards = (["A", "B", "C"] as const).map((code) => {
+    const key = `shift${code}` as SectionKey;
+    const shift = shiftData?.shifts.find((s) => s.code === code);
+    return shift && shiftData ? shiftSection(key, shift, setup, shiftData, result, day.isLocked, typed) : comingSoon(key, `Shift ${code} readings`, day.isLocked);
+  });
+  const later = COMING.map(({ key, title }) => comingSoon(key, title, day.isLocked));
   const closing = { ...dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked), ready: false, subtitle: "Coming soon" };
-  return [opening, ...later, closing];
+  return [opening, comingSoon("tanker", "Tanker", day.isLocked), ...shiftCards, ...later, closing];
+}
+
+// ─── Shift meters and testing (slice 4b) ──────────────────────────────────
+/** Closing readings typed on screen but maybe not saved yet, by `${shiftId}:${nozzleId}`. */
+export type TypedClosings = Record<string, string | null>;
+export const lineKey = (shiftId: string, nozzleId: string) => `${shiftId}:${nozzleId}`;
+
+export const inUseNozzles = (setup: DaySetup) => setup.nozzles.filter((n) => n.inUse);
+
+/**
+ * The opening a line has, or will have once saved: a typed opening, or the previous shift's
+ * closing (the database copies it on save). Null while that closing isn't known.
+ */
+export function openingOf(line: NozzleLine | undefined): string | null {
+  if (!line) return null;
+  return line.opening ?? (line.openingTyped ? null : line.previousClosing);
+}
+
+/** "6 AM to 2 PM" */
+export const shiftHours = (shift: Shift) => `${fmtClock(shift.startsAt)} to ${fmtClock(shift.endsAt)}`;
+
+/** The day's shifts as the engine wants them: readings (with typed closings on top) and testing. */
+export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosings = {}): ShiftInput[] {
+  return data.shifts.map((shift) => ({
+    code: shift.code as ShiftCode,
+    nozzles: setup.nozzles.map((n) => {
+      const line = data.lines.find((l) => l.shiftId === shift.id && l.nozzleId === n.id);
+      const key = lineKey(shift.id, n.id);
+      const closing = key in typed ? typed[key] : line?.closing;
+      return {
+        nozzleId: n.id,
+        label: n.label,
+        product: n.product,
+        tankId: n.tankId,
+        inUse: n.inUse,
+        ...(openingOf(line) ? { opening: openingOf(line) as string } : {}),
+        ...(closing ? { closing } : {}),
+        ...(line?.hasPrevious && line.previousClosing ? { previousClosing: line.previousClosing } : {}),
+        ...(line?.meterChange === "APPROVED" ? { meterChangeApproved: true } : {}),
+      };
+    }),
+    tests: data.tests.filter((t) => t.shiftId === shift.id).map((t) => ({ nozzleId: t.nozzleId, litres: t.litres })),
+    openingCash: "0",
+    otherPayments: [],
+    creditSlips: [],
+  }));
+}
+
+/** Each in-use nozzle's opening and closing are known, and at least one person is ticked. */
+export function shiftProgress(shift: Shift, setup: DaySetup, data: ShiftData, typed: TypedClosings = {}) {
+  const nozzles = inUseNozzles(setup);
+  const lines = nozzles.map((n) => data.lines.find((l) => l.shiftId === shift.id && l.nozzleId === n.id));
+  const closingOf = (n: SetupNozzle, i: number) => {
+    const key = lineKey(shift.id, n.id);
+    return key in typed ? typed[key] : lines[i]?.closing;
+  };
+  const typedCount = nozzles.filter((n, i) => openingOf(lines[i]) && closingOf(n, i)).length;
+  const people = data.attendants.filter((a) => a.shiftId === shift.id).length;
+  const started = nozzles.some((n, i) => closingOf(n, i)) || people > 0 || data.tests.some((t) => t.shiftId === shift.id);
+  return { typedCount, total: nozzles.length, people, started, done: nozzles.length > 0 && typedCount === nozzles.length && people > 0 };
+}
+
+function shiftSection(
+  key: SectionKey,
+  shift: Shift,
+  setup: DaySetup,
+  data: ShiftData,
+  result: DayResult,
+  locked: boolean,
+  typed: TypedClosings,
+): Section {
+  const p = shiftProgress(shift, setup, data, typed);
+  const errors = result.hardErrors.filter((e) => e.where?.shift === shift.code && ["H1", "H2", "H8"].includes(e.code)).length;
+  const i = data.shifts.findIndex((s) => s.id === shift.id);
+  const before = i > 0 ? data.shifts[i - 1] : undefined;
+  const beforeDone = !before || shiftProgress(before, setup, data, typed).done;
+  const litres = shiftInputs(setup, data, typed)[i];
+  const sold = litres ? shiftLitres(litres).soldAsPerMeters : null;
+  const total = sold ? sold.MS.plus(sold.HSD) : null;
+
+  const status: SectionStatus = locked ? "locked" : p.done ? "done" : p.started ? "inProgress" : "todo";
+  const subtitle = p.done
+    ? `Done · ${total ? fmtLitres(total) : "0 L"} sold`
+    : p.started
+      ? p.typedCount === p.total && p.people === 0
+        ? "Tick who worked this shift"
+        : `${p.typedCount} of ${plural(p.total, "nozzle")}`
+      : `${beforeDone ? "To do" : `After Shift ${before?.code}`} · ${shiftHours(shift)}`;
+  return { key, title: `Shift ${shift.code} readings`, subtitle, status, errors, flags: 0, ready: true };
 }
 
 export const sectionsDone = (sections: Section[]) => sections.filter((s) => s.status === "done").length;
