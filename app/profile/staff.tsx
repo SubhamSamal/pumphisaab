@@ -111,7 +111,7 @@ function StaffSheet({ pumpId, editing, onClose }: { pumpId: string; editing: Sta
   return (
     <BottomSheet visible={editing !== null} onClose={close}>
       <Text variant="heading">{isNew ? "Add staff" : "Rename"}</Text>
-      <TextField label="Name" value={name} onChangeText={setName} capitalize="words" returnKeyType="done" onSubmitEditing={save} />
+      <TextField label="Name" value={name} onChangeText={setName} capitalize="words" returnKeyType="done" onSubmitEditing={save} autoFocus />
       {problem ? <Banner tone="danger" title={problem} /> : null}
       <Button label={isNew ? "Add" : "Save"} loading={add.isPending || update.isPending} disabled={!name.trim()} onPress={save} />
     </BottomSheet>

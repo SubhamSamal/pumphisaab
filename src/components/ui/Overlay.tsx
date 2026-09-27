@@ -1,18 +1,21 @@
 import { useEffect, type ReactNode } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/ThemeProvider";
 import { shadow } from "@/theme/theme";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 
-/** Bottom sheet over a scrim: 16 px top radius, handle, shadow. Tap outside to close. */
+/**
+ * Bottom sheet over a scrim: 16 px top radius, handle, shadow. Tap outside to close.
+ * It rises above the keyboard, so a field inside it is never hidden while typing.
+ */
 export function BottomSheet({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: ReactNode }) {
   const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View className="flex-1 justify-end">
+      <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <Pressable
           className="absolute inset-0 bg-text-primary/50"
           onPress={onClose}
@@ -26,7 +29,7 @@ export function BottomSheet({ visible, onClose, children }: { visible: boolean; 
           <View className="h-4 w-40 self-center rounded-full bg-border-strong" />
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

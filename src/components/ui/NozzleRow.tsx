@@ -130,7 +130,7 @@ export function NozzleRow({
               // Placeholder is 16 px regular; typed readings are 22 px semibold.
               fontFamily: fontFamilyForWeight[closing === "" ? "400" : "600"],
               fontSize: closing === "" ? textTokens.body.fontSize : textTokens.title.fontSize,
-              lineHeight: textTokens["number-input"].lineHeight,
+              // No fixed line height: on iPhone it pushes typed text down (cut off at the bottom).
               fontVariant: ["tabular-nums"],
             }}
           />

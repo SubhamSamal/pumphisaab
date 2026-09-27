@@ -147,6 +147,10 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Web must be a single-page app** (D41): pre-rendering on the server broke because saved logins need a real browser (`window`).
 - **NativeWind dark mode is "class"**: our ThemeProvider switches colours itself; "media" mode threw an error when a browser added a dark/light class.
 - **Expo typed routes** only know new screens after Expo regenerates them (`expo start` or `expo export`); a fresh type check right after adding a screen can fail until then.
+- **Never give a typing box (TextInput) a fixed line height:** on iPhone the typed text sits too low and is cut off at the bottom while typing (owner found it on day one). Font size only.
+- **Bottom sheets must rise above the keyboard** (KeyboardAvoidingView inside the sheet's Modal); otherwise the field is hidden while typing.
+- **`npx expo start` changed meaning once expo-dev-client was added:** it defaults to "development build" mode, whose QR code Expo Go and the iPhone camera can't read. Use `npm start` (Expo Go + web) or `npm run start:android-app` (our Android app).
+- **Supabase "Allow new users to sign up" can look saved but not be.** Always re-test by attempting a sign-up; a test account was created on 26 Sep because of this and then deleted.
 - **iPhone stays on Expo Go** (our own iPhone build needs a paid Apple account); Android gets our development build (APK from EAS).
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 

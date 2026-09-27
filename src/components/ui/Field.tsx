@@ -90,10 +90,11 @@ export type NumericInputProps = {
   inputRef?: React.Ref<TextInput>;
 };
 
+// Typing boxes get a font size but no fixed line height: on iPhone a fixed line height makes the
+// text sit too low (cut off at the bottom) while typing. The box's own height keeps things aligned.
 const numberStyle = {
   fontFamily: fontFamilyForWeight["600"],
   fontSize: textTokens["number-input"].fontSize,
-  lineHeight: textTokens["number-input"].lineHeight,
   fontVariant: ["tabular-nums" as const],
 };
 
@@ -101,7 +102,6 @@ const numberStyle = {
 const placeholderStyle = {
   fontFamily: fontFamilyForWeight["400"],
   fontSize: textTokens.body.fontSize,
-  lineHeight: textTokens.body.lineHeight,
 };
 
 /**
@@ -207,6 +207,8 @@ export type TextFieldProps = {
   returnKeyType?: TextInputProps["returnKeyType"];
   onSubmitEditing?: TextInputProps["onSubmitEditing"];
   inputRef?: React.Ref<TextInput>;
+  /** Put the cursor here as soon as the field appears (e.g. in a bottom sheet). */
+  autoFocus?: boolean;
 };
 
 /** Non-numeric field, 16 px medium text. */
@@ -227,6 +229,7 @@ export function TextField({
   returnKeyType,
   onSubmitEditing,
   inputRef,
+  autoFocus,
 }: TextFieldProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
@@ -236,6 +239,7 @@ export function TextField({
       <FieldBox focused={focused} state={error ? "error" : "default"} disabled={disabled}>
         <TextInput
           ref={inputRef}
+          autoFocus={autoFocus}
           accessibilityLabel={label}
           value={value}
           onChangeText={(v) => onChangeText?.(vehicle ? v.toUpperCase().replace(/[\s-]/g, "") : v)}
@@ -262,7 +266,6 @@ export function TextField({
               color: colors["text-primary"],
               fontFamily: fontFamilyForWeight["500"],
               fontSize: textTokens.body.fontSize,
-              lineHeight: textTokens.body.lineHeight,
             },
             vehicle ? ({ fontFeatureSettings: "'zero'" } as object) : null,
           ]}
