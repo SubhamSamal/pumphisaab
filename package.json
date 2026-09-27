@@ -44,7 +44,7 @@
     "vitest": "^5.0.2"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --go --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -53,7 +53,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "theme": "node scripts/build-theme.mjs",
-    "golden:sql": "node scripts/golden-to-sql.mjs"
+    "golden:sql": "node scripts/golden-to-sql.mjs",
+    "start:android-app": "expo start --dev-client --clear"
   },
   "private": true
 }

@@ -13,7 +13,9 @@ Sara hisaab ek jagah. Daily entry and same-day matching for Indian petrol pumps.
 
 ```bash
 npm install
-npx expo start
+npm start
 ```
 
-Scan the QR code with Expo Go on Android, or press `w` for web.
+`npm start` is for **Expo Go** (iPhone) and the web: scan the QR code with the iPhone Camera, or press `w`.
+`npm run start:android-app` is for **our own Android development app** (installed from the EAS link).
+The app needs a `.env` file with the Supabase URL and public key (see `.env.example`).
