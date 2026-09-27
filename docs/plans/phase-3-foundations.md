@@ -1,6 +1,6 @@
 # Phase 3 plan: Foundations
 
-Status: **plan, waiting for owner "go"** · Written 26 Sep 2026 · Estimate 5-6 working days (+ the owner's setup steps, about 30-45 minutes in total)
+Status: **done 27 Sep 2026** · Written 26 Sep 2026 · Estimate 5-6 working days (+ the owner's setup steps, about 30-45 minutes in total)
 
 ## Goal in one line
 At the end of this phase, you and a manager each **log in on your own phones**, see only your own pump, the pump's real setup (tanks, chart, nozzles, prices) is in the database, every change is recorded in an audit log, and every database change is tested automatically before you paste it into the live project.

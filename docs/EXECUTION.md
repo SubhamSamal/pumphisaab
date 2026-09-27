@@ -4,9 +4,9 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ---
 
-## Status snapshot (last updated 26 Sep 2026, evening)
+## Status snapshot (last updated 27 Sep 2026)
 
-**Where we are:** Phase 3 (foundations) built and tested in CI; waiting on the owner's Supabase steps (`docs/plans/phase-3-owner-steps.md`) and a phone check.
+**Where we are:** Phases 0-3 done. Next: Phase 4 (daily entry, slice by slice), plan to come.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -38,20 +38,23 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] 65 tests green, CI green
 - [x] Project KT started: `docs/learnings.md` (how the pump and notebooks really work, product, build and process learnings); CLAUDE.md now requires keeping it updated
 
-### Phase 3: foundations (built 26 Sep 2026; owner steps pending)
+### Phase 3: foundations (done 27 Sep 2026)
 - [x] 4 migrations: change log, audit log, row stamps with version check, pumps and members, setup tables, RLS, versioned dip charts, dip/business-date/price functions, pilot seed
 - [x] Database tests (pgTAP) in CI on a throwaway Supabase: structure rules, security between pumps, audit, golden cases, seed
 - [x] Sign in (username + password), session states, Profile › Logins (owner) and Staff (everyone), create-user Edge Function
 - [x] Android package com.pumphisaab.app, EAS Update channels, first Android development build started
-- [ ] Owner: Supabase settings, own login, paste migrations 1-4, check query, deploy create-user, send URL + public key
-- [ ] Owner: sign in as subham, create manager.test, sign in as manager on a phone; install Android dev build
+- [x] Owner: Supabase settings (sign-up off, confirm email off), own login, migrations 1-4 pasted, check query matched, create-user deployed
+- [x] Live checks: anonymous and pump-less logins see nothing; sign-up refused; function refuses non-owners
+- [x] Owner and manager.test signed in on iPhone (Expo Go) and Android (our development app); roles, Logins and Staff work
+- [x] Two iPhone UI bugs found by the owner and fixed (typed text cut off; sheet behind keyboard)
+- Moved: first EAS Update test to the first preview build in Phase 4 (D44)
 
 ### Still open
-- [ ] Android phone check in Expo Go (same QR code)
+- [x] Android phone check (our own development app, 27 Sep)
 - [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
 - [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
-- [ ] Owner to confirm: cash counted includes opening drawer cash; machine totals include customers' dues payments
+- [ ] Owner to confirm: cash counted includes opening drawer cash; machine totals include customers' dues payments (needed in Phase 4, Sales slice)
 - Deferred: Sentry → Phase 4 (D40); PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
 ---
@@ -100,7 +103,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3
 - **Exit:** 100% golden cases pass in Vitest; engine reviewed against the notebook numbers
 
-### Phase 3: Foundations (~5-6 days) — detailed plan: `docs/plans/phase-3-foundations.md`
+### Phase 3: Foundations — done 27 Sep 2026 (plan: `docs/plans/phase-3-foundations.md`, owner steps: `docs/plans/phase-3-owner-steps.md`)
 - **Database safety net:** GitHub CI builds a throwaway Supabase from every migration on each push and runs pgTAP (RLS, triggers, constraints, golden cases through the SQL views). The live project is never touched by CI or Claude Code
 - **Migration ledger:** every migration ends by recording itself in a `schema_migrations_applied` table, so we can check the live database matches the repo
 - Core tables only: pumps, pump_members, dip_charts (versioned, never edited in place) + rows, tanks, nozzles, shift_templates, fuel_prices, staff, payment_types, cash_denominations, expense_categories, audit_log; audit trigger; RLS on every table; row version for conflict detection

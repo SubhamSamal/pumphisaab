@@ -2,6 +2,10 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (Phase 3 close)
+
+**D44. The first EAS Update test moves to Phase 4,** with the first standalone preview build. The development app loads code from the Mac, so an over-the-air update can't be meaningfully tested on it yet.
+
 ## 26 Sep 2026 (Phase 3 build)
 
 **D41. Web is a single-page app** (`web.output: "single"`), not pre-rendered pages. The app sits behind a login, so there's nothing to pre-render, and the saved-login storage needs a real browser. Cloudflare Pages serves it the same way.
