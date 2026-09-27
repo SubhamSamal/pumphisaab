@@ -385,3 +385,177 @@ export function useDeleteTest(dayId: string | undefined) {
 export function useApproveMeterChange(dayId: string | undefined) {
   return useShiftSave(dayId, "approveMeter", (readingId: string) => check(supabase.rpc("approve_meter_change", { p_reading: readingId })));
 }
+
+// ─── Tankers (slice 4c) ───────────────────────────────────────────────────
+export type ReceiptLine = {
+  id: string;
+  product: Product;
+  tankId: string;
+  orderedLitres: string;
+  shortLitres: string;
+  pricePerLitre: string | null;
+  marginPerLitre: string | null;
+  dipBeforeCm: string | null;
+  dipAfterCm: string | null;
+};
+export type Receipt = {
+  id: string;
+  dayId: string;
+  businessDate: string;
+  vehicleNo: string;
+  invoiceNo: string | null;
+  invoiceDate: string | null;
+  lines: ReceiptLine[];
+};
+
+const RECEIPT_COLUMNS =
+  "id, day_id, vehicle_no, invoice_no, invoice_date, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text)";
+
+type ReceiptRow = {
+  id: string;
+  day_id: string;
+  vehicle_no: string;
+  invoice_no: string | null;
+  invoice_date: string | null;
+  day: { business_date: string } | null;
+  lines: {
+    id: string;
+    product: Product;
+    tank_id: string;
+    ordered_l: string;
+    short_l: string;
+    price_per_l: string | null;
+    margin_per_l: string | null;
+    dip_before_cm: string | null;
+    dip_after_cm: string | null;
+  }[];
+};
+
+function toReceipt(r: ReceiptRow): Receipt {
+  return {
+    id: r.id,
+    dayId: r.day_id,
+    businessDate: r.day?.business_date ?? "",
+    vehicleNo: r.vehicle_no,
+    invoiceNo: r.invoice_no,
+    invoiceDate: r.invoice_date,
+    lines: r.lines
+      .map((l) => ({
+        id: l.id,
+        product: l.product,
+        tankId: l.tank_id,
+        orderedLitres: l.ordered_l,
+        shortLitres: l.short_l,
+        pricePerLitre: l.price_per_l,
+        marginPerLitre: l.margin_per_l,
+        dipBeforeCm: l.dip_before_cm,
+        dipAfterCm: l.dip_after_cm,
+      }))
+      .sort((a, b) => (a.product === "HSD" ? -1 : 1) - (b.product === "HSD" ? -1 : 1)),
+  };
+}
+
+/** Tankers unloaded on this business day. */
+export function useTankers(dayId: string | undefined) {
+  return useQuery({
+    queryKey: ["tankers", dayId],
+    enabled: Boolean(dayId),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tanker_receipts").select(RECEIPT_COLUMNS).eq("day_id", dayId as string).order("created_at");
+      if (error) throw error;
+      return (data as unknown as ReceiptRow[]).map(toReceipt);
+    },
+  });
+}
+
+/** The latest tankers at the pump (any day): the "Earlier" list, and price/margin to prefill. */
+export function useRecentTankers(pumpId: string) {
+  return useQuery({
+    queryKey: ["recentTankers", pumpId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tanker_receipts")
+        .select(RECEIPT_COLUMNS)
+        .eq("pump_id", pumpId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return (data as unknown as ReceiptRow[]).map(toReceipt);
+    },
+  });
+}
+
+/**
+ * Saves a whole tanker: the receipt, its lines, and removes lines for a fuel that's no longer on
+ * it. Ids are made on the phone, so saving twice after a network drop never adds a second tanker.
+ */
+export function useSaveTanker(pumpId: string, dayId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "tanker"],
+    mutationFn: async (input: { receipt: Omit<Receipt, "dayId" | "businessDate" | "lines">; lines: ReceiptLine[]; removeLineIds: string[] }) => {
+      await check(
+        supabase.from("tanker_receipts").upsert(
+          {
+            id: input.receipt.id,
+            pump_id: pumpId,
+            day_id: dayId,
+            vehicle_no: input.receipt.vehicleNo,
+            invoice_no: input.receipt.invoiceNo,
+            invoice_date: input.receipt.invoiceDate,
+          },
+          { onConflict: "id" },
+        ),
+      );
+      if (input.removeLineIds.length) await check(supabase.from("receipt_lines").delete().in("id", input.removeLineIds));
+      if (input.lines.length) {
+        await check(
+          supabase.from("receipt_lines").upsert(
+            input.lines.map((l) => ({
+              id: l.id,
+              pump_id: pumpId,
+              day_id: dayId,
+              receipt_id: input.receipt.id,
+              product: l.product,
+              tank_id: l.tankId,
+              ordered_l: l.orderedLitres,
+              short_l: l.shortLitres,
+              price_per_l: l.pricePerLitre,
+              margin_per_l: l.marginPerLitre,
+              dip_before_cm: l.dipBeforeCm,
+              dip_after_cm: l.dipAfterCm,
+            })),
+            { onConflict: "id" },
+          ),
+        );
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["tankers", dayId] });
+      qc.invalidateQueries({ queryKey: ["recentTankers", pumpId] });
+    },
+  });
+}
+
+export function useDeleteTanker(pumpId: string, dayId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "tankerDelete"],
+    mutationFn: (id: string) => check(supabase.from("tanker_receipts").delete().eq("id", id)),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["tankers", dayId] });
+      qc.invalidateQueries({ queryKey: ["recentTankers", pumpId] });
+    },
+  });
+}
+
+/** "No tanker today" on the day (completes the Tanker section when nothing came). */
+export function useSetNoTanker(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "noTanker"],
+    mutationFn: ({ dayId, value }: { dayId: string; value: boolean }) =>
+      check(supabase.from("business_days").update({ no_tanker: value }).eq("id", dayId)),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["day", pumpId] }),
+  });
+}

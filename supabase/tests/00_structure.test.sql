@@ -46,7 +46,7 @@ select is(
 
 select is(
   (select array_agg(name order by name) from public.schema_migrations_applied),
-  array['20260926120000_foundations', '20260926120100_setup_tables', '20260926120200_calc_functions', '20260926120300_seed_pilot_pump', '20260927120000_day_opening', '20260927130000_shift_meters'],
+  array['20260926120000_foundations', '20260926120100_setup_tables', '20260926120200_calc_functions', '20260926120300_seed_pilot_pump', '20260927120000_day_opening', '20260927130000_shift_meters', '20260927140000_tanker'],
   'The migration change log lists every migration, in order'
 );
 

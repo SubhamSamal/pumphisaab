@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status snapshot (last updated 27 Sep 2026)
 
-**Where we are:** Phases 0-3 done. Phase 4 in progress: 4a done; 4b built (waiting for the owner's paste and phone check); next 4c.
+**Where we are:** Phases 0-3 done. Phase 4 in progress: 4a done; 4b done (approval re-check pending); 4c built (waiting for paste and phone check); next 4d.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -122,6 +122,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - 4f Closing dip, Review (tank vs meters, money by shift, flags list), Submit, "yesterday first", autosave + local drafts
 - [x] 4a built 27 Sep: migration 5, Today (price strip, sections, date picker, lock/unlock), Opening dip, SQL golden day loader (S3, S7, H3). Owner pasted migration 5 and checked it on Android as owner (27 Sep); keyboard and cut-off value fixed after
 - [x] 4b built 27 Sep: migration 6 (shifts, attendants, meter readings with copied openings, H1/H2/H8, testing, owner approval), Shift A/B/C screen, golden cases load meters into SQL. Owner paste + phone check pending
+- [x] 4c built 27 Sep: migration 7 (tanker_receipts, receipt_lines, totals and S6 views), Tanker tab, add/edit/remove tanker, No tanker today, Today card; golden cases load tankers into SQL. Owner paste + phone check pending
 - Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook

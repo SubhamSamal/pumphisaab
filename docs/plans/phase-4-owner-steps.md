@@ -82,3 +82,51 @@ One section per slice. Do the steps in order and send back what each step asks f
 ### Good to know
 - If an earlier shift has no closing yet, the next shift's closing box says "After Shift A". You can still tap the opening and type it from the meter; if Shift A's closing later differs, it becomes a meter change for the owner.
 - Fixing a closing later (for example Shift A) updates the next shift's copied opening by itself.
+
+---
+
+## Slice 4c: tanker (27 Sep 2026) — plus the 4b re-check, all in one go
+
+**What's new:** the **Tanker** tab: "No tanker today", today's tankers, earlier tankers, and **Add tanker**. A tanker has the tanker number, invoice number and date, and per fuel: litres ordered and short; **Received** (ordered − short) is worked out. Price and margin per litre are copied from the last tanker and shown as a line to check (**Change** if the invoice differs). Totals: Invoice amount, Short amount, To pay, Margin earned. Optional **dip check** (dip just before and after unloading): "Tank went up … L, challan says … L". A short of more than 0.3% or a dip check off by more than 0.5% shows an amber flag (no reason asked; Save still works). Today's Tanker card opens the tab and is done with a tanker or "No tanker today".
+
+> As before, until Step 1 is done Today says "The app is newer than the database".
+
+### Step 1: paste migration 7 (about 3 minutes)
+1. Supabase › **SQL Editor** › **New query**.
+2. Open `supabase/migrations/20260927140000_tanker.sql`, read the **DATA SAFETY** box (new tables only, nothing changed or deleted).
+3. Copy all, paste, **Run** → "Success. No rows returned".
+4. New query, paste, **Run**:
+   ```sql
+   select (select count(*) from schema_migrations_applied) as migrations,
+          (select count(*) from tanker_receipts) as tankers;
+   ```
+5. **Send me** the result. Expected: migrations = 7, tankers = 0.
+
+### Step 2: the 4b re-check (meter change approval, about 3 minutes)
+1. Sign in as `manager.test`. Today › **Shift B readings** › tap the **grey HSD-4 opening** › New opening `100510` › **Send to owner**. The box turns amber; Today's Shift B card shows a red **1**.
+2. Sign in as `subham`. Today shows an amber banner "1 meter change waiting for your approval" › **Open Shift B** › tap **Approve** on the HSD-4 row. The banner and the red 1 go away.
+3. **Send me** a screenshot of the banner and of the row with **Approve**.
+
+### Step 3: first tanker (as owner, about 5 minutes) — the real 15 Sep challan
+1. **Tanker** tab (bottom bar) › **Add tanker**.
+2. Tanker number `OD02CD9087`, invoice number `7018875672`, invoice date: tap **‹** once (the day before).
+3. **Diesel**: Ordered `14000`, Short `28`. Received shows **13,972 L**.
+4. First tanker ever, so price and margin are empty boxes: Price per litre `99.14`, Margin per litre `2.60`.
+5. **Petrol**: leave empty (no petrol on this tanker).
+6. Totals: Invoice amount **₹13,87,960**, Short amount **−₹2,776**, To pay **₹13,85,184**, Margin earned **₹36,327**.
+7. Diesel › **Add dip check**: before `59.8`, after `119.8`. It shows "Tank went up 7,674.44 L, challan says 13,972 L" and an amber flag (these dips are made up, so they don't agree).
+8. **Save tanker**. The tab lists **OD02CD9087 · HSD 13,972 L** with "1 flag". Today's Tanker card: green tick, "Done · OD02CD9087", amber **1**.
+9. **Send me** screenshots of the totals (step 6), the dip check (step 7) and the Tanker tab (step 8).
+
+### Step 4: second tanker and "No tanker today" (as manager, about 3 minutes)
+1. Sign in as `manager.test`. **Tanker** › **Add tanker**, number `OD11AB4410`.
+2. Diesel: price and margin now show as a line "Price ₹99.14/L · margin ₹2.60/L, from last tanker". Ordered `8000`, short `0`.
+3. Petrol: Ordered `4000`, Short `20` → amber flag "Petrol tanker short 20 L out of 4,000 L". Tap **Change** for petrol price: `96.10`, margin `4.90`. **Save tanker**.
+4. Open it again and tap **Remove this tanker** › **Remove tanker** (it was a test). It disappears.
+5. Go back one day on **Today** (‹), then open the **Tanker** tab: turn on **No tanker today**. Today's Tanker card for that day says "Done · No tanker today".
+6. **Send me** one screenshot of step 3 (the flag).
+
+### Good to know
+- A fuel with **Ordered** empty isn't on that tanker; a tanker with both fuels has both filled.
+- "No tanker today" can't be turned on while a tanker is added for that day.
+- A tanker counts in the day it was **unloaded** (the day open on Today), even if the invoice date is earlier.

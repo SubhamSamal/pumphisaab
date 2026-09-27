@@ -2,6 +2,16 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (slice 4c build, owner away: built to the approved plan)
+
+**D59. Tanker, as built in 4c:**
+- One screen per tanker (the canvas shows it in two steps: diesel, then petrol and totals). Everything fits one scroll: tanker number, invoice number, invoice date, "Unloaded on" (= the day open on Today), a card per fuel, totals, Save.
+- A fuel whose **Ordered** box is empty isn't on that tanker (no extra switch). Short is empty = 0.
+- Price and margin per litre are copied from the **last tanker of that fuel** and shown as one line with **Change** (canvas F4); on the very first tanker the boxes show straight away. Both are optional: without a price the totals show "—".
+- Saving is one tap (**Save tanker**), not per box: a tanker is one challan. Ids are made on the phone, so a retry never adds it twice. A tanker can be **removed** (logged), e.g. if added by mistake.
+- "No tanker today" is on the day (`business_days.no_tanker`) and can't be on while a tanker exists for that day.
+- The database works out received, amounts, margin, dip rise and S6 (`v_receipt_lines`, `v_tanker_totals`, `v_day_received`), checked against the same worked examples as the app.
+
 ## 27 Sep 2026 (4b phone check, owner feedback)
 
 **D55. Nozzle row redesigned by the owner** (overrides the canvas F5 row): name and litres sold ("223.26 L") on one line, then two boxes side by side, **Opening** and **Closing**. A copied opening is a grey locked box (tap it for a meter change); where there's nothing to copy (first reading in the app, or the earlier shift has no closing yet) the opening is a white box typed directly. Meter numbers are 18 px so a lakh reading fits.

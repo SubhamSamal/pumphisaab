@@ -4,12 +4,24 @@
  * so they are tested directly (model.test.ts).
  */
 
-import { evaluateDay, priceFor, shiftLitres, type DayInput, type DayResult, type Issue, type Product, type ShiftCode, type ShiftInput, type TankDay } from "@/calc";
+import {
+  evaluateDay,
+  priceFor,
+  shiftLitres,
+  type DayInput,
+  type DayResult,
+  type Issue,
+  type Product,
+  type ShiftCode,
+  type ShiftInput,
+  type TankDay,
+  type TankerReceipt,
+} from "@/calc";
 import { addDays } from "@/lib/businessDay";
 import { Decimal, toDecimal } from "@/lib/decimal";
 import { fmtClock, fmtLitres, fmtRupees } from "@/lib/format";
 import type { SectionStatus } from "@/components/ui";
-import type { Day, DaySetup, DayStatus, NozzleLine, SetupNozzle, Shift, ShiftData, TankReading, TankYesterday } from "./queries";
+import type { Day, DaySetup, DayStatus, NozzleLine, Receipt, SetupNozzle, Shift, ShiftData, TankReading, TankYesterday } from "./queries";
 
 /**
  * What's typed on screen right now for a tank, before or after it is saved.
@@ -54,14 +66,14 @@ export function tankDays(
 }
 
 /** Everything known about the day so far, through the calculation engine (src/calc). */
-export function evaluate(setup: DaySetup, day: Day, days: TankDay[], shifts: ShiftInput[] = []): DayResult {
+export function evaluate(setup: DaySetup, day: Day, days: TankDay[], shifts: ShiftInput[] = [], tankers: TankerReceipt[] = []): DayResult {
   const input: DayInput = {
     businessDate: day.businessDate,
     priceConfirmed: day.priceConfirmed,
     prices: setup.prices,
     tanks: activeTanks(setup).map((t) => ({ id: t.id, label: t.label, product: t.product, chart: setup.charts[t.chartId] ?? [] })),
     tankDays: days,
-    tankers: [],
+    tankers,
     shifts,
     expenses: [],
     customerPayments: [],
@@ -126,6 +138,7 @@ export function todaySections(
   result: DayResult,
   shiftData?: ShiftData,
   typed: TypedClosings = {},
+  receipts?: Receipt[],
 ): Section[] {
   const opening = dipSection("openingDip", "Opening dip", setup, readings, result, day.isLocked);
   const shiftCards = (["A", "B", "C"] as const).map((code) => {
@@ -135,7 +148,8 @@ export function todaySections(
   });
   const later = COMING.map(({ key, title }) => comingSoon(key, title, day.isLocked));
   const closing = { ...dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked), ready: false, subtitle: "Coming soon" };
-  return [opening, comingSoon("tanker", "Tanker", day.isLocked), ...shiftCards, ...later, closing];
+  const tanker = receipts ? tankerSection(day, receipts, result) : comingSoon("tanker", "Tanker", day.isLocked);
+  return [opening, tanker, ...shiftCards, ...later, closing];
 }
 
 // ─── Shift meters and testing (slice 4b) ──────────────────────────────────
@@ -306,4 +320,52 @@ export function priceStrip(setup: DaySetup, day: Day): PriceStripModel {
   return anyChanged
     ? { state: "changed", note: "Set by owner", items, missing }
     : { state: "toConfirm", note: !reconfirm && fuels.every((f) => before(f) !== undefined) ? "Same as yesterday" : undefined, items, missing };
+}
+
+// ─── Tanker (slice 4c) ────────────────────────────────────────────────────
+/** Saved tankers as the engine wants them. */
+export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
+  return receipts.map((r) => ({
+    id: r.id,
+    vehicleNo: r.vehicleNo,
+    ...(r.invoiceNo ? { invoiceNo: r.invoiceNo } : {}),
+    lines: r.lines.map((l) => ({
+      product: l.product,
+      tankId: l.tankId,
+      orderedLitres: l.orderedLitres,
+      shortLitres: l.shortLitres,
+      ...(l.pricePerLitre ? { pricePerLitre: l.pricePerLitre } : {}),
+      ...(l.marginPerLitre ? { marginPerLitre: l.marginPerLitre } : {}),
+      ...(l.dipBeforeCm ? { dipBeforeCm: l.dipBeforeCm } : {}),
+      ...(l.dipAfterCm ? { dipAfterCm: l.dipAfterCm } : {}),
+    })),
+  }));
+}
+
+/** Done when a tanker is added, or "No tanker today" is on. Amber count = S6 flags. */
+export function tankerSection(day: Day, receipts: Receipt[], result: DayResult): Section {
+  const flags = result.flags.filter((f) => f.code === "S6").length;
+  const done = receipts.length > 0 || day.noTanker;
+  const subtitle =
+    receipts.length > 0
+      ? `Done · ${receipts.map((r) => r.vehicleNo).join(", ")}`
+      : day.noTanker
+        ? "Done · No tanker today"
+        : "To do · Add receipt or No tanker";
+  return { key: "tanker", title: "Tanker", subtitle, status: day.isLocked ? "locked" : done ? "done" : "todo", errors: 0, flags, ready: true };
+}
+
+/**
+ * Price and margin per litre from the last tanker of each fuel (canvas F4: prefilled, shown as a
+ * line to check). `recent` is newest first; the tanker being edited is left out.
+ */
+export function lastPrices(recent: Receipt[], exceptId?: string): Partial<Record<Product, { price: string | null; margin: string | null }>> {
+  const out: Partial<Record<Product, { price: string | null; margin: string | null }>> = {};
+  for (const r of recent) {
+    if (r.id === exceptId) continue;
+    for (const l of r.lines) {
+      if (!out[l.product] && (l.pricePerLitre || l.marginPerLitre)) out[l.product] = { price: l.pricePerLitre, margin: l.marginPerLitre };
+    }
+  }
+  return out;
 }

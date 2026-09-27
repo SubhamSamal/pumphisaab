@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES } from "@/calc";
-import { daysNotSubmitted, evaluate, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, todaySections } from "./model";
-import type { Day, DaySetup, NozzleLine, ShiftData, TankReading } from "./queries";
+import { daysNotSubmitted, evaluate, lastPrices, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import type { Day, DaySetup, NozzleLine, Receipt, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
   ([dipCm, litres]) => ({ dipCm, litres }),
@@ -225,5 +225,45 @@ describe("shift meters (slice 4b)", () => {
     const r2 = evaluate(setup, day(), [], shiftInputs(setup, done));
     const [, , a, b] = todaySections(setup, day(), [], r2, done);
     expect([a.subtitle, a.status, b.subtitle]).toEqual(["Done · 170.50 L sold", "done", "To do · 2 PM to 10 PM"]);
+  });
+});
+
+describe("tanker (slice 4c)", () => {
+  const receipt = (id: string, over: Partial<Receipt> = {}): Receipt => ({
+    id,
+    dayId: "d",
+    businessDate: "2026-10-01",
+    vehicleNo: "OD02CD9087",
+    invoiceNo: null,
+    invoiceDate: null,
+    lines: [
+      { id: `${id}-h`, product: "HSD", tankId: "hsd", orderedLitres: "14000.00", shortLitres: "28.00", pricePerLitre: "99.14", marginPerLitre: "2.60", dipBeforeCm: null, dipAfterCm: null },
+      { id: `${id}-m`, product: "MS", tankId: "ms", orderedLitres: "4000.00", shortLitres: "20.00", pricePerLitre: null, marginPerLitre: null, dipBeforeCm: null, dipAfterCm: null },
+    ],
+    ...over,
+  });
+
+  it("feeds the engine: received = ordered − short, and S6 when the short is more than usual", () => {
+    const result = evaluate(setup, day(), [], [], tankerInputs([receipt("t1")]));
+    expect(result.tankers[0].lines.map((l) => l.receivedNetLitres.toFixed(2))).toEqual(["13972.00", "3980.00"]);
+    expect(result.tankers[0].toPay).toBeNull(); // petrol has no price yet
+    expect(result.flags.map((f) => `${f.code}:${f.where?.product}`)).toEqual(["S6:MS"]);
+  });
+
+  it("is done with a tanker or with 'No tanker today', and counts S6 flags", () => {
+    const result = evaluate(setup, day(), [], [], tankerInputs([receipt("t1")]));
+    expect(tankerSection(day(), [receipt("t1")], result)).toMatchObject({ status: "done", subtitle: "Done · OD02CD9087", flags: 1 });
+    const empty = evaluate(setup, day(), [], []);
+    expect(tankerSection(day({ noTanker: true }), [], empty)).toMatchObject({ status: "done", subtitle: "Done · No tanker today" });
+    expect(tankerSection(day(), [], empty)).toMatchObject({ status: "todo", subtitle: "To do · Add receipt or No tanker" });
+  });
+
+  it("prefills price and margin from the last tanker of each fuel, never from the one being edited", () => {
+    const newer = receipt("t2");
+    const older = receipt("t1", {
+      lines: [{ id: "x", product: "MS", tankId: "ms", orderedLitres: "4000", shortLitres: "0", pricePerLitre: "96.10", marginPerLitre: "4.90", dipBeforeCm: null, dipAfterCm: null }],
+    });
+    expect(lastPrices([newer, older])).toEqual({ HSD: { price: "99.14", margin: "2.60" }, MS: { price: "96.10", margin: "4.90" } });
+    expect(lastPrices([newer, older], "t2")).toEqual({ MS: { price: "96.10", margin: "4.90" } });
   });
 });
