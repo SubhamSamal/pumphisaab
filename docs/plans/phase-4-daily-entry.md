@@ -1,6 +1,6 @@
 # Phase 4 plan: Daily entry, slice by slice
 
-Status: **plan written 27 Sep 2026; MCQs answered (D45-D52); waiting for the owner's "go"** · Estimate 10-12 working days (+ about 15 minutes of owner steps per slice)
+Status: **4a-4f built (29 Sep 2026); 4a-4d checked by the owner; 4e/4f owner check and 4g (preview build, Sentry, OTA) next.** Plan written 27 Sep; MCQs D45-D52 · Estimate 10-12 working days (+ about 15 minutes of owner steps per slice)
 
 ## Goal in one line
 At the end of this phase, a manager fills a **whole real day on the phone** (price, dips, tanker, 3 shifts of meters and testing, all money, credit slips, expenses, closing dip), sees **sold as per tank vs sold as per meters vs money received** match live, and **submits** it. A real notebook day typed into the app gives the same totals as the notebook, in under 20 minutes.

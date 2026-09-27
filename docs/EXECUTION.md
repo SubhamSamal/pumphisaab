@@ -4,9 +4,9 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ---
 
-## Status snapshot (last updated 27 Sep 2026)
+## Status snapshot (last updated 29 Sep 2026)
 
-**Where we are:** Phases 0-3 done. Phase 4 in progress: 4a done; 4b done (approval re-check pending); 4c and 4d built (waiting for pastes and one combined phone check); next 4e, 4f.
+**Where we are:** Phases 0-3 done. Phase 4: all slices 4a-4f built; 4a-4d checked on Android; 4e/4f built overnight 28→29 Sep (migrations 11, 12 to paste, owner check pending). Next: 4g preview APK + Sentry + OTA test with the owner, then the Phase 4 exit check.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -126,6 +126,10 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - [x] 4d built 27 Sep: migration 8 (shift_payments, cash_counts, credit_sales, customer_payments, v_shift_money, H9), Sales tab (by shift / by type), shift sales screen, credit slip screen, D47 in the engine and golden cases. Owner paste + phone check pending
 - [x] 4b/4c owner check 27 Sep: fixes D61-D63 (owner approves in one step, green approved state; tanker: no "No tanker today", invoice amount required, price = selling − margin, mandatory chamber dips; compact number boxes). Migration 9
 - [x] Tanker fixes 2 (28 Sep): margin set by the owner with the price, shown as chips; dip before and after on every chamber; plain challan check (D64-D66). Migration 10
+- [x] Drafts for Save forms (D67), company type-ahead (D68), text never cut off (D69, test-guarded), 28 Sep
+- [x] 4e built 28-29 Sep: migration 11 (expenses, drawer expenses in v_shift_money, v_day_expenses, S9 v_expense_caps), Expenses list + Add expense (D72-D75). Owner paste + phone check pending
+- [x] 4f built 29 Sep: migration 12 (v_day_match, v_shift_match, day_sections, day_is_matched, submit_day, first-day fix D81), Closing dip, Review (3 steps), Submit, After submit, Today bar, offline outbox (D70, D78), pre-pilot clean-up script (D80). Golden loader now checks fuel, money and matched in SQL for every case incl. 15 Sep. Owner paste + phone check pending
+- [ ] 4g: preview APK, Sentry, first EAS Update test (with the owner)
 - Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook

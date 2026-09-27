@@ -13,10 +13,13 @@
 --      day Submitted and stores whether it matched. Safe to tap twice; "Submit again" after a
 --      change updates the result (the first submit time is kept, the latest is stored too).
 --    • business_days: two new columns for the latest submit (who and when).
+--    • Fix: the pump's first day no longer copies openings from days before it that were only
+--      browsed (empty shifts made by opening an old date).
 --
 --  DATA SAFETY:  ADDS NEW THINGS; DELETES NOTHING.
 --    • ALTER TABLE business_days ADD COLUMN last_submitted_by, last_submitted_at (new, empty).
 --    • New views v_day_match, v_shift_match; new functions day_sections, day_is_matched, submit_day.
+--    • Replaces private.previous_closing (same inputs and outputs; see 1b).
 --    • No DROP · no TRUNCATE · no DELETE. No existing row is changed.
 --
 --  HOW TO APPLY:  paste the whole file into Supabase › SQL editor › Run, after migration 11.
@@ -36,6 +39,33 @@ end $$;
 -- ─── 1. Latest submit ──────────────────────────────────────────────────────
 alter table public.business_days add column last_submitted_by uuid;
 alter table public.business_days add column last_submitted_at timestamptz;
+
+
+-- ─── 1b. The shift before, for copying openings (fix) ───────────────────────
+-- Just browsing to a date before the pump's first day in the app creates that day's (empty)
+-- shifts, and the first day's Shift A then "copied" from them ("last night's shift has no closing
+-- yet", owner's 4b check). A day on or after the first day now looks back only to days on or
+-- after the first day; old notebook days before it still chain among themselves.
+create or replace function private.previous_closing(p_shift uuid, p_nozzle uuid, out has_previous boolean, out closing numeric)
+language sql stable security definer set search_path = ''
+as $$
+  with this as (
+    select s.pump_id, s.starts_at, d.business_date, p.first_business_date
+    from public.shifts s
+    join public.business_days d on d.id = s.day_id
+    join public.pumps p on p.id = s.pump_id
+    where s.id = p_shift
+  ),
+  prev as (
+    select s.id from public.shifts s
+    join public.business_days d on d.id = s.day_id, this
+    where s.pump_id = this.pump_id and s.starts_at < this.starts_at
+      and (this.first_business_date is null or this.business_date < this.first_business_date or d.business_date >= this.first_business_date)
+    order by s.starts_at desc limit 1
+  )
+  select (select count(*) > 0 from prev),
+         (select r.closing from public.nozzle_readings r where r.shift_id = (select id from prev) and r.nozzle_id = p_nozzle);
+$$;
 
 
 -- ─── 2. The fuel check per day: same maths as src/calc/tank.ts ─────────────

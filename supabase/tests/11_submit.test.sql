@@ -2,7 +2,7 @@
 -- every refusal (locked, yesterday first D3, H6, H4, H2), matched, safe twice, submit again.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 insert into auth.users (id, email) values
   ('22222222-2222-2222-2222-222222222222', 'manager.x@users.pumphisaab.com'),
@@ -36,6 +36,10 @@ update public.pumps set rules = jsonb_set(rules, '{stockDifference,flagBeyondPer
   where id = (select x from ids);
 insert into public.business_days (id, pump_id, business_date) select yesterday, x, today - 1 from ids;
 
+-- A date before the first day, only browsed (its shifts exist, nothing typed).
+insert into public.business_days (id, pump_id, business_date) select gen_random_uuid(), x, today - 5 from ids;
+select private.ensure_shifts((select id from public.business_days where pump_id = (select x from ids) and business_date = (select today - 5 from ids)));
+
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 create temp table d on commit drop as select public.open_day((select x from ids)) as day;
@@ -43,6 +47,9 @@ create temp table s on commit drop as select
   (select id from public.shifts where day_id = (select day from d) and shift_code = 'A') as a,
   (select id from public.shifts where day_id = (select day from d) and shift_code = 'B') as b,
   (select id from public.shifts where day_id = (select day from d) and shift_code = 'C') as c;
+
+select is((select bool_or(has_previous) from public.v_nozzle_readings where day_id = (select day from d) and shift_code = 'A'), false,
+  'A day browsed before the first day doesn''t count as "last night" for the first day''s openings');
 
 -- ── Refusals, in the order a manager meets them ───────────────────────────
 select throws_ok($$ select public.submit_day((select day from d)) $$, 'P0001',

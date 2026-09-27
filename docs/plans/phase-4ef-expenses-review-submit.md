@@ -1,6 +1,6 @@
 # Phase 4e + 4f plan: Expenses, Closing dip, Review, Submit, offline
 
-Status: **plan written 28 Sep 2026; MCQs answered (D70-D73); waiting for the owner's "proceed"** · Built overnight 28→29 Sep, checked by the owner on 29 Sep.
+Status: **built overnight 28→29 Sep 2026 (D74-D81); owner check next (`phase-4-owner-steps.md`, last section).** MCQs D70-D73 · Built overnight 28→29 Sep, checked by the owner on 29 Sep.
 Parent plan: `docs/plans/phase-4-daily-entry.md` (4e and 4f sections). This file replaces those two sections with the full detail.
 
 ## Goal in one line

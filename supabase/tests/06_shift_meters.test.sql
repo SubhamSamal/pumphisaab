@@ -25,6 +25,8 @@ insert into public.pump_members (pump_id, user_id, username, full_name, role) va
   ((select x from ids), '11111111-1111-1111-1111-111111111111', 'owner.x', 'Owner X', 'OWNER'),
   ((select x from ids), '22222222-2222-2222-2222-222222222222', 'manager.x', 'Manager X', 'MANAGER');
 insert into public.staff (id, pump_id, name) select staff_id, x, 'Ramesh' from ids;
+-- The pump has been in the app since the day before yesterday (so yesterday is a real day).
+update public.pumps set first_business_date = (select today - 2 from ids) where id = (select x from ids);
 -- Pump Y with a day and a shift, to prove it can't be touched.
 insert into public.pumps (id, name, rules) select y, 'Pump Y', '{}'::jsonb from ids;
 insert into public.business_days (id, pump_id, business_date) select y_day, y, today from ids;
