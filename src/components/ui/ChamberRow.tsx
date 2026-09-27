@@ -3,7 +3,7 @@ import { TextInput, View } from "react-native";
 import { fromShown, showTyped } from "@/lib/numberInput";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fontFamilyForWeight, text as textTokens } from "@/theme/theme";
-import { FieldError } from "./Field";
+import { FieldError, typingText } from "./Field";
 import { Text } from "./Text";
 
 // Chamber boxes are narrow: 16 px numbers; no fixed line height and no Android font padding
@@ -33,8 +33,8 @@ function SmallNumber({ value, onChange, placeholder, a11y, editable }: { value: 
         selectionColor={colors.primary}
         style={[
           value === "" ? placeholderStyle : numStyle,
-          { includeFontPadding: false, textAlignVertical: "center" },
-          { flex: 1, minWidth: 0, padding: 0, color: colors["text-primary"] },
+          typingText,
+          { color: colors["text-primary"] },
         ]}
       />
     </View>

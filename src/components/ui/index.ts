@@ -12,6 +12,7 @@ export { DipInput, type DipInputProps } from "./DipInput";
 export { AutoValueRow, FieldError, FieldHint, FieldLabel, NumericInput, TextField, type NumericInputProps, type TextFieldProps } from "./Field";
 export { Icon, type IconName } from "./Icon";
 export { ListItem } from "./ListItem";
+export { SuggestList, type Suggestion } from "./SuggestList";
 export { LogoMark, Wordmark } from "./Logo";
 export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./Navigation";
 export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";

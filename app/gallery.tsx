@@ -46,6 +46,7 @@ import {
   Skeleton,
   StatusPill,
   StickyActionBar,
+  SuggestList,
   Text,
   TextField,
   Toast,
@@ -335,6 +336,15 @@ function GalleryContent() {
             <Divider />
             <KeyValueRow label="Received" value="₹4,01,100" big />
           </Card>
+          <SuggestList
+            items={[
+              { id: "1", label: "ABC Traders", selected: true },
+              { id: "2", label: "ABCD Logistics" },
+            ]}
+            onPick={() => {}}
+            addLabel="Add “ABCDE” as a new company"
+            onAdd={() => {}}
+          />
           <View>
             <ListItem title="Mahanadi Coalfields" detail="OD05AB1234 · Slip 4471 · HSD 320 L" icon="wallet" right="₹28,800" slashedZeroDetail />
             <ListItem title="Diesel short 42 L" detail="01 Oct · Tank vs meters" icon="warning" iconTone="danger" onPress={() => {}} />

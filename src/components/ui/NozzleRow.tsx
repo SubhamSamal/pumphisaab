@@ -4,7 +4,7 @@ import { fromShown, showTyped } from "@/lib/numberInput";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fontFamilyForWeight, text as textTokens } from "@/theme/theme";
 import { Button } from "./Button";
-import { FieldError } from "./Field";
+import { FieldError, typingText } from "./Field";
 import { Icon } from "./Icon";
 import type { Product } from "./Tag";
 import { Text } from "./Text";
@@ -87,8 +87,8 @@ function MeterInput({ value, onChange, onBlur, editable, placeholder, error, a11
         selectionColor={colors.primary}
         style={[
           value === "" ? placeholderStyle : meterStyle,
-          { includeFontPadding: false, textAlignVertical: "center" },
-          { flex: 1, minWidth: 0, padding: 0, color: colors["text-primary"] },
+          typingText,
+          { color: colors["text-primary"] },
         ]}
       />
     </View>

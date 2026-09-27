@@ -59,6 +59,7 @@ tools/                  Developer-only helpers, not part of the app (tools/db-lo
 - New logic has tests; formula changes update `tests/golden/`.
 - Screens checked in light and dark mode at 390 px width and on web.
 - **Keyboard never covers what's being typed** (owner's rule, 27 Sep): every screen with a typing box sits in `ScreenBody` or `KeyboardSafeScroll`, and sheets use `BottomSheet` (never a raw ScrollView/KeyboardAvoidingView). The box being typed in, any message under it, and the button needed next must stay visible above the keyboard on Android and iPhone. `tests/keyboard-safety.test.ts` enforces the first part; check the second on the phone for every new form.
+- **Text is never cut off on any side** (owner's rule, 28 Sep): typed numbers, labels and values show whole on Android and iPhone, at every length (a single "0" too). Every `TextInput` uses `typingText` from `src/components/ui/Field.tsx`; `tests/text-clipping.test.ts` enforces it. Check new screens on the phone with short and long values.
 - Analytics events from the PRD are fired where relevant.
 - A short plain-language summary: what changed, how to see it, anything the owner must do.
 

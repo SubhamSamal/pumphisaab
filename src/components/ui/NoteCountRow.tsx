@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TextInput, View } from "react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fontFamilyForWeight, text as textTokens } from "@/theme/theme";
+import { typingText } from "./Field";
 import { Text } from "./Text";
 
 export type NoteCountRowProps = {
@@ -53,7 +54,7 @@ export function NoteCountRow({ note, count, onChangeCount, onBlur, amount, edita
           placeholder="0"
           placeholderTextColor={colors["text-muted"]}
           selectionColor={colors.primary}
-          style={[countStyle, { flex: 1, minWidth: 0, padding: 0, color: colors["text-primary"] }]}
+          style={[countStyle, typingText, { color: colors["text-primary"] }]}
         />
       </View>
       <Text variant="number-inline" tone={amount === "₹0" ? "muted" : "primary"} className="flex-1 text-right">

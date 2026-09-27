@@ -243,6 +243,12 @@ Shift A (27 Sep) already has readings: HSD 713.26 L after testing, MS 0 L.
 3. Tap **Done · Shift B sales** (Shift B's readings are in; its Difference shows up).
 4. **Send me** one screenshot of Shift B's money card.
 
+### Fixes after your 4d check (28 Sep 2026)
+- **Cut-off "0"** in Cash in the drawer, Card, XtraPower, Bank (it looked like "U"), and the first digit in the payment sheet: every typing box's text now fills the box, on every screen. A test stops this coming back (CLAUDE.md rule).
+- **Company drop-down:** type in the Company box; a list under it shows the matching companies (names starting with what you typed first). Tap one: a tick shows in the box. If no company has exactly that name, the last row is **Add “…” as a new company**.
+
+Check (as owner, 3 minutes): open **Sales › Shift A**: the 0s in Card and Bank show whole. **Add credit slip** › Company: type `S` (SVT shows), then `SVTX` (the last row says Add “SVTX”; don't add it). Pick **SVT**, change a letter: the tick goes and the list comes back. Press Back (the draft note shows next time; tap Start again). Send me a screenshot of the drop-down.
+
 ### Good to know
 - A credit slip needs today's price **Confirmed** first (H6).
 - Credit litres more than the meters sold in that shift show red (H9) and will block Submit.
