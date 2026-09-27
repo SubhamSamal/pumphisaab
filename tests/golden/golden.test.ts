@@ -109,12 +109,22 @@ describe("golden cases", () => {
           break;
         }
         case "tanker": {
-          const r = receiptTotals(c.receipt, new Map());
+          const charts = new Map(
+            c.receipt.lines.map((l: { tankId: string }) => [l.tankId, checkChart(CHARTS["iocl-20kl"]).chart!]),
+          ) as Map<string, NonNullable<ReturnType<typeof checkChart>["chart"]>>;
+          const r = receiptTotals(c.receipt, charts);
           expectNumber(r.lines[0].receivedNetLitres, c.expected.receivedNetLitres, "received");
           expectNumber(r.totalAmount, c.expected.totalAmount, "amount");
           expectNumber(r.totalShortAmount, c.expected.totalShortAmount, "short amount");
           expectNumber(r.toPay, c.expected.toPay, "to pay");
           expectNumber(r.totalMargin, c.expected.totalMargin, "margin");
+          if (c.expected.invoiceAmount) expectNumber(r.invoiceAmount, c.expected.invoiceAmount, "invoice amount");
+          if (c.expected.dipRiseLitres) expectNumber(r.lines[0].dipRiseLitres, c.expected.dipRiseLitres, "dip rise");
+          (c.expected.chambers ?? []).forEach((ch: any, i: number) => {
+            expectNumber(r.lines[0].chambers[i].litres, ch.litres, `chamber ${i + 1} litres`);
+            expectNumber(r.lines[0].chambers[i].riseLitres, ch.riseLitres, `chamber ${i + 1} rise`);
+            expectNumber(r.lines[0].chambers[i].shortLitres, ch.shortLitres, `chamber ${i + 1} short`);
+          });
           break;
         }
         case "day": {

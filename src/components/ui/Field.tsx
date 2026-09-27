@@ -89,7 +89,13 @@ export type NumericInputProps = {
   returnKeyType?: TextInputProps["returnKeyType"];
   onSubmitEditing?: TextInputProps["onSubmitEditing"];
   inputRef?: React.Ref<TextInput>;
+  /** Two boxes side by side (owner, 27 Sep): 18 px numbers so 14,000.00 fits half a phone screen. */
+  compact?: boolean;
 };
+
+// Android adds extra space above text by default, which clipped big numbers at the top (owner,
+// 27 Sep): turn it off and centre the text in the box.
+const androidText = { includeFontPadding: false, textAlignVertical: "center" as const };
 
 // Typing boxes get a font size but no fixed line height: on iPhone a fixed line height makes the
 // text sit too low (cut off at the bottom) while typing. The box's own height keeps things aligned.
@@ -126,6 +132,7 @@ export function NumericInput({
   returnKeyType = "next",
   onSubmitEditing,
   inputRef,
+  compact,
 }: NumericInputProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
@@ -174,7 +181,8 @@ export function NumericInput({
           placeholderTextColor={colors["text-muted"]}
           selectionColor={colors.primary}
           style={[
-            value === "" ? placeholderStyle : numberStyle,
+            value === "" ? placeholderStyle : compact ? { ...numberStyle, fontSize: textTokens.heading.fontSize } : numberStyle,
+            androidText,
             { flex: 1, minWidth: 0, color: colors["text-primary"], padding: 0 },
           ]}
         />

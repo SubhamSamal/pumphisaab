@@ -10,10 +10,9 @@ import {
   StatusPill,
   StickyActionBar,
   Text,
-  ToggleRow,
 } from "@/components/ui";
 import { evaluate, tankerInputs } from "@/features/day/model";
-import { useDay, useDaySetup, useRecentTankers, useSetNoTanker, useTankers, type Receipt } from "@/features/day/queries";
+import { useDay, useDaySetup, useRecentTankers, useTankers, type Receipt } from "@/features/day/queries";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useMembership } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
@@ -23,7 +22,7 @@ import { fmtDate, fmtLitres } from "@/lib/format";
 /** "HSD 13,972 L · MS 3,980 L": litres received (ordered − short, exact decimals). */
 const receivedLine = (r: Receipt) => r.lines.map((l) => `${l.product} ${fmtLitres(new Decimal(l.orderedLitres).minus(l.shortLitres))}`).join(" · ");
 
-/** Tanker tab (canvas F4): today's tankers, "No tanker today", earlier tankers, Add tanker. */
+/** Tanker tab (canvas F4): today's tankers, earlier tankers, Add tanker. No tanker added = none came (owner, 27 Sep). */
 export default function TankerScreen() {
   const me = useMembership();
   const router = useRouter();
@@ -32,7 +31,6 @@ export default function TankerScreen() {
   const day = useDay(me.pump.id, serverKnown ? date : undefined);
   const tankers = useTankers(day.data?.id);
   const recent = useRecentTankers(me.pump.id);
-  const noTanker = useSetNoTanker(me.pump.id);
 
   const failed = setup.error ?? day.error ?? tankers.error ?? recent.error;
   const loading = setup.isPending || day.isPending || tankers.isPending || recent.isPending;
@@ -76,20 +74,6 @@ export default function TankerScreen() {
         ) : (
           <>
             {locked ? <Banner tone="info" icon="lock" title="This day is locked" /> : null}
-            <ToggleRow
-              label="No tanker today"
-              helper={
-                list.length > 0
-                  ? "A tanker is added for this day."
-                  : `Turn on if no tanker came on ${fmtDate(date, "short")}.`
-              }
-              value={day.data.noTanker && list.length === 0}
-              onChange={(v) => {
-                if (locked || list.length > 0 || !day.data) return;
-                noTanker.mutate({ dayId: day.data.id, value: v });
-              }}
-            />
-            {noTanker.error ? <Banner tone="danger" title={noTanker.error.message} /> : null}
 
             <View>
               <Text variant="label" tone="secondary">

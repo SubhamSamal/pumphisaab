@@ -196,18 +196,33 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
     for (const t of input.tankers) {
       const vehicle = t.vehicleNo.toUpperCase().replace(/[^A-Z0-9]/g, "").padEnd(4, "0").slice(0, 12);
       const receipt = `(select id from public.tanker_receipts where day_id = ${day} and invoice_no = ${sqlText(`golden ${t.id}`)})`;
-      lines.push(`insert into public.tanker_receipts (pump_id, day_id, vehicle_no, invoice_no) values (${pump}, ${day}, '${vehicle}', ${sqlText(`golden ${t.id}`)});`);
+      lines.push(
+        `insert into public.tanker_receipts (pump_id, day_id, vehicle_no, invoice_no, invoice_amount) values (${pump}, ${day}, '${vehicle}', ${sqlText(`golden ${t.id}`)}, ${t.invoiceAmount ?? "null"});`,
+      );
       for (const l of t.lines) {
         lines.push(
           `insert into public.receipt_lines (pump_id, day_id, receipt_id, product, tank_id, ordered_l, short_l, price_per_l, margin_per_l, dip_before_cm, dip_after_cm) values (${pump}, ${day}, ${receipt}, '${l.product}', ${tank(l.tankId)}, ${l.orderedLitres}, ${l.shortLitres ?? 0}, ${l.pricePerLitre ?? "null"}, ${l.marginPerLitre ?? "null"}, ${l.dipBeforeCm ?? "null"}, ${l.dipAfterCm ?? "null"});`,
         );
+        (l.chambers ?? []).forEach((ch, k) => {
+          lines.push(
+            `insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm) values (${pump}, ${day}, (select id from public.receipt_lines where receipt_id = ${receipt} and product = '${l.product}'), ${k + 1}, ${ch.litres}, ${ch.dipAfterCm});`,
+          );
+        });
       }
       // Expected per-tanker numbers, through v_receipt_lines (first line) and v_tanker_totals.
       const want = c.expected.tankers?.[t.id];
       if (want) {
         const lineCols = { receivedNetLitres: "received_l", dipRiseLitres: "dip_rise_l", amount: "amount", shortAmount: "short_amount", margin: "margin" };
-        const totalCols = { totalAmount: "total_amount", totalShortAmount: "total_short_amount", toPay: "to_pay", totalMargin: "total_margin" };
+        const totalCols = { totalAmount: "total_amount", totalShortAmount: "total_short_amount", toPay: "to_pay", totalMargin: "total_margin", invoiceAmount: "invoice_amount" };
+        (want.chambers ?? []).forEach((ch, k) => {
+          for (const [key, col] of [["riseLitres", "rise_l"], ["shortLitres", "short_l"]]) {
+            tests.push(
+              `select is((select round(${col}, 2) from public.v_receipt_chambers where receipt_id = ${receipt} and chamber_no = ${k + 1}), ${ch[key]}::numeric, ${sqlText(`${c.file}: tanker ${t.id} chamber ${k + 1} ${key} = ${ch[key]}`)});`,
+            );
+          }
+        });
         for (const [key, value] of Object.entries(want)) {
+          if (key === "chambers") continue;
           const col = lineCols[key] ?? totalCols[key];
           if (!col) continue;
           const from = lineCols[key]

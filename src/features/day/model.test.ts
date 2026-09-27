@@ -236,9 +236,10 @@ describe("tanker (slice 4c)", () => {
     vehicleNo: "OD02CD9087",
     invoiceNo: null,
     invoiceDate: null,
+    invoiceAmount: null,
     lines: [
-      { id: `${id}-h`, product: "HSD", tankId: "hsd", orderedLitres: "14000.00", shortLitres: "28.00", pricePerLitre: "99.14", marginPerLitre: "2.60", dipBeforeCm: null, dipAfterCm: null },
-      { id: `${id}-m`, product: "MS", tankId: "ms", orderedLitres: "4000.00", shortLitres: "20.00", pricePerLitre: null, marginPerLitre: null, dipBeforeCm: null, dipAfterCm: null },
+      { id: `${id}-h`, product: "HSD", tankId: "hsd", orderedLitres: "14000.00", shortLitres: "28.00", pricePerLitre: "99.14", marginPerLitre: "2.60", dipBeforeCm: null, dipAfterCm: null, chambers: [] },
+      { id: `${id}-m`, product: "MS", tankId: "ms", orderedLitres: "4000.00", shortLitres: "20.00", pricePerLitre: null, marginPerLitre: null, dipBeforeCm: null, dipAfterCm: null, chambers: [] },
     ],
     ...over,
   });
@@ -250,18 +251,17 @@ describe("tanker (slice 4c)", () => {
     expect(result.flags.map((f) => `${f.code}:${f.where?.product}`)).toEqual(["S6:MS"]);
   });
 
-  it("is done with a tanker or with 'No tanker today', and counts S6 flags", () => {
+  it("is always done: with a tanker it names it (and counts S6 flags), without one it says no tanker came", () => {
     const result = evaluate(setup, day(), [], [], tankerInputs([receipt("t1")]));
     expect(tankerSection(day(), [receipt("t1")], result)).toMatchObject({ status: "done", subtitle: "Done · OD02CD9087", flags: 1 });
     const empty = evaluate(setup, day(), [], []);
-    expect(tankerSection(day({ noTanker: true }), [], empty)).toMatchObject({ status: "done", subtitle: "Done · No tanker today" });
-    expect(tankerSection(day(), [], empty)).toMatchObject({ status: "todo", subtitle: "To do · Add receipt or No tanker" });
+    expect(tankerSection(day(), [], empty)).toMatchObject({ status: "done", subtitle: "No tanker today" });
   });
 
   it("prefills price and margin from the last tanker of each fuel, never from the one being edited", () => {
     const newer = receipt("t2");
     const older = receipt("t1", {
-      lines: [{ id: "x", product: "MS", tankId: "ms", orderedLitres: "4000", shortLitres: "0", pricePerLitre: "96.10", marginPerLitre: "4.90", dipBeforeCm: null, dipAfterCm: null }],
+      lines: [{ id: "x", product: "MS", tankId: "ms", orderedLitres: "4000", shortLitres: "0", pricePerLitre: "96.10", marginPerLitre: "4.90", dipBeforeCm: null, dipAfterCm: null, chambers: [] }],
     });
     expect(lastPrices([newer, older])).toEqual({ HSD: { price: "99.14", margin: "2.60" }, MS: { price: "96.10", margin: "4.90" } });
     expect(lastPrices([newer, older], "t2")).toEqual({ MS: { price: "96.10", margin: "4.90" } });

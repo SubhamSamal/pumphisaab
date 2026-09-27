@@ -11,6 +11,8 @@ import {
   Button,
   CalendarCell,
   CalendarLegend,
+  ChamberHeader,
+  ChamberRow,
   Card,
   Chip,
   ChipGroup,
@@ -233,9 +235,17 @@ function GalleryContent() {
           <NozzleRow label="HSD-B" opening="31,455.50" closing="31265.50" error="Less than the opening. Check the meter." />
           <NozzleRow label="HSD-C" opening="52,904.00" closing="" />
           <NozzleGroupHeader product="MS" detail="· ₹101.00/L" />
-          <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingChanged note="New opening waits for the owner's approval." />
+          <NozzleRow label="MS-A" opening="19,850.00" closing="20204" sale="354.00" openingState="pending" note="New opening waits for the owner." />
+          <NozzleRow label="MS-D" opening="19,850.00" closing="20204" sale="354.00" openingState="approved" note="Meter change approved." noteTone="success" />
           <NozzleRow label="MS-B" opening="—" closing="" placeholder="After Shift A" />
           <NozzleRow label="MS-C" openingInput={{ value: "", onChange: () => {} }} closing="" />
+        </Section>
+
+        <Section title="Tanker chambers">
+          <ChamberHeader />
+          <ChamberRow no={1} litres="4000" dipAfter="91.7" rise="3,999.99 L" short="short 0.01 L" />
+          <ChamberRow no={2} litres="4000" dipAfter="122.2" rise="3,985.55 L" short="short 14.46 L" shortWarn />
+          <ChamberRow no={3} litres="" dipAfter="" />
         </Section>
 
         <Section title="Cash note count">

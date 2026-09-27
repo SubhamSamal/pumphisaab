@@ -47,16 +47,24 @@ export type TankerLine = {
   tankId: string;
   orderedLitres: Num; // litres on the invoice
   shortLitres: Num; // litres short on delivery ("0" if none)
-  pricePerLitre?: Num; // cost price from the invoice
+  pricePerLitre?: Num; // cost price from the invoice (selling price − margin)
   marginPerLitre?: Num; // profit per litre
-  dipBeforeCm?: Num; // optional dip just before unloading
-  dipAfterCm?: Num; // optional dip just after unloading
+  dipBeforeCm?: Num; // our tank's dip just before unloading
+  dipAfterCm?: Num; // our tank's dip just after unloading (after the last chamber)
+  /**
+   * Chamber by chamber (owner, 27 Sep): the chamber's litres from the challan and our tank's dip
+   * after that chamber is emptied. The first chamber's "before" is dipBeforeCm; each next one's
+   * "before" is the previous chamber's "after".
+   */
+  chambers?: { litres: Num; dipAfterCm: Num }[];
 };
 
 export type TankerReceipt = {
   id: string;
   vehicleNo: string;
   invoiceNo?: string;
+  /** The challan's total, as typed. When given, To pay = this − short amount. */
+  invoiceAmount?: Num;
   lines: TankerLine[];
 };
 
@@ -205,13 +213,19 @@ export type TankerLineResult = {
   shortAmount: Decimal | null;
   margin: Decimal | null;
   dipRiseLitres: Decimal | null;
+  /** Per chamber: how much the tank went up, and the chamber's short (its litres − that rise). */
+  chambers: { litres: Decimal; riseLitres: Decimal | null; shortLitres: Decimal | null }[];
 };
 
 export type TankerResult = {
   id: string;
   lines: TankerLineResult[];
+  /** Σ ordered × price per litre (price = selling − margin). */
   totalAmount: Decimal | null;
+  /** The invoice amount typed from the challan, if any. */
+  invoiceAmount: Decimal | null;
   totalShortAmount: Decimal | null;
+  /** Invoice amount (typed, else worked out) − short amount. */
   toPay: Decimal | null;
   totalMargin: Decimal | null;
 };

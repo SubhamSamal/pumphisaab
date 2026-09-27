@@ -133,6 +133,40 @@ One section per slice. Do the steps in order and send back what each step asks f
 
 ---
 
+## Fixes after your 4b/4c check (27 Sep 2026) — do these before the 4d steps
+
+**What changed:**
+- **Meter change (4b):** your own change as owner is saved **and approved** in one tap (no "Send to owner"). An approved opening turns **green** with "Meter change approved". A manager's change still waits for you (amber) with **Approve** on the row.
+- **Tanker (4c):**
+  - "No tanker today" switch removed. No tanker added = none came; the Tanker card on Today says "No tanker today" (the Review before Submit will ask once, in 4f).
+  - **Invoice amount** from the challan is now a required box (next to the invoice number). The price per litre is **today's selling price − margin** (selling price comes from Today, margin from the last tanker); the totals show whether price × litres matches the challan.
+  - **Chamber dips are mandatory:** "Tank dip before unloading", then one row per chamber: litres (from the challan) and our tank's dip after that chamber. Each row shows how much the tank went up and that chamber's short. The chambers must add up to Ordered. **Add chamber** / **Remove last**.
+  - Petrol opens with **Add petrol** (so a diesel-only tanker stays short). Fewer helper lines everywhere.
+  - Numbers in side-by-side boxes are smaller, and Android no longer cuts them off.
+- **Sales:** fewer helper lines.
+
+### Step 1: paste migration 9 (after 8)
+1. Supabase › **SQL Editor** › **New query**, open `supabase/migrations/20260927160000_tanker_chambers.sql`, read **DATA SAFETY** (adds one empty column `invoice_amount` to tankers and a new chambers table; nothing deleted), paste, **Run**.
+2. Check:
+   ```sql
+   select (select count(*) from schema_migrations_applied) as migrations,
+          (select count(*) from receipt_chambers) as chambers;
+   ```
+   Expected: migrations = **9**, chambers = 0. **Send me** the result.
+
+### Step 2: meter change as owner
+1. As `subham`, open **Shift B**, tap **HSD-4**'s opening (green if you approved it earlier). Type a new opening, tap **Save new opening**: it turns green straight away, with no approval step.
+
+### Step 3: the tanker again (the tanker you saved earlier has no chambers or invoice amount)
+1. **Tanker** tab › open **OD02CD9087** › **Remove this tanker** (it was a test).
+2. **Add tanker**: number `OD02CD9087`, invoice no. `7018875672`, invoice amount `1388011`.
+3. Diesel: Ordered `14000`, Short `28`. Selling price shows **101.74** (from Today); Margin `2.60` → **Invoice price per litre ₹99.14/L**.
+4. Tank dip before unloading `59.8`. Chambers: 1: `4000` litres, dip after `91.7`; **Add chamber** 2: `4000`, `122.2`; 3: `4000`, `154.5`; 4: `2000`, `172.8`. Each row shows the tank's rise (3,999.99 L, 3,985.55 L, 3,997.18 L, 1,985.27 L).
+5. Totals: Invoice amount **₹13,88,011.00**, "Price × litres (+₹51.00 on the challan)" **₹13,87,960.00**, Short amount **−₹2,775.92**, To pay **₹13,85,235.08**, Margin earned **₹36,327**. **Save tanker**.
+6. **Send me** screenshots of the chamber rows and the totals.
+
+---
+
 ## Slice 4d: Sales (27 Sep 2026) — test together with 4b and 4c
 
 **What's new:** the **Sales** tab. **By shift**: one card per shift with Should have, every part of Received, and the Difference (Matched / Short / Excess). **By type**: each way of payment with the day total and the split by shift, and **None today** for an unused type. Tap a shift to enter its money:

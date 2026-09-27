@@ -426,6 +426,7 @@ export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
     id: r.id,
     vehicleNo: r.vehicleNo,
     ...(r.invoiceNo ? { invoiceNo: r.invoiceNo } : {}),
+    ...(r.invoiceAmount ? { invoiceAmount: r.invoiceAmount } : {}),
     lines: r.lines.map((l) => ({
       product: l.product,
       tankId: l.tankId,
@@ -435,21 +436,19 @@ export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
       ...(l.marginPerLitre ? { marginPerLitre: l.marginPerLitre } : {}),
       ...(l.dipBeforeCm ? { dipBeforeCm: l.dipBeforeCm } : {}),
       ...(l.dipAfterCm ? { dipAfterCm: l.dipAfterCm } : {}),
+      ...(l.chambers.length ? { chambers: l.chambers } : {}),
     })),
   }));
 }
 
-/** Done when a tanker is added, or "No tanker today" is on. Amber count = S6 flags. */
+/**
+ * Always done (owner, 27 Sep: no "No tanker today" switch): no tanker added simply means none came.
+ * The Review before Submit asks once when a day has no tanker (slice 4f). Amber count = S6 flags.
+ */
 export function tankerSection(day: Day, receipts: Receipt[], result: DayResult): Section {
   const flags = result.flags.filter((f) => f.code === "S6").length;
-  const done = receipts.length > 0 || day.noTanker;
-  const subtitle =
-    receipts.length > 0
-      ? `Done · ${receipts.map((r) => r.vehicleNo).join(", ")}`
-      : day.noTanker
-        ? "Done · No tanker today"
-        : "To do · Add receipt or No tanker";
-  return { key: "tanker", title: "Tanker", subtitle, status: day.isLocked ? "locked" : done ? "done" : "todo", errors: 0, flags, ready: true };
+  const subtitle = receipts.length > 0 ? `Done · ${receipts.map((r) => r.vehicleNo).join(", ")}` : "No tanker today";
+  return { key: "tanker", title: "Tanker", subtitle, status: day.isLocked ? "locked" : "done", errors: 0, flags, ready: true };
 }
 
 /**

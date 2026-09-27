@@ -203,9 +203,6 @@ function SlipForm({
             value={by === "RUPEES" ? fmtLitres(amounts.litres) : fmtRupees(amounts.rupees, "input")}
           />
         ) : null}
-        <Text variant="label" weight="400" tone="muted">
-          Date is the day open on Today. Rate is today&apos;s confirmed price.{by === "RUPEES" ? " Litres are rounded up, as on the slip." : ""}
-        </Text>
         {existing && !day.isLocked ? <Button label="Remove this slip" variant="ghost" onPress={() => setConfirmRemove(true)} /> : null}
       </ScreenBody>
 

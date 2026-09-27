@@ -271,11 +271,7 @@ function SalesForm({
             onBlur={saveOpening}
             unit="₹"
             placeholder={fmtRupees(autoOpening, "input").replace("₹", "")}
-            helper={
-              opening
-                ? "Typed. Empty the box to use the last count again."
-                : `From ${before ? `Shift ${before.code}` : "last night's"} count. Change it if cash was taken out.`
-            }
+            helper={opening ? undefined : `From ${before ? `Shift ${before.code}` : "last night's"} count`}
             disabled={locked}
           />
           <Text variant="label" tone="secondary">
@@ -300,7 +296,6 @@ function SalesForm({
 
         <Card>
           <Text variant="heading">Paytm, card, XtraPower, bank</Text>
-          <FieldHint>Type each one&apos;s total for this shift, from the machine, app or bank. Leave empty if none: Done makes it ₹0.</FieldHint>
           {otherTypes.map((t) => (
             <NumericInput
               key={t.id}
@@ -319,9 +314,7 @@ function SalesForm({
             <Text variant="heading">Credit slips</Text>
             <Text variant="number-inline">{fmtRupees(slips.reduce((s, x) => s.plus(x.rupees), new Decimal(0)))}</Text>
           </View>
-          {slips.length === 0 ? (
-            <FieldHint>No credit slips in this shift yet.</FieldHint>
-          ) : (
+          {slips.length === 0 ? null : (
             <View>
               {slips.map((x) => (
                 <ListItem
@@ -343,7 +336,6 @@ function SalesForm({
 
         <Card>
           <Text variant="heading">Payments from customers</Text>
-          <FieldHint>Old dues or advances. Not fuel: taken off this shift&apos;s totals. Bank transfers are only recorded.</FieldHint>
           {payments.length > 0 ? (
             <View>
               {payments.map((p) => (

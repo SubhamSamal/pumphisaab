@@ -124,6 +124,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - [x] 4b built 27 Sep: migration 6 (shifts, attendants, meter readings with copied openings, H1/H2/H8, testing, owner approval), Shift A/B/C screen, golden cases load meters into SQL. Owner paste + phone check pending
 - [x] 4c built 27 Sep: migration 7 (tanker_receipts, receipt_lines, totals and S6 views), Tanker tab, add/edit/remove tanker, No tanker today, Today card; golden cases load tankers into SQL. Owner paste + phone check pending
 - [x] 4d built 27 Sep: migration 8 (shift_payments, cash_counts, credit_sales, customer_payments, v_shift_money, H9), Sales tab (by shift / by type), shift sales screen, credit slip screen, D47 in the engine and golden cases. Owner paste + phone check pending
+- [x] 4b/4c owner check 27 Sep: fixes D61-D63 (owner approves in one step, green approved state; tanker: no "No tanker today", invoice amount required, price = selling − margin, mandatory chamber dips; compact number boxes). Migration 9
 - Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook

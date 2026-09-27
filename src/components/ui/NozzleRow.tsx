@@ -85,28 +85,42 @@ function MeterInput({ value, onChange, onBlur, editable, placeholder, error, a11
         placeholder={placeholder}
         placeholderTextColor={colors["text-muted"]}
         selectionColor={colors.primary}
-        style={[value === "" ? placeholderStyle : meterStyle, { flex: 1, minWidth: 0, padding: 0, color: colors["text-primary"] }]}
+        style={[
+          value === "" ? placeholderStyle : meterStyle,
+          { includeFontPadding: false, textAlignVertical: "center" },
+          { flex: 1, minWidth: 0, padding: 0, color: colors["text-primary"] },
+        ]}
       />
     </View>
   );
 }
 
-/** A grey, locked box: the opening copied from the last shift. Tap it to report a meter change. */
-function MeterLocked({ value, changed, onPress, a11y }: { value: string; changed?: boolean; onPress?: () => void; a11y: string }) {
+export type OpeningState = "copied" | "pending" | "approved";
+
+const openingLook: Record<OpeningState, { box: string; tone: "secondary" | "warning" | "success"; icon: "lock" | "edit" | "check"; color: "text-muted" | "warning" | "success" }> = {
+  copied: { box: "border-border bg-auto-field-bg", tone: "secondary", icon: "lock", color: "text-muted" },
+  pending: { box: "border-warning bg-warning-subtle", tone: "warning", icon: "edit", color: "warning" },
+  approved: { box: "border-success bg-success-subtle", tone: "success", icon: "check", color: "success" },
+};
+
+/**
+ * The opening in a locked box: grey = copied from the last shift; amber = a meter change waiting
+ * for the owner; green = the owner approved it. Tap it to report (or approve) a meter change.
+ */
+function MeterLocked({ value, state, onPress, a11y }: { value: string; state: OpeningState; onPress?: () => void; a11y: string }) {
+  const look = openingLook[state];
   return (
     <Pressable
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={a11y}
-      className={`h-tap min-w-0 flex-1 flex-row items-center gap-4 rounded-sm border-1.5 px-[10px] ${
-        changed ? "border-warning bg-warning-subtle" : "border-border bg-auto-field-bg"
-      }`}
+      className={`h-tap min-w-0 flex-1 flex-row items-center gap-4 rounded-sm border-1.5 px-[10px] ${look.box}`}
     >
-      <Text variant="heading" numberOfLines={1} className="min-w-0 flex-1" tone={changed ? "warning" : "secondary"}>
+      <Text variant="heading" numberOfLines={1} className="min-w-0 flex-1" tone={look.tone}>
         {value}
       </Text>
-      <Icon name={changed ? "edit" : "lock"} size="small" color={changed ? "warning" : "text-muted"} />
+      <Icon name={look.icon} size="small" color={look.color} />
     </Pressable>
   );
 }
@@ -119,8 +133,8 @@ export type NozzleRowProps = {
 
   /** The opening, already formatted ("1,26,942.71"), shown in a grey locked box. */
   opening?: string;
-  /** Opening changed and waiting for / approved by the owner (H2): amber box. */
-  openingChanged?: boolean;
+  /** copied (grey), pending owner approval (amber, H2) or approved (green). */
+  openingState?: OpeningState;
   /** Tap the locked opening (meter change sheet). */
   onPressOpening?: () => void;
   /** When there's no earlier closing to copy (first reading ever), the opening is a white typing box instead. */
@@ -137,8 +151,10 @@ export type NozzleRowProps = {
 
   /** Red, short, under the boxes (H1, a wrong number). */
   error?: string;
-  /** Amber line under the boxes (e.g. a meter change waiting for the owner). Never blocks typing. */
+  /** A line under the boxes (e.g. a meter change waiting for the owner). Never blocks typing. */
   note?: string;
+  /** Amber (default) for something to act on, green for something settled. */
+  noteTone?: "warning" | "success";
   /** A button beside the note (the owner's "Approve"). */
   noteAction?: { label: string; onPress: () => void; loading?: boolean };
 };
@@ -151,7 +167,7 @@ export function NozzleRow({
   label,
   sale,
   opening,
-  openingChanged,
+  openingState = "copied",
   onPressOpening,
   openingInput,
   closing,
@@ -163,6 +179,7 @@ export function NozzleRow({
   onSubmitEditing,
   error,
   note,
+  noteTone = "warning",
   noteAction,
 }: NozzleRowProps) {
   return (
@@ -184,7 +201,7 @@ export function NozzleRow({
             a11y={`${label} opening reading`}
           />
         ) : (
-          <MeterLocked value={opening ?? "—"} changed={openingChanged} onPress={onPressOpening} a11y={`${label}, opening ${opening ?? "not known yet"}`} />
+          <MeterLocked value={opening ?? "—"} state={openingState} onPress={onPressOpening} a11y={`${label}, opening ${opening ?? "not known yet"}`} />
         )}
         <MeterInput
           value={closing}
@@ -204,9 +221,9 @@ export function NozzleRow({
         <View className="flex-row items-center gap-8">
           <View className="min-w-0 flex-1 flex-row items-start gap-4">
             <View className="mt-[2px]">
-              <Icon name="clock" size="small" color="warning" />
+              <Icon name={noteTone === "success" ? "check" : "clock"} size="small" color={noteTone} />
             </View>
-            <Text variant="label" weight="400" tone="warning" className="flex-1">
+            <Text variant="label" weight="400" tone={noteTone} className="flex-1">
               {note}
             </Text>
           </View>

@@ -31,6 +31,7 @@ import { evaluate, inUseNozzles, lineKey, openingKey, openingOf, shiftHours, shi
 import {
   useApproveMeterChange,
   useDay,
+  useOwnerSetOpening,
   useDaySetup,
   useDeleteTest,
   useSaveNozzleReading,
@@ -330,16 +331,19 @@ function ShiftForm({
                       onBlur={() => saveClosing(n)}
                       sale={sale ? fmtMeter(sale) : undefined}
                       error={o.kind === "bad" ? o.message : r.kind === "bad" ? r.message : h1 ? "Less than the opening. Check the meter." : undefined}
-                      openingChanged={Boolean(line?.openingTyped && line.meterChange !== "NONE")}
+                      openingState={pending ? "pending" : line?.meterChange === "APPROVED" && line.openingTyped ? "approved" : "copied"}
                       note={
                         pending
                           ? isOwner
                             ? `New opening waits for your approval (last closing ${fmtMeter(line?.previousClosing ?? "0")}).`
                             : "New opening waits for the owner. Keep working."
-                          : typeOpening && line?.hasPrevious && !openings[n.id]
-                            ? `${before ? `Shift ${before.code}` : "Last night's shift"} has no closing yet. Type the opening from the meter.`
-                            : undefined
+                          : line?.meterChange === "APPROVED" && line.openingTyped
+                            ? `Meter change approved (last closing ${fmtMeter(line.previousClosing ?? "0")}).`
+                            : typeOpening && line?.hasPrevious && !openings[n.id]
+                              ? `${before ? `Shift ${before.code}` : "Last night's shift"} has no closing yet. Type the opening from the meter.`
+                              : undefined
                       }
+                      noteTone={line?.meterChange === "APPROVED" && line.openingTyped && !pending ? "success" : "warning"}
                       noteAction={
                         pending && isOwner && line?.readingId && !locked
                           ? {
@@ -432,6 +436,7 @@ function OpeningSheet({
   onClose: () => void;
 }) {
   const saveReading = useSaveNozzleReading(pumpId, dayId);
+  const ownerSave = useOwnerSetOpening(pumpId, dayId);
   const approve = useApproveMeterChange(dayId);
   const [value, setValue] = useState("");
   const [last, setLast] = useState<SheetState>(null);
@@ -441,6 +446,7 @@ function OpeningSheet({
   }
   const close = () => {
     saveReading.reset();
+    ownerSave.reset();
     approve.reset();
     onClose();
   };
@@ -452,10 +458,19 @@ function OpeningSheet({
   const earlier = before ? `Shift ${before.code}` : "Last night's shift";
   const r = readTypedNumber(value, 2);
   const pending = line?.meterChange === "PENDING";
-  const problem = (saveReading.error ?? approve.error)?.message;
+  const problem = (saveReading.error ?? ownerSave.error ?? approve.error)?.message;
+  const approved = line?.meterChange === "APPROVED" && line.openingTyped;
 
   const send = () => {
     if (r.kind !== "ok") return;
+    if (isOwner) {
+      // The owner's own change needs no approval round-trip: saved and approved together.
+      ownerSave.mutate(
+        { shiftId: shift.id, nozzleId: nozzle.id, opening: r.value },
+        { onSuccess: () => (track("meter_change_approved", { shift: shift.code, by: "owner" }), close()) },
+      );
+      return;
+    }
     saveReading.mutate(
       { shiftId: shift.id, nozzleId: nozzle.id, opening: r.value, openingTyped: true },
       {
@@ -471,11 +486,13 @@ function OpeningSheet({
 
   return (
     <BottomSheet visible onClose={close}>
-      <Text variant="heading">{`Change ${nozzle.label} opening?`}</Text>
+      <Text variant="heading">{pending ? `Approve ${nozzle.label} opening?` : approved ? `${nozzle.label} opening (approved)` : `Change ${nozzle.label} opening?`}</Text>
       <KeyValueRow label={`${earlier} closed at`} value={fmtMeter(previous)} />
       <NumericInput label="New opening" value={value} onChangeText={setValue} error={r.kind === "bad" ? r.message : undefined} />
       <Text variant="body" tone="secondary">
-        Only do this if the meter was replaced or repaired. The owner has to approve it. You can keep working until then.
+        {isOwner
+          ? "Only if the meter was replaced or repaired. Your change is approved straight away."
+          : "Only if the meter was replaced or repaired. The owner approves it; keep working meanwhile."}
       </Text>
       {problem ? <Banner tone="danger" title={problem} /> : null}
       {isOwner && pending && line?.readingId ? (
@@ -487,10 +504,10 @@ function OpeningSheet({
         />
       ) : null}
       <Button
-        label="Send to owner"
+        label={isOwner ? (pending ? "Save a different opening" : "Save new opening") : "Send to owner"}
         variant={isOwner && pending ? "secondary" : "primary"}
-        loading={saveReading.isPending}
-        disabled={r.kind !== "ok"}
+        loading={saveReading.isPending || ownerSave.isPending}
+        disabled={r.kind !== "ok" || (pending && isOwner && r.kind === "ok" && line?.opening != null && new Decimal(r.value).equals(line.opening))}
         onPress={send}
       />
       {previous ? <Button label={`Keep ${fmtMeter(previous)}`} variant="ghost" onPress={keep} /> : null}

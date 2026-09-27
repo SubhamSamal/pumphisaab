@@ -2,11 +2,13 @@
  * Tanker receipts (the IOCL invoice / challan).
  *
  *   Received          = litres ordered − litres short
- *   Amount            = litres ordered × price per litre
+ *   Amount            = litres ordered × price per litre      (price = today's selling price − margin)
  *   Short amount      = litres short × price per litre
- *   To pay            = total amount − total short amount
+ *   To pay            = invoice amount (typed from the challan, else the amount above) − short amount
  *   Margin earned     = litres received × margin per litre
- *   Dip rise          = litres at the dip after unloading − litres at the dip before (optional check)
+ *   Dip rise          = litres at the dip after unloading − litres at the dip before
+ *   Per chamber       = rise = litres at the dip after this chamber − litres before it (the previous
+ *                       chamber's after, or the dip before unloading); short = chamber litres − rise
  */
 
 import type { Decimal } from "@/lib/decimal";
@@ -30,6 +32,15 @@ export function receiptTotals(receipt: TankerReceipt, charts: Map<string, Checke
       if (before && after) dipRiseLitres = after.minus(before);
     }
 
+    let previous = chart && line.dipBeforeCm ? dipToLitres(chart, line.dipBeforeCm) : null;
+    const chambers = (line.chambers ?? []).map((c) => {
+      const litres = num(c.litres);
+      const after = chart ? dipToLitres(chart, c.dipAfterCm) : null;
+      const riseLitres = previous && after ? after.minus(previous) : null;
+      previous = after;
+      return { litres, riseLitres, shortLitres: riseLitres ? litres.minus(riseLitres) : null };
+    });
+
     return {
       product: line.product,
       tankId: line.tankId,
@@ -38,6 +49,7 @@ export function receiptTotals(receipt: TankerReceipt, charts: Map<string, Checke
       shortAmount: price ? short.times(price) : null,
       margin: margin ? receivedNetLitres.times(margin) : null,
       dipRiseLitres,
+      chambers,
     };
   });
 
@@ -45,13 +57,16 @@ export function receiptTotals(receipt: TankerReceipt, charts: Map<string, Checke
   const allMargins = lines.every((l) => l.margin !== null);
   const totalAmount = allPriced ? sum(lines.map((l) => l.amount as Decimal)) : null;
   const totalShortAmount = allPriced ? sum(lines.map((l) => l.shortAmount as Decimal)) : null;
+  const invoiceAmount = receipt.invoiceAmount ? num(receipt.invoiceAmount) : null;
+  const billed = invoiceAmount ?? totalAmount;
 
   return {
     id: receipt.id,
     lines,
     totalAmount,
+    invoiceAmount,
     totalShortAmount,
-    toPay: totalAmount && totalShortAmount ? totalAmount.minus(totalShortAmount) : null,
+    toPay: billed && totalShortAmount ? billed.minus(totalShortAmount) : null,
     totalMargin: allMargins ? sum(lines.map((l) => l.margin as Decimal)) : null,
   };
 }

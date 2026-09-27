@@ -2,6 +2,19 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (owner's 4b/4c phone check)
+
+**D61. Tanker, changed by the owner** (replaces parts of D59):
+- **No "No tanker today" switch.** No tanker added means none came; the Tanker section is always done ("No tanker today"). The Review before Submit (4f) asks once on a day with no tanker. (`business_days.no_tanker` stays unused.)
+- **Invoice amount is required**, typed from the challan. **Price per litre = today's selling price − margin** (selling price from Today, margin prefilled from the last tanker). To pay = invoice amount − short amount; the totals also show price × litres and how much it differs from the challan (15 Sep: ₹51).
+- **Chamber-wise dips are mandatory:** our tank's dip before unloading, then per chamber its litres (they vary, typed from the challan; must add up to Ordered) and our tank's dip after it. Per chamber the app shows how much the tank went up and the chamber's short (amber beyond the dip-check limit). The line's "dip after" is the last chamber's. Stored in `receipt_chambers` (migration 9); the database does the same maths (`v_receipt_chambers`).
+- Petrol opens with "Add petrol"; helper text cut down.
+Why: the owner's pump checks every chamber on every tanker; the challan total is what gets paid.
+
+**D62. Meter change by the owner is approved in one step** ("Save new opening"), and an approved opening shows green ("Meter change approved"). A manager's change still waits for the owner (amber, Approve on the row and a banner on Today).
+
+**D63. Side-by-side number boxes use 18 px numbers** (`compact`), and every number box turns off Android's extra font padding, which cut the tops off typed numbers.
+
 ## 27 Sep 2026 (slice 4d build, owner at lunch: built to the approved plan)
 
 **D60. Sales, as built in 4d:**

@@ -412,6 +412,8 @@ export type ReceiptLine = {
   marginPerLitre: string | null;
   dipBeforeCm: string | null;
   dipAfterCm: string | null;
+  /** Chamber by chamber: litres and our tank's dip after it (in order). */
+  chambers: { litres: string; dipAfterCm: string }[];
 };
 export type Receipt = {
   id: string;
@@ -420,11 +422,13 @@ export type Receipt = {
   vehicleNo: string;
   invoiceNo: string | null;
   invoiceDate: string | null;
+  /** The challan's total, as typed. */
+  invoiceAmount: string | null;
   lines: ReceiptLine[];
 };
 
 const RECEIPT_COLUMNS =
-  "id, day_id, vehicle_no, invoice_no, invoice_date, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text)";
+  "id, day_id, vehicle_no, invoice_no, invoice_date, invoice_amount::text, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text, chambers:receipt_chambers(chamber_no, litres::text, dip_after_cm::text))";
 
 type ReceiptRow = {
   id: string;
@@ -432,6 +436,7 @@ type ReceiptRow = {
   vehicle_no: string;
   invoice_no: string | null;
   invoice_date: string | null;
+  invoice_amount: string | null;
   day: { business_date: string } | null;
   lines: {
     id: string;
@@ -443,6 +448,7 @@ type ReceiptRow = {
     margin_per_l: string | null;
     dip_before_cm: string | null;
     dip_after_cm: string | null;
+    chambers: { chamber_no: number; litres: string; dip_after_cm: string }[];
   }[];
 };
 
@@ -454,6 +460,7 @@ function toReceipt(r: ReceiptRow): Receipt {
     vehicleNo: r.vehicle_no,
     invoiceNo: r.invoice_no,
     invoiceDate: r.invoice_date,
+    invoiceAmount: r.invoice_amount,
     lines: r.lines
       .map((l) => ({
         id: l.id,
@@ -465,6 +472,9 @@ function toReceipt(r: ReceiptRow): Receipt {
         marginPerLitre: l.margin_per_l,
         dipBeforeCm: l.dip_before_cm,
         dipAfterCm: l.dip_after_cm,
+        chambers: [...(l.chambers ?? [])]
+          .sort((a, b) => a.chamber_no - b.chamber_no)
+          .map((c) => ({ litres: c.litres, dipAfterCm: c.dip_after_cm })),
       }))
       .sort((a, b) => (a.product === "HSD" ? -1 : 1) - (b.product === "HSD" ? -1 : 1)),
   };
@@ -518,6 +528,7 @@ export function useSaveTanker(pumpId: string, dayId: string | undefined) {
             vehicle_no: input.receipt.vehicleNo,
             invoice_no: input.receipt.invoiceNo,
             invoice_date: input.receipt.invoiceDate,
+            invoice_amount: input.receipt.invoiceAmount,
           },
           { onConflict: "id" },
         ),
@@ -543,6 +554,13 @@ export function useSaveTanker(pumpId: string, dayId: string | undefined) {
             { onConflict: "id" },
           ),
         );
+        // Chambers: written fresh for each line (a line's chambers are one list typed together).
+        const lineIds = input.lines.map((l) => l.id);
+        await check(supabase.from("receipt_chambers").delete().in("receipt_line_id", lineIds));
+        const chamberRows = input.lines.flatMap((l) =>
+          l.chambers.map((c, k) => ({ pump_id: pumpId, day_id: dayId, receipt_line_id: l.id, chamber_no: k + 1, litres: c.litres, dip_after_cm: c.dipAfterCm })),
+        );
+        if (chamberRows.length) await check(supabase.from("receipt_chambers").insert(chamberRows));
       }
     },
     onSettled: () => {
@@ -564,16 +582,6 @@ export function useDeleteTanker(pumpId: string, dayId: string | undefined) {
   });
 }
 
-/** "No tanker today" on the day (completes the Tanker section when nothing came). */
-export function useSetNoTanker(pumpId: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationKey: ["save", "noTanker"],
-    mutationFn: ({ dayId, value }: { dayId: string; value: boolean }) =>
-      check(supabase.from("business_days").update({ no_tanker: value }).eq("id", dayId)),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["day", pumpId] }),
-  });
-}
 
 // ─── Sales (slice 4d) ─────────────────────────────────────────────────────
 export type PaymentType = { id: string; name: string; kind: "CASH" | "CREDIT" | "OTHER" };
@@ -813,4 +821,29 @@ export function useSaveCustomerPayment(pumpId: string, dayId: string | undefined
 
 export function useDeleteCustomerPayment(dayId: string | undefined) {
   return useSalesSave(dayId, "customerPaymentDelete", (id: string) => check(supabase.from("customer_payments").delete().eq("id", id)));
+}
+
+/**
+ * The owner changes an opening (meter repaired or replaced): saved and approved in one go, since
+ * the owner is the one who approves (owner, 27 Sep: "why is it asking me to send to owner?").
+ */
+export function useOwnerSetOpening(pumpId: string, dayId: string | undefined) {
+  return useShiftSave(dayId, "ownerOpening", async (input: { shiftId: string; nozzleId: string; opening: string }) => {
+    await check(
+      supabase
+        .from("nozzle_readings")
+        .upsert(
+          { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, nozzle_id: input.nozzleId, opening: input.opening, opening_typed: true },
+          { onConflict: "shift_id,nozzle_id" },
+        ),
+    );
+    const { data, error } = await supabase
+      .from("nozzle_readings")
+      .select("id, meter_change_status")
+      .eq("shift_id", input.shiftId)
+      .eq("nozzle_id", input.nozzleId)
+      .single();
+    if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
+    if (data.meter_change_status === "PENDING") await check(supabase.rpc("approve_meter_change", { p_reading: data.id }));
+  });
 }

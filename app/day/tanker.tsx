@@ -1,17 +1,17 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import {
-  AutoValueRow,
   Banner,
   BottomSheet,
   Button,
   Card,
+  ChamberHeader,
+  ChamberRow,
   DateStepper,
-  DipInput,
   Divider,
   ErrorState,
-  FieldHint,
+  FieldError,
   FieldLabel,
   FlagNote,
   KeyValueRow,
@@ -25,7 +25,7 @@ import {
   TextField,
   useIsWide,
 } from "@/components/ui";
-import { checkChart, dipToLitres, type TankerReceipt } from "@/calc";
+import { checkChart, dipToLitres, type Product, type TankerReceipt } from "@/calc";
 import { activeTanks, evaluate, lastPrices } from "@/features/day/model";
 import {
   useDay,
@@ -95,7 +95,15 @@ export default function TankerFormScreen() {
   );
 }
 
-type LineForm = { ordered: string; short: string; price: string; margin: string; dipBefore: string; dipAfter: string; editPrice: boolean; dipCheck: boolean };
+type ChamberForm = { litres: string; dip: string };
+type LineForm = { on: boolean; ordered: string; short: string; margin: string; dipBefore: string; chambers: ChamberForm[] };
+
+/** "14000.00" → "14000" for the typing box. */
+const plain = (v: string | null | undefined) => {
+  if (!v) return "";
+  const r = readTypedNumber(v, 2);
+  return r.kind === "ok" ? r.value : v;
+};
 
 function TankerForm({
   pumpId,
@@ -118,100 +126,118 @@ function TankerForm({
   const [receiptId] = useState(() => existing?.id ?? newId());
   const [vehicle, setVehicle] = useState(existing?.vehicleNo ?? "");
   const [invoiceNo, setInvoiceNo] = useState(existing?.invoiceNo ?? "");
+  const [invoiceAmount, setInvoiceAmount] = useState(plain(existing?.invoiceAmount));
   const [invoiceDate, setInvoiceDate] = useState(existing?.invoiceDate ?? day.businessDate);
   const [tried, setTried] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   // One tank per fuel today (MS-1, HSD-1); diesel first, as on the challan.
-  const tanks = activeTanks(setup).sort((a, b) => (a.product === "HSD" ? -1 : 1) - (b.product === "HSD" ? -1 : 1));
+  const tanks = activeTanks(setup).sort((a, b) => (a.product === b.product ? 0 : a.product === "HSD" ? -1 : 1));
   const [forms, setForms] = useState<Record<string, LineForm>>(() =>
     Object.fromEntries(
-      tanks.map((t) => {
+      tanks.map((t, i) => {
         const l = existing?.lines.find((x) => x.tankId === t.id);
-        const p = prefill[t.product];
         return [
           t.id,
           {
-            ordered: l?.orderedLitres ?? "",
-            short: l && l.shortLitres !== "0.00" ? l.shortLitres : "",
-            price: l?.pricePerLitre ?? p?.price ?? "",
-            margin: l?.marginPerLitre ?? p?.margin ?? "",
-            dipBefore: l?.dipBeforeCm ?? "",
-            dipAfter: l?.dipAfterCm ?? "",
-            // Without a last tanker to copy from, the boxes show straight away.
-            editPrice: Boolean(l) ? !l?.pricePerLitre : !p?.price,
-            dipCheck: Boolean(l?.dipBeforeCm || l?.dipAfterCm),
+            // Diesel is open on a new tanker; petrol opens with "Add petrol".
+            on: existing ? Boolean(l) : i === 0,
+            ordered: plain(l?.orderedLitres),
+            short: l && Number(l.shortLitres) !== 0 ? plain(l.shortLitres) : "",
+            margin: plain(l?.marginPerLitre ?? prefill[t.product]?.margin),
+            dipBefore: plain(l?.dipBeforeCm),
+            chambers: l?.chambers.length ? l.chambers.map((c) => ({ litres: plain(c.litres), dip: plain(c.dipAfterCm) })) : [{ litres: "", dip: "" }],
           },
         ];
       }),
     ),
   );
   const setForm = (tankId: string, patch: Partial<LineForm>) => setForms((f) => ({ ...f, [tankId]: { ...f[tankId], ...patch } }));
+  const setChamber = (tankId: string, k: number, patch: Partial<ChamberForm>) =>
+    setForms((f) => ({ ...f, [tankId]: { ...f[tankId], chambers: f[tankId].chambers.map((c, j) => (j === k ? { ...c, ...patch } : c)) } }));
 
-  // Read every box once: valid numbers only go to the engine.
-  const read = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(forms).map(([tankId, f]) => [
-          tankId,
-          {
-            ordered: readTypedNumber(f.ordered, 2),
-            short: readTypedNumber(f.short, 2),
-            price: readTypedNumber(f.price, 2),
-            margin: readTypedNumber(f.margin, 2),
-            dipBefore: readTypedNumber(f.dipBefore, 1),
-            dipAfter: readTypedNumber(f.dipAfter, 1),
-          },
-        ]),
-      ),
-    [forms],
-  );
-  const ok = (r: ReturnType<typeof readTypedNumber>) => (r.kind === "ok" ? r.value : undefined);
+  const ok = (raw: string, decimals = 2) => {
+    const r = readTypedNumber(raw, decimals);
+    return r.kind === "ok" ? r.value : undefined;
+  };
+  // The selling price comes from Today (owner, 27 Sep); invoice price per litre = selling − margin.
+  const selling = (f: Product) => day.confirmed[f] ?? day.now[f];
+  const costOf = (t: (typeof tanks)[number]) => {
+    const sp = selling(t.product);
+    const m = ok(forms[t.id].margin);
+    return sp && m !== undefined ? new Decimal(sp).minus(m) : null;
+  };
 
-  const onTanker = tanks.filter((t) => {
-    const o = ok(read[t.id].ordered);
-    return o !== undefined && new Decimal(o).gt(0);
-  });
+  const onTanker = tanks.filter((t) => forms[t.id].on && ok(forms[t.id].ordered) && new Decimal(ok(forms[t.id].ordered) as string).gt(0));
   const receipt: TankerReceipt = {
     id: receiptId,
     vehicleNo: vehicle,
+    ...(ok(invoiceAmount) ? { invoiceAmount: ok(invoiceAmount) } : {}),
     lines: onTanker.map((t) => {
-      const r = read[t.id];
       const f = forms[t.id];
+      const cost = costOf(t);
+      const chambers = f.chambers.flatMap((c) => (ok(c.litres) && ok(c.dip, 1) ? [{ litres: ok(c.litres) as string, dipAfterCm: ok(c.dip, 1) as string }] : []));
       return {
         product: t.product,
         tankId: t.id,
-        orderedLitres: ok(r.ordered) as string,
-        shortLitres: ok(r.short) ?? "0",
-        ...(ok(r.price) ? { pricePerLitre: ok(r.price) } : {}),
-        ...(ok(r.margin) ? { marginPerLitre: ok(r.margin) } : {}),
-        ...(f.dipCheck && ok(r.dipBefore) ? { dipBeforeCm: ok(r.dipBefore) } : {}),
-        ...(f.dipCheck && ok(r.dipAfter) ? { dipAfterCm: ok(r.dipAfter) } : {}),
+        orderedLitres: ok(f.ordered) as string,
+        shortLitres: ok(f.short) ?? "0",
+        ...(cost ? { pricePerLitre: cost.toFixed(2) } : {}),
+        ...(ok(f.margin) ? { marginPerLitre: ok(f.margin) } : {}),
+        ...(ok(f.dipBefore, 1) ? { dipBeforeCm: ok(f.dipBefore, 1) } : {}),
+        ...(chambers.length === f.chambers.length && chambers.length ? { dipAfterCm: chambers[chambers.length - 1].dipAfterCm, chambers } : {}),
       };
     }),
   };
   const result = evaluate(setup, day, [], [], receipt.lines.length ? [receipt] : []);
   const totals = result.tankers[0];
 
-  // What stops a save (shown once Save is tapped, or as soon as a box is wrong).
-  const vehicleProblem = !VEHICLE.test(vehicle) ? "Type the tanker number, like OD02CD9087." : undefined;
-  const lineProblems = (tankId: string) => {
-    const r = read[tankId];
-    const problems: Partial<Record<keyof typeof r, string>> = {};
-    for (const [k, v] of Object.entries(r) as [keyof typeof r, ReturnType<typeof readTypedNumber>][]) if (v.kind === "bad") problems[k] = v.message;
-    const o = ok(r.ordered);
-    const s = ok(r.short);
-    if (o && s && new Decimal(s).gt(o)) problems.short = "Short can't be more than ordered.";
-    return problems;
-  };
-  const dipProblem = (tankId: string, cm: string | undefined) => {
+  // What stops a save. Each problem shows under its box once Save is tapped (or when a box is wrong).
+  const chartOf = (tankId: string) => {
     const tank = tanks.find((t) => t.id === tankId);
-    const chart = tank ? checkChart(setup.charts[tank.chartId] ?? []).chart : null;
-    if (!chart || !cm) return undefined;
-    return dipToLitres(chart, cm) === null ? `Outside the tank chart (0 to ${chart.maxDipCm.toFixed(1)} cm).` : undefined;
+    return tank ? checkChart(setup.charts[tank.chartId] ?? []).chart : null;
   };
-  const anyLineProblem = tanks.some((t) => Object.keys(lineProblems(t.id)).length > 0 || dipProblem(t.id, ok(read[t.id].dipBefore)) || dipProblem(t.id, ok(read[t.id].dipAfter)));
-  const canSave = !vehicleProblem && onTanker.length > 0 && !anyLineProblem;
+  const dipProblem = (tankId: string, raw: string) => {
+    if (!raw) return tried ? "Type the dip." : undefined;
+    const r = readTypedNumber(raw, 1);
+    if (r.kind === "bad") return r.message;
+    const chart = chartOf(tankId);
+    if (r.kind === "ok" && chart && dipToLitres(chart, r.value) === null) return `Outside the tank chart (0 to ${chart.maxDipCm.toFixed(1)} cm).`;
+    return undefined;
+  };
+  const lineProblems = (t: (typeof tanks)[number]) => {
+    const f = forms[t.id];
+    const p: { ordered?: string; short?: string; margin?: string; dipBefore?: string; chambers: (string | undefined)[]; total?: string } = { chambers: [] };
+    const o = readTypedNumber(f.ordered, 2);
+    if (o.kind === "bad") p.ordered = o.message;
+    else if (o.kind === "empty" && tried) p.ordered = "Type the litres ordered.";
+    const sh = readTypedNumber(f.short, 2);
+    if (sh.kind === "bad") p.short = sh.message;
+    else if (sh.kind === "ok" && o.kind === "ok" && new Decimal(sh.value).gt(o.value)) p.short = "More than ordered.";
+    const m = readTypedNumber(f.margin, 2);
+    if (m.kind === "bad") p.margin = m.message;
+    else if (m.kind === "empty" && tried) p.margin = "Type the margin.";
+    p.dipBefore = dipProblem(t.id, f.dipBefore);
+    p.chambers = f.chambers.map((c) => {
+      const l = readTypedNumber(c.litres, 2);
+      if (l.kind === "bad") return l.message;
+      if (l.kind === "empty" && tried) return "Type this chamber's litres.";
+      return dipProblem(t.id, c.dip);
+    });
+    const sumL = f.chambers.reduce((s2, c) => s2.plus(ok(c.litres) ?? 0), new Decimal(0));
+    if (o.kind === "ok" && f.chambers.every((c) => ok(c.litres)) && !sumL.equals(o.value))
+      p.total = `Chambers add up to ${fmtLitres(sumL)}; ordered is ${fmtLitres(o.value)}.`;
+    return p;
+  };
+  const vehicleProblem = !VEHICLE.test(vehicle) ? "Type the tanker number, like OD02CD9087." : undefined;
+  const amt = readTypedNumber(invoiceAmount, 2);
+  const invoiceProblem = amt.kind === "bad" ? amt.message : amt.kind === "empty" ? "Type the invoice amount from the challan." : undefined;
+  const open = tanks.filter((t) => forms[t.id].on);
+  const anyLineProblem = open.some((t) => {
+    const p = lineProblems(t);
+    return p.ordered || p.short || p.margin || p.dipBefore || p.total || p.chambers.some(Boolean) || !ok(forms[t.id].ordered);
+  });
+  const canSave = !vehicleProblem && !invoiceProblem && onTanker.length > 0 && !anyLineProblem && Boolean(totals);
 
   const submit = () => {
     setTried(true);
@@ -228,23 +254,28 @@ function TankerForm({
         marginPerLitre: line.marginPerLitre ?? null,
         dipBeforeCm: line.dipBeforeCm ?? null,
         dipAfterCm: line.dipAfterCm ?? null,
+        chambers: line.chambers ?? [],
       };
     });
     const removeLineIds = (existing?.lines ?? []).filter((l) => !onTanker.some((t) => t.id === l.tankId)).map((l) => l.id);
     save.mutate(
       {
-        receipt: { id: receiptId, vehicleNo: vehicle, invoiceNo: invoiceNo.trim() || null, invoiceDate: invoiceDate || null },
+        receipt: { id: receiptId, vehicleNo: vehicle, invoiceNo: invoiceNo.trim() || null, invoiceDate: invoiceDate || null, invoiceAmount: ok(invoiceAmount) ?? null },
         lines,
         removeLineIds,
       },
       {
         onSuccess: () => {
-          if (!existing) track("tanker_receipt_added", { fuels: lines.length, flags: result.flags.filter((f) => f.code === "S6").length });
+          if (!existing) track("tanker_receipt_added", { fuels: lines.length, chambers: lines.reduce((n, l) => n + l.chambers.length, 0) });
           onDone();
         },
       },
     );
   };
+
+  const worked = totals?.totalAmount;
+  const typedInvoice = ok(invoiceAmount);
+  const gap = worked && typedInvoice ? new Decimal(typedInvoice).minus(worked) : null;
 
   return (
     <>
@@ -255,7 +286,7 @@ function TankerForm({
               note={
                 tried && !canSave ? (
                   <Text variant="label" tone="danger" className="text-center">
-                    {vehicleProblem ?? (onTanker.length === 0 ? "Type the litres ordered for at least one fuel." : "Fix the red boxes to save.")}
+                    Fix the red boxes to save
                   </Text>
                 ) : undefined
               }
@@ -277,7 +308,22 @@ function TankerForm({
           disabled={locked}
           error={tried || vehicle.length >= 4 ? vehicleProblem : undefined}
         />
-        <TextField label="Invoice number (optional)" value={invoiceNo} onChangeText={setInvoiceNo} disabled={locked} />
+        <View className="flex-row gap-8">
+          <View className="flex-1">
+            <TextField label="Invoice no. (optional)" value={invoiceNo} onChangeText={setInvoiceNo} disabled={locked} />
+          </View>
+          <View className="flex-1">
+            <NumericInput
+              label="Invoice amount"
+              compact
+              value={invoiceAmount}
+              onChangeText={setInvoiceAmount}
+              unit="₹"
+              disabled={locked}
+              error={tried || amt.kind === "bad" ? invoiceProblem : undefined}
+            />
+          </View>
+        </View>
         <View className="gap-4">
           <FieldLabel>Invoice date</FieldLabel>
           <DateStepper
@@ -288,124 +334,128 @@ function TankerForm({
             onNext={() => setInvoiceDate(addDays(invoiceDate, 1))}
           />
         </View>
-        <AutoValueRow label="Unloaded on" value={fmtDate(day.businessDate)} />
 
         {tanks.map((t) => {
           const f = forms[t.id];
-          const r = read[t.id];
-          const problems = lineProblems(t.id);
+          if (!f.on) {
+            return locked ? null : (
+              <Button key={t.id} label={`Add ${FUEL_NAME[t.product].toLowerCase()}`} icon="plus" size="M" variant="secondary" onPress={() => setForm(t.id, { on: true })} />
+            );
+          }
+          const p = lineProblems(t);
           const lineResult = totals?.lines.find((l) => l.tankId === t.id);
           const flags = result.flags.filter((x) => x.code === "S6" && x.where?.tankId === t.id);
-          const price = ok(r.price);
-          const margin = ok(r.margin);
-          const chart = checkChart(setup.charts[t.chartId] ?? []).chart;
-          const litresAt = (cm?: string) => (chart && cm ? dipToLitres(chart, cm) : null);
+          const sp = selling(t.product);
+          const cost = costOf(t);
+          const chart = chartOf(t.id);
+          const beforeL = chart && ok(f.dipBefore, 1) ? dipToLitres(chart, ok(f.dipBefore, 1) as string) : null;
+          const warnPct = new Decimal(setup.rules.tanker.dipCheckFlagBeyondPercent);
           return (
             <Card key={t.id}>
               <View className="flex-row items-center gap-8">
                 <ProductTag product={t.product} />
-                <Text variant="heading">{FUEL_NAME[t.product]}</Text>
+                <Text variant="heading" className="flex-1">
+                  {FUEL_NAME[t.product]}
+                </Text>
+                {!locked && tanks.length > 1 ? (
+                  <Button label="Remove" size="M" variant="ghost" onPress={() => setForm(t.id, { on: false })} />
+                ) : null}
               </View>
               <View className="flex-row gap-8">
                 <View className="flex-1">
-                  <NumericInput label="Ordered" value={f.ordered} onChangeText={(v) => setForm(t.id, { ordered: v })} unit="L" disabled={locked} error={problems.ordered} />
+                  <NumericInput label="Ordered" compact value={f.ordered} onChangeText={(v) => setForm(t.id, { ordered: v })} unit="L" disabled={locked} error={p.ordered} />
                 </View>
                 <View className="flex-1">
-                  <NumericInput label="Short" value={f.short} onChangeText={(v) => setForm(t.id, { short: v })} unit="L" placeholder="0" disabled={locked} error={problems.short} />
+                  <NumericInput label="Short" compact value={f.short} onChangeText={(v) => setForm(t.id, { short: v })} unit="L" placeholder="0" disabled={locked} error={p.short} />
                 </View>
               </View>
-              {lineResult ? (
-                <AutoValueRow label="Received" value={fmtLitres(lineResult.receivedNetLitres)} />
-              ) : (
-                <FieldHint>{`Leave empty if no ${FUEL_NAME[t.product].toLowerCase()} came on this tanker.`}</FieldHint>
-              )}
+              {lineResult ? <KeyValueRow label="Received" value={fmtLitres(lineResult.receivedNetLitres)} /> : null}
 
-              {f.editPrice ? (
-                <View className="flex-row gap-8">
-                  <View className="flex-1">
-                    <NumericInput label="Price per litre" value={f.price} onChangeText={(v) => setForm(t.id, { price: v })} unit="₹" disabled={locked} error={problems.price} />
-                  </View>
-                  <View className="flex-1">
-                    <NumericInput label="Margin per litre" value={f.margin} onChangeText={(v) => setForm(t.id, { margin: v })} unit="₹" disabled={locked} error={problems.margin} />
-                  </View>
+              <View className="flex-row gap-8">
+                <View className="flex-1">
+                  <NumericInput label="Selling price (today)" compact auto value={sp ? plain(sp) : "—"} formatted={sp ? fmtRupees(sp, "input").replace("₹", "") : "—"} unit="₹" />
                 </View>
-              ) : (
-                <View className="flex-row items-center gap-8">
-                  <View className="min-w-0 flex-1">
-                    <Text variant="body" weight="500">
-                      {`Price ${price ? fmtRupees(price, "input") : "—"}/L · margin ${margin ? fmtRupees(margin, "input") : "—"}/L`}
-                    </Text>
-                    <Text variant="label" weight="400" tone="muted">
-                      From last tanker. Matches the invoice?
-                    </Text>
-                  </View>
-                  {!locked ? <Button label="Change" size="M" variant="secondary" onPress={() => setForm(t.id, { editPrice: true })} /> : null}
+                <View className="flex-1">
+                  <NumericInput label="Margin" compact value={f.margin} onChangeText={(v) => setForm(t.id, { margin: v })} unit="₹" disabled={locked} error={p.margin} />
                 </View>
-              )}
-
+              </View>
+              {cost ? <KeyValueRow label="Invoice price per litre" value={`${fmtRupees(cost, "input")}/L`} /> : null}
               {flags.filter((x) => x.message.includes("short")).map((x) => (
                 <FlagNote key={x.message}>{x.message}</FlagNote>
               ))}
 
-              {f.dipCheck ? (
-                <View className="gap-12">
-                  <Divider />
-                  <Text variant="label" tone="secondary">
-                    Dip check (optional): did the tank go up by what the challan says?
-                  </Text>
-                  <DipInput
-                    label="Dip just before unloading"
-                    cm={f.dipBefore}
-                    onChangeCm={(v) => setForm(t.id, { dipBefore: v })}
-                    litres={litresAt(ok(r.dipBefore)) ? fmtLitres(litresAt(ok(r.dipBefore)) as Decimal) : undefined}
-                    error={problems.dipBefore ?? dipProblem(t.id, ok(r.dipBefore))}
-                  />
-                  <DipInput
-                    label="Dip just after unloading"
-                    cm={f.dipAfter}
-                    onChangeCm={(v) => setForm(t.id, { dipAfter: v })}
-                    litres={litresAt(ok(r.dipAfter)) ? fmtLitres(litresAt(ok(r.dipAfter)) as Decimal) : undefined}
-                    error={problems.dipAfter ?? dipProblem(t.id, ok(r.dipAfter))}
-                  />
-                  {lineResult?.dipRiseLitres ? (
-                    <View className="gap-8">
-                      <KeyValueRow label="Tank went up" value={fmtLitres(lineResult.dipRiseLitres)} />
-                      <KeyValueRow label="Challan says" value={fmtLitres(lineResult.receivedNetLitres)} />
-                      {flags.some((x) => x.message.includes("went up")) ? null : (
-                        <Text variant="label" tone="success">
-                          OK
-                        </Text>
-                      )}
-                    </View>
-                  ) : null}
-                  {flags.filter((x) => x.message.includes("went up")).map((x) => (
-                    <FlagNote key={x.message}>{x.message}</FlagNote>
-                  ))}
+              <Divider />
+              <View className="flex-row items-end gap-8">
+                <View className="flex-1">
+                  <NumericInput label="Tank dip before unloading" compact value={f.dipBefore} onChangeText={(v) => setForm(t.id, { dipBefore: v })} unit="cm" disabled={locked} error={p.dipBefore} />
                 </View>
-              ) : !locked ? (
-                <Button label="Add dip check (optional)" icon="plus" size="M" variant="ghost" onPress={() => setForm(t.id, { dipCheck: true })} />
+                <Text variant="label" tone="secondary" className="w-[96px] pb-[14px] text-right">
+                  {beforeL ? fmtLitres(beforeL) : ""}
+                </Text>
+              </View>
+              <ChamberHeader />
+              {f.chambers.map((c, k) => {
+                const cr = lineResult?.chambers[k];
+                const short = cr?.shortLitres;
+                const warn = short && cr ? short.abs().gt(cr.litres.times(warnPct).div(100)) : false;
+                return (
+                  <ChamberRow
+                    key={k}
+                    no={k + 1}
+                    litres={c.litres}
+                    onChangeLitres={(v) => setChamber(t.id, k, { litres: v })}
+                    dipAfter={c.dip}
+                    onChangeDip={(v) => setChamber(t.id, k, { dip: v })}
+                    rise={cr?.riseLitres ? fmtLitres(cr.riseLitres) : undefined}
+                    short={short ? (short.isNegative() ? `over ${fmtLitres(short.abs())}` : `short ${fmtLitres(short)}`) : undefined}
+                    shortWarn={warn}
+                    error={p.chambers[k]}
+                    editable={!locked}
+                  />
+                );
+              })}
+              {!locked ? (
+                <View className="flex-row gap-8">
+                  {f.chambers.length < 12 ? (
+                    <Button label="Add chamber" icon="plus" size="M" variant="ghost" onPress={() => setForm(t.id, { chambers: [...f.chambers, { litres: "", dip: "" }] })} />
+                  ) : null}
+                  {f.chambers.length > 1 ? (
+                    <Button label="Remove last" size="M" variant="ghost" onPress={() => setForm(t.id, { chambers: f.chambers.slice(0, -1) })} />
+                  ) : null}
+                </View>
               ) : null}
+              {p.total ? <FieldError message={p.total} /> : null}
+              {lineResult?.dipRiseLitres ? (
+                <KeyValueRow label="Tank went up in all" value={`${fmtLitres(lineResult.dipRiseLitres)} of ${fmtLitres(lineResult.receivedNetLitres)}`} />
+              ) : null}
+              {flags.filter((x) => x.message.includes("went up")).map((x) => (
+                <FlagNote key={x.message}>{x.message}</FlagNote>
+              ))}
             </Card>
           );
         })}
 
         {totals && totals.lines.length > 0 ? (
           <Card tone="summary">
-            <KeyValueRow label="Invoice amount" value={totals.totalAmount ? fmtRupees(totals.totalAmount) : "—"} />
+            <KeyValueRow label="Invoice amount" value={typedInvoice ? fmtRupees(typedInvoice, "input") : "—"} />
+            {worked ? (
+              <KeyValueRow
+                label={gap && !gap.isZero() ? `Price × litres (${gap.isNegative() ? MINUS : "+"}${fmtRupees(gap.abs(), "input")} on the challan)` : "Price × litres (matches)"}
+                value={fmtRupees(worked, "input")}
+                indent
+              />
+            ) : null}
             <KeyValueRow
               label="Short amount"
-              value={totals.totalShortAmount ? (totals.totalShortAmount.isZero() ? "₹0" : `${MINUS}${fmtRupees(totals.totalShortAmount)}`) : "—"}
+              value={totals.totalShortAmount ? (totals.totalShortAmount.isZero() ? "₹0" : `${MINUS}${fmtRupees(totals.totalShortAmount, "input")}`) : "—"}
             />
             <Divider />
-            <KeyValueRow label="To pay" big value={totals.toPay ? fmtRupees(totals.toPay) : "—"} />
+            <KeyValueRow label="To pay" big value={totals.toPay ? fmtRupees(totals.toPay, "input") : "—"} />
             <KeyValueRow label="Margin earned" value={totals.totalMargin ? fmtRupees(totals.totalMargin) : "—"} />
-            {!totals.totalAmount ? <FieldHint>Type the price per litre for every fuel to see the totals.</FieldHint> : null}
           </Card>
         ) : null}
 
-        {existing && !locked ? (
-          <Button label="Remove this tanker" variant="ghost" onPress={() => setConfirmRemove(true)} />
-        ) : null}
+        {existing && !locked ? <Button label="Remove this tanker" variant="ghost" onPress={() => setConfirmRemove(true)} /> : null}
       </ScreenBody>
 
       <BottomSheet visible={confirmRemove} onClose={() => setConfirmRemove(false)}>
@@ -425,4 +475,3 @@ function TankerForm({
     </>
   );
 }
-

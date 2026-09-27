@@ -2,6 +2,7 @@
 // Every component is shown in the developer gallery (app/gallery.tsx).
 export { Banner, FlagNote, type BannerTone } from "./Banner";
 export { Button, type ButtonProps, type ButtonVariant } from "./Button";
+export { ChamberHeader, ChamberRow, type ChamberRowProps } from "./ChamberRow";
 export { CalendarCell, CalendarLegend, type DayResult } from "./CalendarCell";
 export { Card, Divider, KeyValueRow } from "./Card";
 export { Chip, ChipGroup, SegmentedControl, Switch, ToggleRow } from "./Choice";
@@ -14,7 +15,7 @@ export { ListItem } from "./ListItem";
 export { LogoMark, Wordmark } from "./Logo";
 export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./Navigation";
 export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";
-export { NozzleColumnHeader, NozzleGroupHeader, NozzleRow, type NozzleRowProps } from "./NozzleRow";
+export { NozzleColumnHeader, NozzleGroupHeader, NozzleRow, type NozzleRowProps, type OpeningState } from "./NozzleRow";
 export { BottomSheet, Toast } from "./Overlay";
 export { PriceStrip, type PriceStripItem, type PriceStripProps } from "./PriceStrip";
 export { ProgressBar } from "./ProgressBar";
