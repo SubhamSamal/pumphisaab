@@ -6,7 +6,7 @@ Last updated: 27 Sep 2026, Phase 4 slices 4c and 4d built (waiting for the owner
 1. `CLAUDE.md` (repo root): hard rules. They override everything.
 2. **This file.**
 3. `docs/EXECUTION.md`: phase plan and status checklist (verify it against the repo).
-4. `docs/decisions.md`: every decision D1-D63, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
+4. `docs/decisions.md`: every decision D1-D66, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
 5. `docs/learnings.md`: how the pump and notebooks really work, product, technical and process lessons.
 6. `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with the decisions above layered on top).
 7. `docs/design/canvas/` (v2 screen flows, final) and `docs/design-tokens.json`: visual source of truth. `docs/design/design-system/components/*/README.md` notes are partly stale (D2, D13).
@@ -19,7 +19,7 @@ Last updated: 27 Sep 2026, Phase 4 slices 4c and 4d built (waiting for the owner
 | 1 App shell and design system | Done 26 Sep |
 | 2 Calculation engine + golden cases | Done 26 Sep (`docs/plans/phase-2-report.md`) |
 | 3 Foundations: database, security, login | Done 27 Sep (`docs/plans/phase-3-foundations.md`) |
-| **4 Daily entry, slice by slice** | **In progress. 4a done; 4b done on Android except the owner-approval re-check; 4c built (migration 7: tankers); 4d built (migration 8: sales). Migrations 7 and 8 pasted; 4b/4c checked by the owner and fixed (migration 9: chambers + invoice amount, D61-D63). Owner steps in `docs/plans/phase-4-owner-steps.md` ("Fixes after your 4b/4c check", then 4d). Next: owner pastes migration 9, checks the fixes and 4d, then slices 4e and 4f.** |
+| **4 Daily entry, slice by slice** | **In progress. 4a done; 4b done on Android except the owner-approval re-check; 4c built (migration 7: tankers); 4d built (migration 8: sales). Migrations 7, 8 and 9 pasted; 4b/4c checked by the owner and fixed (migration 9: chambers + invoice amount, D61-D63; migration 10: margin with the price, dip before per chamber, D64-D66). Owner steps in `docs/plans/phase-4-owner-steps.md` ("Fixes after your 4b/4c check", then 4d). Next: owner pastes migration 9, checks the fixes and 4d, then slices 4e and 4f.** |
 | 5 Notebook comparison + owner loop (flags, lock, alerts, push) | Later |
 | 6 Owner settings screens, dashboard, PostHog | Later |
 | 7 Hardening and go-live | Later |
@@ -44,7 +44,7 @@ Phase 4 slices (details in the Phase 4 plan): 4a day lifecycle + price Confirm +
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main` |
 | Supabase | project `pumphisaab`, URL `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Sign-up OFF, confirm email OFF, min password 8 |
-| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`). Also `20260927120000_day_opening` (4a, pasted 27 Sep). `20260927130000_shift_meters` (4b, pasted 27 Sep). `20260927140000_tanker` (4c) and `20260927150000_sales` (4d) pasted 27 Sep. Written, not yet pasted: `20260927160000_tanker_chambers` (4c fixes) |
+| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`). Also `20260927120000_day_opening` (4a, pasted 27 Sep). `20260927130000_shift_meters` (4b, pasted 27 Sep). `20260927140000_tanker` (4c) and `20260927150000_sales` (4d) pasted 27 Sep. `20260927160000_tanker_chambers` (4c fixes) pasted 27 Sep. Written, not yet pasted: `20260928120000_margin_and_chamber_dips` (tanker fixes 2) |
 | Edge Function | `create-user` deployed by the owner (verify JWT on) |
 | Logins | `subham` (Owner), `manager.test` (Manager, test only, remove before pilot). Hidden emails `<username>@users.pumphisaab.com` |
 | `.env` | On the owner's Mac only (gitignored): `EXPO_PUBLIC_SUPABASE_URL` + publishable key. Never commit; never put a secret/service key in the app |

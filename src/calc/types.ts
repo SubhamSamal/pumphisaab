@@ -52,11 +52,12 @@ export type TankerLine = {
   dipBeforeCm?: Num; // our tank's dip just before unloading
   dipAfterCm?: Num; // our tank's dip just after unloading (after the last chamber)
   /**
-   * Chamber by chamber (owner, 27 Sep): the chamber's litres from the challan and our tank's dip
-   * after that chamber is emptied. The first chamber's "before" is dipBeforeCm; each next one's
-   * "before" is the previous chamber's "after".
+   * Chamber by chamber (owner, 27 Sep): the chamber's litres from the challan, and our tank's dip
+   * just before and just after that chamber is emptied. Each chamber has its own "before" because
+   * fuel can be sold between chambers (to make room). A missing "before" falls back to the previous
+   * chamber's "after" (or dipBeforeCm for the first).
    */
-  chambers?: { litres: Num; dipAfterCm: Num }[];
+  chambers?: { litres: Num; dipBeforeCm?: Num; dipAfterCm: Num }[];
 };
 
 export type TankerReceipt = {

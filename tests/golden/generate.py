@@ -117,28 +117,30 @@ write("tanker-01-prd-totals", {
                  "toPay": "845750.00", "totalMargin": "29850.00"}})
 
 # The real 15 Sep challan, chamber by chamber (owner, 27 Sep): invoice amount typed from the challan
-# (₹13,88,011), price per litre = selling ₹101.74 − margin ₹2.60 = ₹99.14. Our tank's dip before
-# unloading 59.8 cm, then after each of 4 chambers (4,000 + 4,000 + 4,000 + 2,000 L).
+# (₹13,88,011), price per litre = selling ₹101.74 − margin ₹2.60 = ₹99.14. Our tank is dipped just
+# before and just after each of 4 chambers (4,000 + 4,000 + 4,000 + 2,000 L). Between chambers 2 and 3
+# some diesel was sold to make room, so chamber 3's "before" (121.0) is lower than chamber 2's "after".
 ch_litres = ["4000", "4000", "4000", "2000"]
-ch_after = ["91.7", "122.2", "154.5", "172.8"]
-prev = real_litres("59.8")
+ch_before = ["59.8", "91.7", "121.0", "153.3"]
+ch_after = ["91.7", "122.2", "153.3", "171.7"]
 ch_expected = []
-for lit, cm in zip(ch_litres, ch_after):
-    after = real_litres(cm); rise = after - prev; prev = after
+total_rise = D(0)
+for lit, b, a in zip(ch_litres, ch_before, ch_after):
+    rise = real_litres(a) - real_litres(b); total_rise += rise
     ch_expected.append({"litres": q(lit), "riseLitres": q(rise), "shortLitres": q(D(lit) - rise)})
 t2_price = D("101.74") - D("2.60")
 t2_amount = D("14000") * t2_price
 t2_short_amount = D("28") * t2_price
 write("tanker-02-chambers-and-invoice", {
     "kind": "tanker", "source": "Owner, 27 Sep 2026 (chamber dips mandatory; invoice amount typed)",
-    "description": "15 Sep challan: 14,000 L HSD, 28 L short, invoice ₹13,88,011. Price = ₹101.74 − ₹2.60 = ₹99.14/L, so the worked-out amount is ₹13,87,960 (₹51 less than the challan). To pay = challan ₹13,88,011 − short ₹2,775.92. Chamber rises from our tank's dips on the real chart.",
+    "description": "15 Sep challan: 14,000 L HSD, 28 L short, invoice ₹13,88,011. Price = ₹101.74 − ₹2.60 = ₹99.14/L, so the worked-out amount is ₹13,87,960 (₹51 less than the challan). To pay = challan ₹13,88,011 − short ₹2,775.92. Each chamber's rise is its own dip after − dip before on the real chart (diesel sold between chambers 2 and 3); the tanker's total rise is the chambers added up.",
     "receipt": {"id": "T2", "vehicleNo": "OD02CD9087", "invoiceNo": "7018875672", "invoiceAmount": "1388011.00", "lines": [
         {"product": "HSD", "tankId": "HSD-1", "orderedLitres": "14000", "shortLitres": "28", "pricePerLitre": str(t2_price), "marginPerLitre": "2.60",
-         "dipBeforeCm": "59.8", "dipAfterCm": ch_after[-1],
-         "chambers": [{"litres": lit, "dipAfterCm": cm} for lit, cm in zip(ch_litres, ch_after)]}]},
+         "dipBeforeCm": ch_before[0], "dipAfterCm": ch_after[-1],
+         "chambers": [{"litres": lit, "dipBeforeCm": b, "dipAfterCm": a} for lit, b, a in zip(ch_litres, ch_before, ch_after)]}]},
     "expected": {"receivedNetLitres": "13972.00", "totalAmount": q(t2_amount), "invoiceAmount": "1388011.00",
                  "totalShortAmount": q(t2_short_amount), "toPay": q(D("1388011") - t2_short_amount),
-                 "totalMargin": q(D("13972") * D("2.60")), "dipRiseLitres": q(real_litres(ch_after[-1]) - real_litres("59.8")),
+                 "totalMargin": q(D("13972") * D("2.60")), "dipRiseLitres": q(total_rise),
                  "chambers": ch_expected}})
 assert q(t2_amount) == "1387960.00"
 

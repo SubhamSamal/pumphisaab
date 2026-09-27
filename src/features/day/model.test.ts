@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES } from "@/calc";
-import { customerPaymentInputs, daysNotSubmitted, evaluate, lastPrices, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import { customerPaymentInputs, daysNotSubmitted, evaluate, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
 import type { Day, DaySetup, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
@@ -24,6 +24,10 @@ const setup: DaySetup = {
   prices: [
     { product: "MS", perLitre: "110.07", startsOn: "2026-09-15" },
     { product: "HSD", perLitre: "101.74", startsOn: "2026-09-15" },
+  ],
+  priceRows: [
+    { id: "p1", product: "MS", perLitre: "110.07", startsOn: "2026-09-15", margin: null },
+    { id: "p2", product: "HSD", perLitre: "101.74", startsOn: "2026-09-15", margin: "2.60" },
   ],
   rules: DEFAULT_RULES,
   firstBusinessDate: "2026-09-28",
@@ -353,5 +357,16 @@ describe("sales (slice 4d)", () => {
     expect(salesSection(day(), [shiftA], matched, sales({ payments: [], counts: [], slips: [] })).subtitle).toBe(
       "To do · Cash, Paytm, Card, XtraPower, Bank, Credit",
     );
+  });
+});
+
+describe("margin with the price (D64)", () => {
+  it("uses the price row in force on the day, with the owner's margin", () => {
+    expect(priceRowFor(setup, "HSD", "2026-10-01")).toMatchObject({ id: "p2", margin: "2.60" });
+    expect(priceRowFor(setup, "MS", "2026-10-01")?.margin).toBeNull();
+    expect(priceRowFor(setup, "HSD", "2026-09-01")).toBeNull();
+    const later = { ...setup, priceRows: [...setup.priceRows, { id: "p3", product: "HSD" as const, perLitre: "102.00", startsOn: "2026-10-01", margin: null }] };
+    expect(priceRowFor(later, "HSD", "2026-10-01")?.id).toBe("p3");
+    expect(priceRowFor(later, "HSD", "2026-09-30")?.id).toBe("p2");
   });
 });

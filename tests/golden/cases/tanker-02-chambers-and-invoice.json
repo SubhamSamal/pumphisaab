@@ -1,7 +1,7 @@
 {
   "kind": "tanker",
   "source": "Owner, 27 Sep 2026 (chamber dips mandatory; invoice amount typed)",
-  "description": "15 Sep challan: 14,000 L HSD, 28 L short, invoice ₹13,88,011. Price = ₹101.74 − ₹2.60 = ₹99.14/L, so the worked-out amount is ₹13,87,960 (₹51 less than the challan). To pay = challan ₹13,88,011 − short ₹2,775.92. Chamber rises from our tank's dips on the real chart.",
+  "description": "15 Sep challan: 14,000 L HSD, 28 L short, invoice ₹13,88,011. Price = ₹101.74 − ₹2.60 = ₹99.14/L, so the worked-out amount is ₹13,87,960 (₹51 less than the challan). To pay = challan ₹13,88,011 − short ₹2,775.92. Each chamber's rise is its own dip after − dip before on the real chart (diesel sold between chambers 2 and 3); the tanker's total rise is the chambers added up.",
   "receipt": {
     "id": "T2",
     "vehicleNo": "OD02CD9087",
@@ -16,23 +16,27 @@
         "pricePerLitre": "99.14",
         "marginPerLitre": "2.60",
         "dipBeforeCm": "59.8",
-        "dipAfterCm": "172.8",
+        "dipAfterCm": "171.7",
         "chambers": [
           {
             "litres": "4000",
+            "dipBeforeCm": "59.8",
             "dipAfterCm": "91.7"
           },
           {
             "litres": "4000",
+            "dipBeforeCm": "91.7",
             "dipAfterCm": "122.2"
           },
           {
             "litres": "4000",
-            "dipAfterCm": "154.5"
+            "dipBeforeCm": "121.0",
+            "dipAfterCm": "153.3"
           },
           {
             "litres": "2000",
-            "dipAfterCm": "172.8"
+            "dipBeforeCm": "153.3",
+            "dipAfterCm": "171.7"
           }
         ]
       }
@@ -45,7 +49,7 @@
     "totalShortAmount": "2775.92",
     "toPay": "1385235.08",
     "totalMargin": "36327.20",
-    "dipRiseLitres": "13967.98",
+    "dipRiseLitres": "14012.57",
     "chambers": [
       {
         "litres": "4000.00",
@@ -59,13 +63,13 @@
       },
       {
         "litres": "4000.00",
-        "riseLitres": "3997.18",
-        "shortLitres": "2.82"
+        "riseLitres": "4013.32",
+        "shortLitres": "-13.32"
       },
       {
         "litres": "2000.00",
-        "riseLitres": "1985.27",
-        "shortLitres": "14.73"
+        "riseLitres": "2013.72",
+        "shortLitres": "-13.72"
       }
     ]
   }

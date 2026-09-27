@@ -2,6 +2,14 @@
 
 Newest first. Date, decision, why.
 
+## 28 Sep 2026 (owner's check of the tanker fixes)
+
+**D64. The dealer margin is the owner's setting, kept with the price** (`fuel_prices.margin_per_l`, migration 10). The margin in force on a day is the one on that day's price row. On the tanker screen the selling price, the margin and the invoice price (selling − margin) show as small **chips**, not typing boxes; the owner taps the Margin chip to set it (managers see it, and "Ask the owner to set the margin" when it's missing). A tanker line still saves the margin and price it was entered with. Why: "Manager confirms price and Owner can set Margin"; the boxes were cramped and the selling price was cut off.
+
+**D65. Every chamber has its own dip before and dip after** (migration 10: `receipt_chambers.dip_before_cm`). Diesel may be sold between two chambers to make room, so a chamber's rise = its own after − its own before, and the tanker's rise (for the S6 dip check) = the chambers' rises added up, not last-after − first-before. Adding a chamber pre-fills its "before" with the previous chamber's "after" (editable). The separate "Tank dip before unloading" box is gone. Chambers saved earlier without a "before" use the previous chamber's "after".
+
+**D66. The challan check is one plain sentence under the totals**, only when they differ: "The challan is ₹51.00 more than litres × invoice price (₹13,87,960.00)." (replaces the confusing "Price × litres (+₹… on the challan)" row).
+
 ## 27 Sep 2026 (owner's 4b/4c phone check)
 
 **D61. Tanker, changed by the owner** (replaces parts of D59):

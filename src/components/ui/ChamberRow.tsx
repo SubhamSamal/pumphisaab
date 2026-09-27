@@ -52,10 +52,10 @@ export function ChamberHeader() {
         Litres
       </Text>
       <Text variant="caption" tone="secondary" className="flex-1">
-        Dip after (cm)
+        Dip before
       </Text>
-      <Text variant="caption" tone="secondary" className="w-[84px] text-right">
-        Tank went up
+      <Text variant="caption" tone="secondary" className="flex-1">
+        Dip after
       </Text>
     </View>
   );
@@ -65,6 +65,8 @@ export type ChamberRowProps = {
   no: number;
   litres: string;
   onChangeLitres?: (v: string) => void;
+  dipBefore: string;
+  onChangeBefore?: (v: string) => void;
   dipAfter: string;
   onChangeDip?: (v: string) => void;
   /** "3,999.99 L", or undefined until both dips are known. */
@@ -78,9 +80,10 @@ export type ChamberRowProps = {
 
 /**
  * One tanker chamber (owner, 27 Sep: chamber-wise dips are mandatory): the chamber's litres from
- * the challan, our tank's dip after it is emptied, and how much the tank went up.
+ * the challan, our tank's dip just before and just after it is emptied (its own "before", since
+ * fuel can be sold between chambers), then one line: how much the tank went up and the short.
  */
-export function ChamberRow({ no, litres, onChangeLitres, dipAfter, onChangeDip, rise, short, shortWarn, error, editable = true }: ChamberRowProps) {
+export function ChamberRow({ no, litres, onChangeLitres, dipBefore, onChangeBefore, dipAfter, onChangeDip, rise, short, shortWarn, error, editable = true }: ChamberRowProps) {
   return (
     <View className="gap-4">
       <View className="flex-row items-center gap-8">
@@ -88,18 +91,23 @@ export function ChamberRow({ no, litres, onChangeLitres, dipAfter, onChangeDip, 
           {no}
         </Text>
         <SmallNumber value={litres} onChange={onChangeLitres} placeholder="Litres" a11y={`Chamber ${no} litres`} editable={editable} />
+        <SmallNumber value={dipBefore} onChange={onChangeBefore} placeholder="cm" a11y={`Dip before chamber ${no}`} editable={editable} />
         <SmallNumber value={dipAfter} onChange={onChangeDip} placeholder="cm" a11y={`Dip after chamber ${no}`} editable={editable} />
-        <View className="w-[84px] items-end">
-          <Text variant="label" weight="600" tone={rise ? "primary" : "muted"}>
-            {rise ?? "—"}
-          </Text>
+      </View>
+      {rise || error ? (
+        <View className="flex-row items-center justify-end gap-8 pl-[28px]">
+          {rise ? (
+            <Text variant="caption" tone="secondary">
+              {`Tank went up ${rise}`}
+            </Text>
+          ) : null}
           {short ? (
-            <Text variant="caption" tone={shortWarn ? "warning" : "secondary"}>
+            <Text variant="caption" weight="600" tone={shortWarn ? "warning" : "secondary"}>
               {short}
             </Text>
           ) : null}
         </View>
-      </View>
+      ) : null}
       {error ? <FieldError message={error} /> : null}
     </View>
   );

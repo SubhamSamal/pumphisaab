@@ -24,6 +24,7 @@ import {
   ErrorState,
   FlagNote,
   Icon,
+  InfoChip,
   KeyValueRow,
   ListItem,
   LogoMark,
@@ -243,9 +244,14 @@ function GalleryContent() {
 
         <Section title="Tanker chambers">
           <ChamberHeader />
-          <ChamberRow no={1} litres="4000" dipAfter="91.7" rise="3,999.99 L" short="short 0.01 L" />
-          <ChamberRow no={2} litres="4000" dipAfter="122.2" rise="3,985.55 L" short="short 14.46 L" shortWarn />
-          <ChamberRow no={3} litres="" dipAfter="" />
+          <ChamberRow no={1} litres="4000" dipBefore="59.8" dipAfter="91.7" rise="3,999.99 L" short="short 0.01 L" />
+          <ChamberRow no={2} litres="4000" dipBefore="91.7" dipAfter="122.2" rise="3,985.55 L" short="short 14.46 L" shortWarn />
+          <ChamberRow no={3} litres="" dipBefore="" dipAfter="" />
+          <View className="flex-row flex-wrap gap-8">
+            <InfoChip label="Selling" value="₹101.74" />
+            <InfoChip label="Margin" value="₹2.60" onPress={() => {}} />
+            <InfoChip label="Margin" value="not set" tone="warning" />
+          </View>
         </Section>
 
         <Section title="Cash note count">

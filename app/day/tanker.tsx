@@ -14,6 +14,7 @@ import {
   FieldError,
   FieldLabel,
   FlagNote,
+  InfoChip,
   KeyValueRow,
   NumericInput,
   ProductTag,
@@ -26,13 +27,14 @@ import {
   useIsWide,
 } from "@/components/ui";
 import { checkChart, dipToLitres, type Product, type TankerReceipt } from "@/calc";
-import { activeTanks, evaluate, lastPrices } from "@/features/day/model";
+import { activeTanks, evaluate, lastPrices, priceRowFor } from "@/features/day/model";
 import {
   useDay,
   useDaySetup,
   useDeleteTanker,
   useRecentTankers,
   useSaveTanker,
+  useSetMargin,
   useTankers,
   type Day,
   type DaySetup,
@@ -84,6 +86,7 @@ export default function TankerFormScreen() {
       ) : (
         <TankerForm
           pumpId={me.pump.id}
+          isOwner={me.role === "owner"}
           setup={setup.data}
           day={day.data}
           existing={existing}
@@ -95,8 +98,8 @@ export default function TankerFormScreen() {
   );
 }
 
-type ChamberForm = { litres: string; dip: string };
-type LineForm = { on: boolean; ordered: string; short: string; margin: string; dipBefore: string; chambers: ChamberForm[] };
+type ChamberForm = { litres: string; before: string; after: string };
+type LineForm = { on: boolean; ordered: string; short: string; chambers: ChamberForm[] };
 
 /** "14000.00" → "14000" for the typing box. */
 const plain = (v: string | null | undefined) => {
@@ -107,6 +110,7 @@ const plain = (v: string | null | undefined) => {
 
 function TankerForm({
   pumpId,
+  isOwner,
   setup,
   day,
   existing,
@@ -114,6 +118,7 @@ function TankerForm({
   onDone,
 }: {
   pumpId: string;
+  isOwner: boolean;
   setup: DaySetup;
   day: Day;
   existing?: Receipt;
@@ -130,6 +135,7 @@ function TankerForm({
   const [invoiceDate, setInvoiceDate] = useState(existing?.invoiceDate ?? day.businessDate);
   const [tried, setTried] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [marginFor, setMarginFor] = useState<Product | null>(null);
 
   // One tank per fuel today (MS-1, HSD-1); diesel first, as on the challan.
   const tanks = activeTanks(setup).sort((a, b) => (a.product === b.product ? 0 : a.product === "HSD" ? -1 : 1));
@@ -144,9 +150,14 @@ function TankerForm({
             on: existing ? Boolean(l) : i === 0,
             ordered: plain(l?.orderedLitres),
             short: l && Number(l.shortLitres) !== 0 ? plain(l.shortLitres) : "",
-            margin: plain(l?.marginPerLitre ?? prefill[t.product]?.margin),
-            dipBefore: plain(l?.dipBeforeCm),
-            chambers: l?.chambers.length ? l.chambers.map((c) => ({ litres: plain(c.litres), dip: plain(c.dipAfterCm) })) : [{ litres: "", dip: "" }],
+            chambers: l?.chambers.length
+              ? l.chambers.map((c, k) => ({
+                  litres: plain(c.litres),
+                  // Chambers saved before each had its own "before": the previous after (or the line's before).
+                  before: plain(c.dipBeforeCm ?? (k === 0 ? l.dipBeforeCm : l.chambers[k - 1].dipAfterCm)),
+                  after: plain(c.dipAfterCm),
+                }))
+              : [{ litres: "", before: "", after: "" }],
           },
         ];
       }),
@@ -160,12 +171,14 @@ function TankerForm({
     const r = readTypedNumber(raw, decimals);
     return r.kind === "ok" ? r.value : undefined;
   };
-  // The selling price comes from Today (owner, 27 Sep); invoice price per litre = selling − margin.
+  // Selling price from Today; margin set by the owner on that price (D64). Invoice price = selling − margin.
   const selling = (f: Product) => day.confirmed[f] ?? day.now[f];
+  const marginOf = (t: (typeof tanks)[number]) =>
+    priceRowFor(setup, t.product, day.businessDate)?.margin ?? existing?.lines.find((l) => l.tankId === t.id)?.marginPerLitre ?? prefill[t.product]?.margin ?? null;
   const costOf = (t: (typeof tanks)[number]) => {
     const sp = selling(t.product);
-    const m = ok(forms[t.id].margin);
-    return sp && m !== undefined ? new Decimal(sp).minus(m) : null;
+    const m = marginOf(t);
+    return sp && m ? new Decimal(sp).minus(m) : null;
   };
 
   const onTanker = tanks.filter((t) => forms[t.id].on && ok(forms[t.id].ordered) && new Decimal(ok(forms[t.id].ordered) as string).gt(0));
@@ -176,16 +189,22 @@ function TankerForm({
     lines: onTanker.map((t) => {
       const f = forms[t.id];
       const cost = costOf(t);
-      const chambers = f.chambers.flatMap((c) => (ok(c.litres) && ok(c.dip, 1) ? [{ litres: ok(c.litres) as string, dipAfterCm: ok(c.dip, 1) as string }] : []));
+      const chambers = f.chambers.flatMap((c) =>
+        ok(c.litres) && ok(c.before, 1) && ok(c.after, 1)
+          ? [{ litres: ok(c.litres) as string, dipBeforeCm: ok(c.before, 1) as string, dipAfterCm: ok(c.after, 1) as string }]
+          : [],
+      );
+      const margin = marginOf(t);
       return {
         product: t.product,
         tankId: t.id,
         orderedLitres: ok(f.ordered) as string,
         shortLitres: ok(f.short) ?? "0",
         ...(cost ? { pricePerLitre: cost.toFixed(2) } : {}),
-        ...(ok(f.margin) ? { marginPerLitre: ok(f.margin) } : {}),
-        ...(ok(f.dipBefore, 1) ? { dipBeforeCm: ok(f.dipBefore, 1) } : {}),
-        ...(chambers.length === f.chambers.length && chambers.length ? { dipAfterCm: chambers[chambers.length - 1].dipAfterCm, chambers } : {}),
+        ...(margin ? { marginPerLitre: margin } : {}),
+        ...(chambers.length === f.chambers.length && chambers.length
+          ? { dipBeforeCm: chambers[0].dipBeforeCm, dipAfterCm: chambers[chambers.length - 1].dipAfterCm, chambers }
+          : {}),
       };
     }),
   };
@@ -207,22 +226,18 @@ function TankerForm({
   };
   const lineProblems = (t: (typeof tanks)[number]) => {
     const f = forms[t.id];
-    const p: { ordered?: string; short?: string; margin?: string; dipBefore?: string; chambers: (string | undefined)[]; total?: string } = { chambers: [] };
+    const p: { ordered?: string; short?: string; chambers: (string | undefined)[]; total?: string } = { chambers: [] };
     const o = readTypedNumber(f.ordered, 2);
     if (o.kind === "bad") p.ordered = o.message;
     else if (o.kind === "empty" && tried) p.ordered = "Type the litres ordered.";
     const sh = readTypedNumber(f.short, 2);
     if (sh.kind === "bad") p.short = sh.message;
     else if (sh.kind === "ok" && o.kind === "ok" && new Decimal(sh.value).gt(o.value)) p.short = "More than ordered.";
-    const m = readTypedNumber(f.margin, 2);
-    if (m.kind === "bad") p.margin = m.message;
-    else if (m.kind === "empty" && tried) p.margin = "Type the margin.";
-    p.dipBefore = dipProblem(t.id, f.dipBefore);
     p.chambers = f.chambers.map((c) => {
       const l = readTypedNumber(c.litres, 2);
       if (l.kind === "bad") return l.message;
       if (l.kind === "empty" && tried) return "Type this chamber's litres.";
-      return dipProblem(t.id, c.dip);
+      return dipProblem(t.id, c.before) ?? dipProblem(t.id, c.after);
     });
     const sumL = f.chambers.reduce((s2, c) => s2.plus(ok(c.litres) ?? 0), new Decimal(0));
     if (o.kind === "ok" && f.chambers.every((c) => ok(c.litres)) && !sumL.equals(o.value))
@@ -235,7 +250,7 @@ function TankerForm({
   const open = tanks.filter((t) => forms[t.id].on);
   const anyLineProblem = open.some((t) => {
     const p = lineProblems(t);
-    return p.ordered || p.short || p.margin || p.dipBefore || p.total || p.chambers.some(Boolean) || !ok(forms[t.id].ordered);
+    return p.ordered || p.short || p.total || p.chambers.some(Boolean) || !ok(forms[t.id].ordered);
   });
   const canSave = !vehicleProblem && !invoiceProblem && onTanker.length > 0 && !anyLineProblem && Boolean(totals);
 
@@ -254,7 +269,7 @@ function TankerForm({
         marginPerLitre: line.marginPerLitre ?? null,
         dipBeforeCm: line.dipBeforeCm ?? null,
         dipAfterCm: line.dipAfterCm ?? null,
-        chambers: line.chambers ?? [],
+        chambers: (line.chambers ?? []).map((c) => ({ litres: c.litres, dipBeforeCm: c.dipBeforeCm ?? null, dipAfterCm: c.dipAfterCm })),
       };
     });
     const removeLineIds = (existing?.lines ?? []).filter((l) => !onTanker.some((t) => t.id === l.tankId)).map((l) => l.id);
@@ -346,9 +361,9 @@ function TankerForm({
           const lineResult = totals?.lines.find((l) => l.tankId === t.id);
           const flags = result.flags.filter((x) => x.code === "S6" && x.where?.tankId === t.id);
           const sp = selling(t.product);
+          const margin = marginOf(t);
+          const row = priceRowFor(setup, t.product, day.businessDate);
           const cost = costOf(t);
-          const chart = chartOf(t.id);
-          const beforeL = chart && ok(f.dipBefore, 1) ? dipToLitres(chart, ok(f.dipBefore, 1) as string) : null;
           const warnPct = new Decimal(setup.rules.tanker.dipCheckFlagBeyondPercent);
           return (
             <Card key={t.id}>
@@ -371,28 +386,27 @@ function TankerForm({
               </View>
               {lineResult ? <KeyValueRow label="Received" value={fmtLitres(lineResult.receivedNetLitres)} /> : null}
 
-              <View className="flex-row gap-8">
-                <View className="flex-1">
-                  <NumericInput label="Selling price (today)" compact auto value={sp ? plain(sp) : "—"} formatted={sp ? fmtRupees(sp, "input").replace("₹", "") : "—"} unit="₹" />
-                </View>
-                <View className="flex-1">
-                  <NumericInput label="Margin" compact value={f.margin} onChangeText={(v) => setForm(t.id, { margin: v })} unit="₹" disabled={locked} error={p.margin} />
-                </View>
+              {/* Price as chips (owner, 27 Sep): selling price from Today, margin set by the owner. */}
+              <View className="flex-row flex-wrap gap-8">
+                <InfoChip label="Selling" value={sp ? fmtRupees(sp, "input") : "not set"} tone={sp ? "neutral" : "warning"} />
+                <InfoChip
+                  label="Margin"
+                  value={margin ? fmtRupees(margin, "input") : "not set"}
+                  tone={margin ? "neutral" : "warning"}
+                  onPress={isOwner && row && !locked ? () => setMarginFor(t.product) : undefined}
+                />
+                {cost ? <InfoChip label="Invoice price" value={`${fmtRupees(cost, "input")}/L`} /> : null}
               </View>
-              {cost ? <KeyValueRow label="Invoice price per litre" value={`${fmtRupees(cost, "input")}/L`} /> : null}
+              {!margin && !isOwner ? (
+                <Text variant="label" weight="400" tone="warning">
+                  Ask the owner to set the margin.
+                </Text>
+              ) : null}
               {flags.filter((x) => x.message.includes("short")).map((x) => (
                 <FlagNote key={x.message}>{x.message}</FlagNote>
               ))}
 
               <Divider />
-              <View className="flex-row items-end gap-8">
-                <View className="flex-1">
-                  <NumericInput label="Tank dip before unloading" compact value={f.dipBefore} onChangeText={(v) => setForm(t.id, { dipBefore: v })} unit="cm" disabled={locked} error={p.dipBefore} />
-                </View>
-                <Text variant="label" tone="secondary" className="w-[96px] pb-[14px] text-right">
-                  {beforeL ? fmtLitres(beforeL) : ""}
-                </Text>
-              </View>
               <ChamberHeader />
               {f.chambers.map((c, k) => {
                 const cr = lineResult?.chambers[k];
@@ -404,8 +418,10 @@ function TankerForm({
                     no={k + 1}
                     litres={c.litres}
                     onChangeLitres={(v) => setChamber(t.id, k, { litres: v })}
-                    dipAfter={c.dip}
-                    onChangeDip={(v) => setChamber(t.id, k, { dip: v })}
+                    dipBefore={c.before}
+                    onChangeBefore={(v) => setChamber(t.id, k, { before: v })}
+                    dipAfter={c.after}
+                    onChangeDip={(v) => setChamber(t.id, k, { after: v })}
                     rise={cr?.riseLitres ? fmtLitres(cr.riseLitres) : undefined}
                     short={short ? (short.isNegative() ? `over ${fmtLitres(short.abs())}` : `short ${fmtLitres(short)}`) : undefined}
                     shortWarn={warn}
@@ -417,7 +433,14 @@ function TankerForm({
               {!locked ? (
                 <View className="flex-row gap-8">
                   {f.chambers.length < 12 ? (
-                    <Button label="Add chamber" icon="plus" size="M" variant="ghost" onPress={() => setForm(t.id, { chambers: [...f.chambers, { litres: "", dip: "" }] })} />
+                    <Button
+                      label="Add chamber"
+                      icon="plus"
+                      size="M"
+                      variant="ghost"
+                      // The next chamber usually starts where the last one ended; change it if fuel was sold in between.
+                      onPress={() => setForm(t.id, { chambers: [...f.chambers, { litres: "", before: f.chambers[f.chambers.length - 1]?.after ?? "", after: "" }] })}
+                    />
                   ) : null}
                   {f.chambers.length > 1 ? (
                     <Button label="Remove last" size="M" variant="ghost" onPress={() => setForm(t.id, { chambers: f.chambers.slice(0, -1) })} />
@@ -438,13 +461,7 @@ function TankerForm({
         {totals && totals.lines.length > 0 ? (
           <Card tone="summary">
             <KeyValueRow label="Invoice amount" value={typedInvoice ? fmtRupees(typedInvoice, "input") : "—"} />
-            {worked ? (
-              <KeyValueRow
-                label={gap && !gap.isZero() ? `Price × litres (${gap.isNegative() ? MINUS : "+"}${fmtRupees(gap.abs(), "input")} on the challan)` : "Price × litres (matches)"}
-                value={fmtRupees(worked, "input")}
-                indent
-              />
-            ) : null}
+
             <KeyValueRow
               label="Short amount"
               value={totals.totalShortAmount ? (totals.totalShortAmount.isZero() ? "₹0" : `${MINUS}${fmtRupees(totals.totalShortAmount, "input")}`) : "—"}
@@ -452,11 +469,18 @@ function TankerForm({
             <Divider />
             <KeyValueRow label="To pay" big value={totals.toPay ? fmtRupees(totals.toPay, "input") : "—"} />
             <KeyValueRow label="Margin earned" value={totals.totalMargin ? fmtRupees(totals.totalMargin) : "—"} />
+            {gap && !gap.isZero() ? (
+              <Text variant="label" weight="400" tone="secondary">
+                {`The challan is ${fmtRupees(gap.abs(), "input")} ${gap.isNegative() ? "less" : "more"} than litres × invoice price (${fmtRupees(worked as Decimal, "input")}).`}
+              </Text>
+            ) : null}
           </Card>
         ) : null}
 
         {existing && !locked ? <Button label="Remove this tanker" variant="ghost" onPress={() => setConfirmRemove(true)} /> : null}
       </ScreenBody>
+
+      <MarginSheet pumpId={pumpId} setup={setup} date={day.businessDate} product={marginFor} onClose={() => setMarginFor(null)} />
 
       <BottomSheet visible={confirmRemove} onClose={() => setConfirmRemove(false)}>
         <Text variant="heading">{`Remove tanker ${vehicle}?`}</Text>
@@ -473,5 +497,40 @@ function TankerForm({
         <Button label="Keep it" variant="secondary" onPress={() => setConfirmRemove(false)} />
       </BottomSheet>
     </>
+  );
+}
+
+/** Owner only: the dealer margin per litre on the price in force (D64). */
+function MarginSheet({ pumpId, setup, date, product, onClose }: { pumpId: string; setup: DaySetup; date: string; product: Product | null; onClose: () => void }) {
+  const setMargin = useSetMargin(pumpId);
+  const row = product ? priceRowFor(setup, product, date) : null;
+  const [value, setValue] = useState("");
+  const [last, setLast] = useState<Product | null>(null);
+  if (product !== last) {
+    setLast(product);
+    setValue(plain(row?.margin));
+  }
+  const r = readTypedNumber(value, 2);
+  const close = () => {
+    setMargin.reset();
+    onClose();
+  };
+  return (
+    <BottomSheet visible={product !== null} onClose={close}>
+      <Text variant="heading">{`${product ? FUEL_NAME[product] : ""} margin per litre`}</Text>
+      {row ? (
+        <Text variant="body" tone="secondary">
+          {`For the price ${fmtRupees(row.perLitre, "input")} from ${fmtDate(row.startsOn)}. Set it again when the price changes.`}
+        </Text>
+      ) : null}
+      <NumericInput label="Margin" value={value} onChangeText={setValue} unit="₹" error={r.kind === "bad" ? r.message : undefined} />
+      {setMargin.error ? <Banner tone="danger" title={setMargin.error.message} /> : null}
+      <Button
+        label="Save margin"
+        loading={setMargin.isPending}
+        disabled={!row || r.kind !== "ok"}
+        onPress={() => row && r.kind === "ok" && setMargin.mutate({ priceId: row.id, margin: r.value }, { onSuccess: close })}
+      />
+    </BottomSheet>
   );
 }

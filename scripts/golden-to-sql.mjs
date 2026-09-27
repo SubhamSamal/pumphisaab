@@ -205,7 +205,7 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
         );
         (l.chambers ?? []).forEach((ch, k) => {
           lines.push(
-            `insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm) values (${pump}, ${day}, (select id from public.receipt_lines where receipt_id = ${receipt} and product = '${l.product}'), ${k + 1}, ${ch.litres}, ${ch.dipAfterCm});`,
+            `insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_before_cm, dip_after_cm) values (${pump}, ${day}, (select id from public.receipt_lines where receipt_id = ${receipt} and product = '${l.product}'), ${k + 1}, ${ch.litres}, ${ch.dipBeforeCm ?? "null"}, ${ch.dipAfterCm});`,
           );
         });
       }

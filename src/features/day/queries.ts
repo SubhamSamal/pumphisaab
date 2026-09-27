@@ -15,8 +15,11 @@ import { supabase } from "@/lib/supabase";
 // ─── Setup the day needs (tanks, charts, prices, rules) ───────────────────
 export type SetupTank = { id: string; label: string; product: Product; chartId: string; isActive: boolean };
 export type SetupNozzle = { id: string; label: string; product: Product; tankId: string; inUse: boolean };
+/** An owner price row with its dealer margin (owner sets both, D64). */
+export type PriceRow = { id: string; product: Product; perLitre: string; startsOn: string; margin: string | null };
 export type DaySetup = {
   tanks: SetupTank[];
+  priceRows: PriceRow[];
   /** In the order the pump lists them (HSD-3, HSD-4 …). */
   nozzles: SetupNozzle[];
   charts: Record<string, DipChartRow[]>;
@@ -33,7 +36,7 @@ export function useDaySetup(pumpId: string) {
       const [pump, tanks, prices, nozzles] = await Promise.all([
         supabase.from("pumps").select("rules, first_business_date").eq("id", pumpId).single(),
         supabase.from("tanks").select("id, label, product, chart_id, is_active").eq("pump_id", pumpId).order("product").order("label"),
-        supabase.from("fuel_prices").select("product, per_litre::text, starts_on").eq("pump_id", pumpId),
+        supabase.from("fuel_prices").select("id, product, per_litre::text, starts_on, margin_per_l::text").eq("pump_id", pumpId),
         supabase.from("nozzles").select("id, label, product, tank_id, in_use").eq("pump_id", pumpId).order("sort_order").order("label"),
       ]);
       if (nozzles.error) throw nozzles.error;
@@ -57,6 +60,7 @@ export function useDaySetup(pumpId: string) {
         nozzles: nozzles.data.map((n) => ({ id: n.id, label: n.label, product: n.product, tankId: n.tank_id, inUse: n.in_use })),
         charts,
         prices: prices.data.map((p) => ({ product: p.product, perLitre: p.per_litre, startsOn: p.starts_on })),
+        priceRows: prices.data.map((p) => ({ id: p.id, product: p.product, perLitre: p.per_litre, startsOn: p.starts_on, margin: p.margin_per_l })),
         // Same shape as src/calc/rules.ts (the seed test keeps them in step); defaults fill any gap.
         rules: { ...DEFAULT_RULES, ...(pump.data.rules as Partial<Rules>) },
         firstBusinessDate: pump.data.first_business_date,
@@ -412,8 +416,8 @@ export type ReceiptLine = {
   marginPerLitre: string | null;
   dipBeforeCm: string | null;
   dipAfterCm: string | null;
-  /** Chamber by chamber: litres and our tank's dip after it (in order). */
-  chambers: { litres: string; dipAfterCm: string }[];
+  /** Chamber by chamber: litres and our tank's dip before and after it (in order). */
+  chambers: { litres: string; dipBeforeCm: string | null; dipAfterCm: string }[];
 };
 export type Receipt = {
   id: string;
@@ -428,7 +432,7 @@ export type Receipt = {
 };
 
 const RECEIPT_COLUMNS =
-  "id, day_id, vehicle_no, invoice_no, invoice_date, invoice_amount::text, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text, chambers:receipt_chambers(chamber_no, litres::text, dip_after_cm::text))";
+  "id, day_id, vehicle_no, invoice_no, invoice_date, invoice_amount::text, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text, chambers:receipt_chambers(chamber_no, litres::text, dip_before_cm::text, dip_after_cm::text))";
 
 type ReceiptRow = {
   id: string;
@@ -448,7 +452,7 @@ type ReceiptRow = {
     margin_per_l: string | null;
     dip_before_cm: string | null;
     dip_after_cm: string | null;
-    chambers: { chamber_no: number; litres: string; dip_after_cm: string }[];
+    chambers: { chamber_no: number; litres: string; dip_before_cm: string | null; dip_after_cm: string }[];
   }[];
 };
 
@@ -474,7 +478,7 @@ function toReceipt(r: ReceiptRow): Receipt {
         dipAfterCm: l.dip_after_cm,
         chambers: [...(l.chambers ?? [])]
           .sort((a, b) => a.chamber_no - b.chamber_no)
-          .map((c) => ({ litres: c.litres, dipAfterCm: c.dip_after_cm })),
+          .map((c) => ({ litres: c.litres, dipBeforeCm: c.dip_before_cm, dipAfterCm: c.dip_after_cm })),
       }))
       .sort((a, b) => (a.product === "HSD" ? -1 : 1) - (b.product === "HSD" ? -1 : 1)),
   };
@@ -558,7 +562,15 @@ export function useSaveTanker(pumpId: string, dayId: string | undefined) {
         const lineIds = input.lines.map((l) => l.id);
         await check(supabase.from("receipt_chambers").delete().in("receipt_line_id", lineIds));
         const chamberRows = input.lines.flatMap((l) =>
-          l.chambers.map((c, k) => ({ pump_id: pumpId, day_id: dayId, receipt_line_id: l.id, chamber_no: k + 1, litres: c.litres, dip_after_cm: c.dipAfterCm })),
+          l.chambers.map((c, k) => ({
+            pump_id: pumpId,
+            day_id: dayId,
+            receipt_line_id: l.id,
+            chamber_no: k + 1,
+            litres: c.litres,
+            dip_before_cm: c.dipBeforeCm,
+            dip_after_cm: c.dipAfterCm,
+          })),
         );
         if (chamberRows.length) await check(supabase.from("receipt_chambers").insert(chamberRows));
       }
@@ -845,5 +857,16 @@ export function useOwnerSetOpening(pumpId: string, dayId: string | undefined) {
       .single();
     if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
     if (data.meter_change_status === "PENDING") await check(supabase.rpc("approve_meter_change", { p_reading: data.id }));
+  });
+}
+
+/** The owner sets the dealer margin on the price in force (D64). Row Level Security lets only the owner. */
+export function useSetMargin(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "margin"],
+    mutationFn: ({ priceId, margin }: { priceId: string; margin: string }) =>
+      check(supabase.from("fuel_prices").update({ margin_per_l: margin }).eq("id", priceId).select("id").single()),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
   });
 }

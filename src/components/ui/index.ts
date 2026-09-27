@@ -25,5 +25,5 @@ export { SectionCard, type SectionStatus } from "./SectionCard";
 export { EmptyState, ErrorState, Skeleton } from "./States";
 export { StatusPill, type PillStatus } from "./StatusPill";
 export { StickyActionBar } from "./StickyActionBar";
-export { AutoTag, PriceChip, ProductTag, type Product } from "./Tag";
+export { AutoTag, InfoChip, PriceChip, ProductTag, type Product } from "./Tag";
 export { Text, type TextProps, type TextTone } from "./Text";

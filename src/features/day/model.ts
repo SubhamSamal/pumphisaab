@@ -436,7 +436,9 @@ export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
       ...(l.marginPerLitre ? { marginPerLitre: l.marginPerLitre } : {}),
       ...(l.dipBeforeCm ? { dipBeforeCm: l.dipBeforeCm } : {}),
       ...(l.dipAfterCm ? { dipAfterCm: l.dipAfterCm } : {}),
-      ...(l.chambers.length ? { chambers: l.chambers } : {}),
+      ...(l.chambers.length
+        ? { chambers: l.chambers.map((c) => ({ litres: c.litres, dipAfterCm: c.dipAfterCm, ...(c.dipBeforeCm ? { dipBeforeCm: c.dipBeforeCm } : {}) })) }
+        : {}),
     })),
   }));
 }
@@ -464,4 +466,16 @@ export function lastPrices(recent: Receipt[], exceptId?: string): Partial<Record
     }
   }
   return out;
+}
+
+/**
+ * The price row in force for a fuel on a date (latest start date on or before it), with the dealer
+ * margin the owner set on it (D64). Invoice price per litre = selling price − margin.
+ */
+export function priceRowFor(setup: DaySetup, product: Product, date: string) {
+  return (
+    setup.priceRows
+      .filter((r) => r.product === product && r.startsOn <= date)
+      .sort((a, b) => (a.startsOn < b.startsOn ? 1 : -1))[0] ?? null
+  );
 }

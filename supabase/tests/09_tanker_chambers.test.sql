@@ -1,7 +1,7 @@
 -- Tanker fixes: invoice amount typed from the challan, chamber-by-chamber dips (owner, 27 Sep).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(7);
+select plan(9);
 
 insert into auth.users (id, email) values ('22222222-2222-2222-2222-222222222222', 'manager.x@users.pumphisaab.com'),
                                           ('33333333-3333-3333-3333-333333333333', 'manager.y@users.pumphisaab.com');
@@ -31,10 +31,16 @@ select is((select array_agg(round(rise_l, 2) order by chamber_no) from public.v_
   array[3999.99, 3985.55]::numeric[], 'Each chamber''s rise: from the dip before unloading, then from the previous chamber');
 select is((select to_pay from public.v_tanker_totals where receipt_id = (select receipt from ids)), 1388011 - 28 * 99.14,
   'To pay = the challan''s invoice amount − short amount');
+-- Diesel sold between chambers 2 and 3: chamber 3 has its own dip before (121.0 < 122.2).
+select lives_ok($$ insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_before_cm, dip_after_cm)
+  values ((select x from ids), (select day from d), (select line from ids), 3, 4000, 121.0, 153.3) $$, 'A chamber with its own dip before');
+select is((select round(dip_rise_l, 2) from public.v_receipt_lines where id = (select line from ids)),
+  (select round(sum(rise_l), 2) from public.v_receipt_chambers where receipt_line_id = (select line from ids)),
+  'The tanker''s rise is the chambers'' rises added up (not last after − first before)');
+select throws_ok($$ insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_before_cm, dip_after_cm)
+  values ((select x from ids), (select day from d), (select line from ids), 4, 2000, 250, 260) $$, 'P0001', null, 'H3: a chamber dip outside the chart is refused');
 select throws_ok($$ insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm)
-  values ((select x from ids), (select day from d), (select line from ids), 3, 2000, 250) $$, 'P0001', null, 'H3: a chamber dip outside the chart is refused');
-select throws_ok($$ insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm)
-  values ((select x from ids), (select day from d), (select line from ids), 3, -5, 150) $$, '23514', null, 'H5: negative chamber litres are refused');
+  values ((select x from ids), (select day from d), (select line from ids), 4, -5, 160) $$, '23514', null, 'H5: negative chamber litres are refused');
 delete from public.tanker_receipts where id = (select receipt from ids);
 select is((select count(*) from public.receipt_chambers where receipt_line_id = (select line from ids)), 0::bigint, 'Removing the tanker removes its chambers');
 

@@ -167,6 +167,31 @@ One section per slice. Do the steps in order and send back what each step asks f
 
 ---
 
+## Tanker fixes, round 2 (28 Sep 2026) — do these before the 4d steps
+
+**What changed:**
+- **Price as chips:** under Ordered/Short each fuel shows three small chips: **Selling ₹101.74** (from Today), **Margin ₹2.60** and **Invoice price ₹99.14/L**. No typing boxes. **Only you (owner) can tap the Margin chip** to set it; it's saved with your price, so every tanker after uses it. A manager sees "Ask the owner to set the margin" if it's missing.
+- **Every chamber has Dip before and Dip after.** Adding a chamber fills its "before" with the last chamber's "after"; change it if diesel was sold in between. Under each row: "Tank went up … · short …". The separate "Tank dip before unloading" box is gone.
+- **Totals:** the confusing "Price × litres" row is gone. If the challan differs from litres × invoice price, one plain line under the totals says by how much.
+
+### Step 1: paste migration 10 (after 9)
+1. Supabase › **SQL Editor** › **New query**, open `supabase/migrations/20260928120000_margin_and_chamber_dips.sql`, read **DATA SAFETY** (adds a margin column to prices and a "dip before" column to chambers, both empty; nothing deleted), paste, **Run**.
+2. Check:
+   ```sql
+   select (select count(*) from schema_migrations_applied) as migrations,
+          (select count(*) from fuel_prices where margin_per_l is not null) as margins_set;
+   ```
+   Expected: migrations = **10**, margins_set = 0. **Send me** the result.
+
+### Step 2: set the margin and re-check the tanker (as owner)
+1. **Tanker** › open **OD02CD9087**. The Margin chip may show the saved ₹2.60 or "not set": tap it › `2.60` › **Save margin** (diesel). Do the same for petrol once you know it.
+2. Chambers now have Dip before and Dip after. Chamber 1: before `59.8`, after `91.7`. Chamber 2: before `91.7`, after `122.2`. Chamber 3 (say diesel was sold in between): before `121.0`, after `153.3`. Chamber 4: before `153.3`, after `171.7`. Each row shows "Tank went up … · short/over …".
+3. Totals: Invoice amount ₹13,88,011.00, Short amount −₹2,775.92, To pay **₹13,85,235.08**, Margin earned ₹36,327, and one line: "The challan is ₹51.00 more than litres × invoice price (₹13,87,960.00)". **Save tanker**.
+4. Sign in as `manager.test`, **Add tanker**: the Margin chip shows ₹2.60 and can't be tapped.
+5. **Send me** screenshots of the chips + chambers, and the totals.
+
+---
+
 ## Slice 4d: Sales (27 Sep 2026) — test together with 4b and 4c
 
 **What's new:** the **Sales** tab. **By shift**: one card per shift with Should have, every part of Received, and the Difference (Matched / Short / Excess). **By type**: each way of payment with the day total and the split by shift, and **None today** for an unused type. Tap a shift to enter its money:

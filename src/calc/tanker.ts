@@ -6,9 +6,10 @@
  *   Short amount      = litres short × price per litre
  *   To pay            = invoice amount (typed from the challan, else the amount above) − short amount
  *   Margin earned     = litres received × margin per litre
- *   Dip rise          = litres at the dip after unloading − litres at the dip before
- *   Per chamber       = rise = litres at the dip after this chamber − litres before it (the previous
- *                       chamber's after, or the dip before unloading); short = chamber litres − rise
+ *   Per chamber       = rise = litres at the dip after this chamber − litres at the dip before it;
+ *                       short = chamber litres − rise
+ *   Dip rise          = with chambers: the chambers' rises added up (fuel may be sold between
+ *                       chambers, so after-last − before-first would be wrong); without: after − before
  */
 
 import type { Decimal } from "@/lib/decimal";
@@ -24,22 +25,27 @@ export function receiptTotals(receipt: TankerReceipt, charts: Map<string, Checke
     const margin = line.marginPerLitre ? num(line.marginPerLitre) : null;
     const receivedNetLitres = ordered.minus(short);
 
-    let dipRiseLitres: Decimal | null = null;
     const chart = charts.get(line.tankId);
-    if (chart && line.dipBeforeCm && line.dipAfterCm) {
-      const before = dipToLitres(chart, line.dipBeforeCm);
-      const after = dipToLitres(chart, line.dipAfterCm);
-      if (before && after) dipRiseLitres = after.minus(before);
-    }
+    const litresAt = (cm?: string) => (chart && cm ? dipToLitres(chart, cm) : null);
 
-    let previous = chart && line.dipBeforeCm ? dipToLitres(chart, line.dipBeforeCm) : null;
+    let previous = litresAt(line.dipBeforeCm);
     const chambers = (line.chambers ?? []).map((c) => {
       const litres = num(c.litres);
-      const after = chart ? dipToLitres(chart, c.dipAfterCm) : null;
-      const riseLitres = previous && after ? after.minus(previous) : null;
+      const before = c.dipBeforeCm ? litresAt(c.dipBeforeCm) : previous;
+      const after = litresAt(c.dipAfterCm);
+      const riseLitres = before && after ? after.minus(before) : null;
       previous = after;
       return { litres, riseLitres, shortLitres: riseLitres ? litres.minus(riseLitres) : null };
     });
+
+    let dipRiseLitres: Decimal | null = null;
+    if (chambers.length) {
+      if (chambers.every((c) => c.riseLitres)) dipRiseLitres = sum(chambers.map((c) => c.riseLitres as Decimal));
+    } else {
+      const before = litresAt(line.dipBeforeCm);
+      const after = litresAt(line.dipAfterCm);
+      if (before && after) dipRiseLitres = after.minus(before);
+    }
 
     return {
       product: line.product,

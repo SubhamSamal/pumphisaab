@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 
@@ -37,5 +37,31 @@ export function PriceChip({ product, price }: { product: Product; price: string 
         {product} {price}
       </Text>
     </View>
+  );
+}
+
+/**
+ * A small read-only fact as a chip: "Selling ₹101.74", "Margin ₹2.60". With onPress it can be
+ * changed (pencil), e.g. the owner's margin on the tanker screen (owner, 27 Sep: show these as chips).
+ */
+export function InfoChip({ label, value, tone = "neutral", onPress }: { label: string; value: string; tone?: "neutral" | "warning"; onPress?: () => void }) {
+  const warn = tone === "warning";
+  const body = (
+    <View className={`h-32 flex-row items-center gap-4 self-start rounded-sm border px-8 ${warn ? "border-warning bg-warning-subtle" : "border-border bg-surface"}`}>
+      <Text variant="label" weight="400" tone={warn ? "warning" : "secondary"}>
+        {label}
+      </Text>
+      <Text variant="label" weight="600" tone={warn ? "warning" : "primary"}>
+        {value}
+      </Text>
+      {onPress ? <Icon name="edit" size="small" color={warn ? "warning" : "text-secondary"} /> : null}
+    </View>
+  );
+  return onPress ? (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label} ${value}, change`} hitSlop={6}>
+      {body}
+    </Pressable>
+  ) : (
+    body
   );
 }
