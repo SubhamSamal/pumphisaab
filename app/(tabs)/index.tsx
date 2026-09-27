@@ -43,6 +43,7 @@ import {
   useUnlockDay,
   type Day,
 } from "@/features/day/queries";
+import { useOutbox } from "@/features/day/Outbox";
 import { useSaveState } from "@/features/day/saveState";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useMembership } from "@/features/session/SessionProvider";
@@ -78,6 +79,7 @@ export default function TodayScreen() {
   const expenses = useExpenses(day.data?.id);
   const recent = useRecentDays(pumpId, serverKnown ? today : undefined);
   const save = useSaveState();
+  const outbox = useOutbox();
   const confirm = useConfirmPrices(pumpId);
   const lock = useLockDay(pumpId);
   const unlock = useUnlockDay(pumpId);
@@ -179,6 +181,16 @@ export default function TodayScreen() {
           </Banner>
         ) : null}
 
+        {outbox && outbox.dropped.length > 0 ? (
+          <Banner
+            tone="danger"
+            title={`${outbox.dropped.length} entr${outbox.dropped.length === 1 ? "y" : "ies"} typed without internet couldn't be saved`}
+            action={<Button label="OK" size="M" variant="secondary" onPress={outbox.dismissDropped} />}
+          >
+            {`${outbox.dropped[0].message} Check the numbers and type them again.`}
+          </Banner>
+        ) : null}
+
         {loading && !failed ? (
           <View className="gap-8">
             <Skeleton height={88} />
@@ -254,7 +266,8 @@ export default function TodayScreen() {
               done={model.done}
               total={8}
               left={<StatusPill status={day.data.isLocked ? "locked" : day.data.status === "SUBMITTED" ? "submitted" : "draft"} />}
-              save={save}
+              save={save.state}
+              waiting={save.waiting}
             />
             <View className="gap-8">
               {model.sections.map((s) => (

@@ -403,7 +403,7 @@ function GalleryContent() {
         </Section>
 
         <Section title="Sticky action bar">
-          <StickyActionBar note={<SaveIndicator state="saved" />}>
+          <StickyActionBar note={<SaveIndicator state="offline" waiting={3} />}>
             <Button label="Done · Next: Tanker" />
           </StickyActionBar>
         </Section>

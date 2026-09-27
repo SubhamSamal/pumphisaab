@@ -80,7 +80,7 @@ export default function ShiftScreen() {
         subtitle={shift ? shiftHours(shift) : undefined}
         wide={wide}
         onBack={() => router.back()}
-        right={ready ? <SaveIndicator state={save} /> : undefined}
+        right={ready ? <SaveIndicator state={save.state} waiting={save.waiting} /> : undefined}
       />
       {failed ? (
         <ScreenBody>

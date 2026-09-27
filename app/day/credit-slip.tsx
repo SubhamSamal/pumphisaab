@@ -26,6 +26,7 @@ import { useMembership } from "@/features/session/SessionProvider";
 import { track } from "@/lib/analytics";
 import { Decimal } from "@/lib/decimal";
 import { draftKey } from "@/lib/drafts";
+import { formSaveError } from "@/lib/outbox";
 import { fmtLitres, fmtRupees } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
@@ -210,7 +211,7 @@ function SlipForm({
           </Banner>
         ) : null}
         {!day.priceConfirmed ? <Banner tone="warning" title="Confirm today's price on Today first" /> : null}
-        {save.error ? <Banner tone="danger" title={save.error.message} /> : null}
+        {save.error ? <Banner tone="danger" title={formSaveError(save.error.message)} /> : null}
 
         <View className="gap-4">
           <FieldLabel>Shift</FieldLabel>

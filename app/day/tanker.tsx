@@ -47,6 +47,7 @@ import { track } from "@/lib/analytics";
 import { addDays } from "@/lib/businessDay";
 import { Decimal } from "@/lib/decimal";
 import { draftKey } from "@/lib/drafts";
+import { formSaveError } from "@/lib/outbox";
 import { fmtDate, fmtLitres, fmtRupees, MINUS } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
@@ -352,7 +353,7 @@ function TankerForm({
             {"Not saved yet. Tap Save tanker when it's done."}
           </Banner>
         ) : null}
-        {save.error ? <Banner tone="danger" title={save.error.message} /> : null}
+        {save.error ? <Banner tone="danger" title={formSaveError(save.error.message)} /> : null}
 
         <TextField
           label="Tanker number"

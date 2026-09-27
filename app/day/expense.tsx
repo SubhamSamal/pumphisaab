@@ -42,6 +42,7 @@ import { useMembership } from "@/features/session/SessionProvider";
 import { track } from "@/lib/analytics";
 import { Decimal } from "@/lib/decimal";
 import { draftKey } from "@/lib/drafts";
+import { formSaveError } from "@/lib/outbox";
 import { fmtDate } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
@@ -223,7 +224,7 @@ function ExpenseForm({
             {"Not saved yet. Tap Save expense when it's done."}
           </Banner>
         ) : null}
-        {save.error ? <Banner tone="danger" title={save.error.message} /> : null}
+        {save.error ? <Banner tone="danger" title={formSaveError(save.error.message)} /> : null}
 
         <View className="gap-8">
           <FieldLabel>What for</FieldLabel>

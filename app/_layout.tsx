@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
+import { OutboxProvider } from "@/features/day/Outbox";
 import { SelectedDayProvider } from "@/features/day/SelectedDay";
 import { SessionProvider, useSession } from "@/features/session/SessionProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
@@ -31,9 +32,11 @@ export default function RootLayout() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <SelectedDayProvider>
-            <Screens />
-          </SelectedDayProvider>
+          <OutboxProvider>
+            <SelectedDayProvider>
+              <Screens />
+            </SelectedDayProvider>
+          </OutboxProvider>
         </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>

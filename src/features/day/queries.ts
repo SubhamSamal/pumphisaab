@@ -11,6 +11,8 @@ import { DEFAULT_RULES, type DipChartRow, type Price, type Product, type Rules }
 import { addDays } from "@/lib/businessDay";
 import { friendlyError } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
+import { registerOutboxRunner, saveOrQueue, useOutbox, useWaiting } from "./Outbox";
+import { overlayReadings, overlaySales, overlayShiftData } from "./outboxOverlay";
 
 // ─── Setup the day needs (tanks, charts, prices, rules) ───────────────────
 export type SetupTank = { id: string; label: string; product: Product; chartId: string; isActive: boolean };
@@ -192,9 +194,12 @@ export type TankReading = {
 export type TankYesterday = { tankId: string; closingDipCm: string | null; bookGapLitres: string | null };
 
 export function useTankReadings(dayId: string | undefined) {
+  const waiting = useWaiting("tankReading", dayId);
   return useQuery({
     queryKey: ["tankReadings", dayId],
     enabled: Boolean(dayId),
+    // Saves waiting in the outbox (no internet) show on top of what was loaded (D70).
+    select: (data) => (waiting.length ? { ...data, readings: overlayReadings(data.readings, waiting) } : data),
     queryFn: async () => {
       const [readings, yesterday] = await Promise.all([
         supabase.from("tank_readings").select("id, tank_id, reading_type, dip_cm::text, book_stock_l::text, version").eq("day_id", dayId as string),
@@ -226,25 +231,42 @@ export function useTankReadings(dayId: string | undefined) {
  * twice never makes two rows. Sends the version it read: if someone else saved in between, the
  * database refuses instead of overwriting.
  */
+export type TankReadingSave = { tankId: string; type: ReadingType; dipCm: string | null; bookStockLitres: string | null; version?: number };
+
+async function sendTankReading({ pumpId, dayId, ...input }: TankReadingSave & { pumpId: string; dayId: string }) {
+  const { error } = await supabase.from("tank_readings").upsert(
+    {
+      pump_id: pumpId,
+      day_id: dayId,
+      tank_id: input.tankId,
+      reading_type: input.type,
+      dip_cm: input.dipCm,
+      book_stock_l: input.type === "OPENING" ? input.bookStockLitres : null,
+      ...(input.version ? { version: input.version } : {}),
+    },
+    { onConflict: "day_id,tank_id,reading_type" },
+  );
+  if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
+}
+registerOutboxRunner("tankReading", (i) => sendTankReading(i as TankReadingSave & { pumpId: string; dayId: string }));
+
+/**
+ * Saves one tank's dip (and IOCL report stock). Keyed by day + tank + opening/closing, so saving
+ * twice never makes two rows. Sends the version it read: if someone else saved in between, the
+ * database refuses instead of overwriting. With no internet it waits in the outbox (D70; sent
+ * later without the version: the latest save wins, D71).
+ */
 export function useSaveTankReading(pumpId: string, dayId: string | undefined) {
   const qc = useQueryClient();
+  const box = useOutbox();
   return useMutation({
     mutationKey: ["save", "tankReading"],
-    mutationFn: async (input: { tankId: string; type: ReadingType; dipCm: string | null; bookStockLitres: string | null; version?: number }) => {
-      const { error } = await supabase.from("tank_readings").upsert(
-        {
-          pump_id: pumpId,
-          day_id: dayId,
-          tank_id: input.tankId,
-          reading_type: input.type,
-          dip_cm: input.dipCm,
-          book_stock_l: input.type === "OPENING" ? input.bookStockLitres : null,
-          ...(input.version ? { version: input.version } : {}),
-        },
-        { onConflict: "day_id,tank_id,reading_type" },
-      );
-      if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
-    },
+    mutationFn: (input: TankReadingSave) =>
+      saveOrQueue(
+        box,
+        { kind: "tankReading", key: `tankReading:${dayId}:${input.tankId}:${input.type}`, dayId: dayId as string, input: { ...input, version: undefined, pumpId, dayId } },
+        () => sendTankReading({ ...input, pumpId, dayId: dayId as string }),
+      ),
     onSettled: () => qc.invalidateQueries({ queryKey: ["tankReadings", dayId] }),
   });
 }
@@ -299,9 +321,12 @@ export type Test = { id: string; shiftId: string; nozzleId: string; litres: stri
 export type ShiftData = { shifts: Shift[]; lines: NozzleLine[]; attendants: Attendant[]; tests: Test[] };
 
 export function useShiftData(dayId: string | undefined) {
+  const readings = useWaiting("nozzleReading", dayId);
+  const cash = useWaiting("openingCash", dayId);
   return useQuery({
     queryKey: ["shiftData", dayId],
     enabled: Boolean(dayId),
+    select: (data) => (readings.length || cash.length ? overlayShiftData(data, [...readings, ...cash]) : data),
     queryFn: async (): Promise<ShiftData> => {
       const id = dayId as string;
       const [shifts, lines, attendants, tests] = await Promise.all([
@@ -360,29 +385,44 @@ async function check<T extends { error: unknown }>(p: PromiseLike<T>) {
   if (error) throw new Error(friendlyError(error, "Couldn't save. Try again."), { cause: error });
 }
 
+export type NozzleReadingSave = { shiftId: string; nozzleId: string; closing?: string | null; opening?: string | null; openingTyped?: boolean; version?: number | null };
+
+async function sendNozzleReading({ pumpId, dayId, ...input }: NozzleReadingSave & { pumpId: string; dayId: string }) {
+  await check(
+    supabase.from("nozzle_readings").upsert(
+      {
+        pump_id: pumpId,
+        day_id: dayId,
+        shift_id: input.shiftId,
+        nozzle_id: input.nozzleId,
+        ...(input.closing !== undefined ? { closing: input.closing } : {}),
+        ...(input.openingTyped !== undefined ? { opening_typed: input.openingTyped, opening: input.openingTyped ? input.opening : null } : {}),
+        ...(input.version ? { version: input.version } : {}),
+      },
+      { onConflict: "shift_id,nozzle_id" },
+    ),
+  );
+}
+registerOutboxRunner("nozzleReading", (i) => sendNozzleReading(i as NozzleReadingSave & { pumpId: string; dayId: string }));
+
 /**
  * Saves a closing reading, or a typed opening (meter change / first reading). The database copies
- * the opening from the previous closing unless `openingTyped`. Keyed by shift + nozzle (safe to repeat).
+ * the opening from the previous closing unless `openingTyped`. Keyed by shift + nozzle (safe to
+ * repeat). With no internet it waits in the outbox (D70).
  */
 export function useSaveNozzleReading(pumpId: string, dayId: string | undefined) {
-  return useShiftSave(
-    dayId,
-    "nozzleReading",
-    (input: { shiftId: string; nozzleId: string; closing?: string | null; opening?: string | null; openingTyped?: boolean; version?: number | null }) =>
-      check(
-        supabase.from("nozzle_readings").upsert(
-          {
-            pump_id: pumpId,
-            day_id: dayId,
-            shift_id: input.shiftId,
-            nozzle_id: input.nozzleId,
-            ...(input.closing !== undefined ? { closing: input.closing } : {}),
-            ...(input.openingTyped !== undefined ? { opening_typed: input.openingTyped, opening: input.openingTyped ? input.opening : null } : {}),
-            ...(input.version ? { version: input.version } : {}),
-          },
-          { onConflict: "shift_id,nozzle_id" },
-        ),
-      ),
+  const box = useOutbox();
+  return useShiftSave(dayId, "nozzleReading", (input: NozzleReadingSave) =>
+    saveOrQueue(
+      box,
+      {
+        kind: "nozzleReading",
+        key: `nozzleReading:${input.shiftId}:${input.nozzleId}:${input.closing !== undefined ? "c" : ""}${input.openingTyped !== undefined ? "o" : ""}`,
+        dayId: dayId as string,
+        input: { ...input, version: undefined, pumpId, dayId },
+      },
+      () => sendNozzleReading({ ...input, pumpId, dayId: dayId as string }),
+    ),
   );
 }
 
@@ -669,9 +709,12 @@ export type SalesData = {
 };
 
 export function useSalesData(dayId: string | undefined) {
+  const payments = useWaiting("shiftPayment", dayId);
+  const counts = useWaiting("noteCount", dayId);
   return useQuery({
     queryKey: ["salesData", dayId],
     enabled: Boolean(dayId),
+    select: (data) => (payments.length || counts.length ? overlaySales(data, [...payments, ...counts]) : data),
     queryFn: async (): Promise<SalesData> => {
       const id = dayId as string;
       const [payments, counts, slips, cps, money] = await Promise.all([
@@ -720,53 +763,86 @@ function useSalesSave<T>(dayId: string | undefined, key: string, fn: (input: T) 
   });
 }
 
-/** One ₹ total for a way of payment in a shift (or the coins, for Cash). Keyed by shift + type. */
-export function useSaveShiftPayment(pumpId: string, dayId: string | undefined) {
-  return useSalesSave(dayId, "shiftPayment", (input: { shiftId: string; typeId: string; amount?: string | null; coins?: string | null }) =>
-    check(
-      supabase.from("shift_payments").upsert(
-        {
-          pump_id: pumpId,
-          day_id: dayId,
-          shift_id: input.shiftId,
-          payment_type_id: input.typeId,
-          ...(input.amount !== undefined ? { amount: input.amount } : {}),
-          ...(input.coins !== undefined ? { coins: input.coins } : {}),
-        },
-        { onConflict: "shift_id,payment_type_id" },
+export type ShiftPaymentSave = { shiftId: string; typeId: string; amount?: string | null; coins?: string | null };
+export type NoteCountSave = { shiftId: string; noteId: string; count: number; cashTypeId: string };
+
+async function sendShiftPayment({ pumpId, dayId, ...input }: ShiftPaymentSave & { pumpId: string; dayId: string }) {
+  await check(
+    supabase.from("shift_payments").upsert(
+      {
+        pump_id: pumpId,
+        day_id: dayId,
+        shift_id: input.shiftId,
+        payment_type_id: input.typeId,
+        ...(input.amount !== undefined ? { amount: input.amount } : {}),
+        ...(input.coins !== undefined ? { coins: input.coins } : {}),
+      },
+      { onConflict: "shift_id,payment_type_id" },
+    ),
+  );
+}
+
+async function sendNoteCount({ pumpId, dayId, ...input }: NoteCountSave & { pumpId: string; dayId: string }) {
+  await check(
+    supabase
+      .from("cash_counts")
+      .upsert({ pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, denomination_id: input.noteId, note_count: input.count }, { onConflict: "shift_id,denomination_id" }),
+  );
+  await check(
+    supabase
+      .from("shift_payments")
+      .upsert(
+        { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, payment_type_id: input.cashTypeId },
+        { onConflict: "shift_id,payment_type_id", ignoreDuplicates: true },
       ),
+  );
+}
+
+async function sendOpeningCash(input: { shiftId: string; value: string | null }) {
+  await check(supabase.from("shifts").update({ opening_cash: input.value }).eq("id", input.shiftId));
+}
+
+registerOutboxRunner("shiftPayment", (i) => sendShiftPayment(i as ShiftPaymentSave & { pumpId: string; dayId: string }));
+registerOutboxRunner("noteCount", (i) => sendNoteCount(i as NoteCountSave & { pumpId: string; dayId: string }));
+registerOutboxRunner("openingCash", (i) => sendOpeningCash(i as { shiftId: string; value: string | null }));
+
+/** One ₹ total for a way of payment in a shift (or the coins, for Cash). Keyed by shift + type. Waits in the outbox offline (D70). */
+export function useSaveShiftPayment(pumpId: string, dayId: string | undefined) {
+  const box = useOutbox();
+  return useSalesSave(dayId, "shiftPayment", (input: ShiftPaymentSave) =>
+    saveOrQueue(
+      box,
+      {
+        kind: "shiftPayment",
+        key: `shiftPayment:${input.shiftId}:${input.typeId}:${input.amount !== undefined ? "a" : ""}${input.coins !== undefined ? "c" : ""}`,
+        dayId: dayId as string,
+        input: { ...input, pumpId, dayId },
+      },
+      () => sendShiftPayment({ ...input, pumpId, dayId: dayId as string }),
     ),
   );
 }
 
 /** How many of one note were counted in a shift's drawer. Saving the count also marks the cash as counted. */
 export function useSaveNoteCount(pumpId: string, dayId: string | undefined) {
-  return useSalesSave(dayId, "noteCount", async (input: { shiftId: string; noteId: string; count: number; cashTypeId: string }) => {
-    await check(
-      supabase
-        .from("cash_counts")
-        .upsert(
-          { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, denomination_id: input.noteId, note_count: input.count },
-          { onConflict: "shift_id,denomination_id" },
-        ),
-    );
-    await check(
-      supabase
-        .from("shift_payments")
-        .upsert(
-          { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, payment_type_id: input.cashTypeId },
-          { onConflict: "shift_id,payment_type_id", ignoreDuplicates: true },
-        ),
-    );
-  });
+  const box = useOutbox();
+  return useSalesSave(dayId, "noteCount", (input: NoteCountSave) =>
+    saveOrQueue(
+      box,
+      { kind: "noteCount", key: `noteCount:${input.shiftId}:${input.noteId}`, dayId: dayId as string, input: { ...input, pumpId, dayId } },
+      () => sendNoteCount({ ...input, pumpId, dayId: dayId as string }),
+    ),
+  );
 }
 
 /** Cash already in the drawer at the start of a shift; null = use the previous shift's count (D46). */
 export function useSetOpeningCash(dayId: string | undefined) {
+  const box = useOutbox();
   return useSalesSave(
     dayId,
     "openingCash",
-    (input: { shiftId: string; value: string | null }) => check(supabase.from("shifts").update({ opening_cash: input.value }).eq("id", input.shiftId)),
+    (input: { shiftId: string; value: string | null }) =>
+      saveOrQueue(box, { kind: "openingCash", key: `openingCash:${input.shiftId}`, dayId: dayId as string, input }, () => sendOpeningCash(input)),
     [["shiftData", dayId]],
   );
 }

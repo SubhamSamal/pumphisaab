@@ -63,7 +63,7 @@ export default function ClosingDipScreen() {
         subtitle={date ? fmtDate(date, "weekday") : undefined}
         wide={wide}
         onBack={() => router.back()}
-        right={ready ? <SaveIndicator state={save} /> : undefined}
+        right={ready ? <SaveIndicator state={save.state} waiting={save.waiting} /> : undefined}
       />
       {failed ? (
         <ScreenBody>

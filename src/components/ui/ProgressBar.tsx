@@ -3,7 +3,7 @@ import { Text } from "./Text";
 import { SaveIndicator, type SaveState } from "./SaveIndicator";
 
 /** "4 of 8 done" + 8 px bar. Always a number, never a bare bar. */
-export function ProgressBar({ done, total, left, save }: { done: number; total: number; left?: React.ReactNode; save?: SaveState }) {
+export function ProgressBar({ done, total, left, save, waiting }: { done: number; total: number; left?: React.ReactNode; save?: SaveState; waiting?: number }) {
   // A sliver shows at 0 so the track reads as a progress bar, like the canvas.
   const pct = Math.max(2, Math.round((done / total) * 100));
   return (
@@ -14,7 +14,7 @@ export function ProgressBar({ done, total, left, save }: { done: number; total: 
           <Text variant="label" tone="secondary">
             {done} of {total} done
           </Text>
-          {save ? <SaveIndicator state={save} /> : null}
+          {save ? <SaveIndicator state={save} waiting={waiting} /> : null}
         </View>
       </View>
       <View
