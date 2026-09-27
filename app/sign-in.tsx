@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 import { z } from "zod";
-import { Banner, Button, LogoMark, Text, TextField, ToggleRow, Wordmark } from "@/components/ui";
+import { Banner, Button, KeyboardSafeScroll, LogoMark, Text, TextField, ToggleRow, Wordmark } from "@/components/ui";
 import { useSession } from "@/features/session/SessionProvider";
 
 const schema = z.object({
@@ -33,8 +33,8 @@ export default function SignIn() {
   });
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-bg" behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerClassName="px-24 pb-24 pt-[96px]" keyboardShouldPersistTaps="handled">
+    // revealToEnd: with the keyboard open, the Sign in button stays visible under the password box.
+    <KeyboardSafeScroll contentContainerClassName="px-24 pb-24 pt-[96px]" revealToEnd>
         <View className="w-full max-w-content gap-40 self-center">
           <View className="gap-12">
             <LogoMark />
@@ -102,7 +102,6 @@ export default function SignIn() {
             </Text>
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardSafeScroll>
   );
 }

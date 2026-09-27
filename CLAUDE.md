@@ -58,6 +58,7 @@ tools/                  Developer-only helpers, not part of the app (tools/db-lo
 - `npm run typecheck`, `npm run lint`, `npm test` pass; `supabase test db` passes if SQL changed.
 - New logic has tests; formula changes update `tests/golden/`.
 - Screens checked in light and dark mode at 390 px width and on web.
+- **Keyboard never covers what's being typed** (owner's rule, 27 Sep): every screen with a typing box sits in `ScreenBody` or `KeyboardSafeScroll`, and sheets use `BottomSheet` (never a raw ScrollView/KeyboardAvoidingView). The box being typed in and the button needed next must stay visible above the keyboard on Android and iPhone. `tests/keyboard-safety.test.ts` enforces the first part; check the second on the phone for every new form.
 - Analytics events from the PRD are fired where relevant.
 - A short plain-language summary: what changed, how to see it, anything the owner must do.
 

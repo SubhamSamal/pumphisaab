@@ -1,9 +1,10 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/ThemeProvider";
 import { shadow } from "@/theme/theme";
 import { Icon } from "./Icon";
+import { useAndroidKeyboard } from "./Screen";
 import { Text } from "./Text";
 
 /**
@@ -13,9 +14,23 @@ import { Text } from "./Text";
 export function BottomSheet({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: ReactNode }) {
   const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
+  const sheetRef = useRef<View>(null);
+  const [lift, setLift] = useState(0);
+
+  // Android: whether or not the window shrank for the keyboard, measure where the sheet ends up
+  // and lift it by exactly the part the keyboard still covers (see KeyboardSafeScroll).
+  useAndroidKeyboard(
+    (keyboardTop) =>
+      setTimeout(
+        () => sheetRef.current?.measureInWindow((_x, y, _w, h) => setLift((cur) => Math.max(0, cur + y + h - keyboardTop))),
+        50,
+      ),
+    () => setLift(0),
+  );
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Pressable
           className="absolute inset-0 bg-text-primary/50"
           onPress={onClose}
@@ -23,8 +38,9 @@ export function BottomSheet({ visible, onClose, children }: { visible: boolean; 
           accessibilityLabel="Close"
         />
         <View
+          ref={sheetRef}
           className="w-full max-w-content gap-16 self-center rounded-t-lg bg-bg px-16 pt-12"
-          style={{ paddingBottom: Math.max(24, insets.bottom), boxShadow: shadow.sheet[scheme] }}
+          style={{ paddingBottom: Math.max(24, insets.bottom), marginBottom: lift, boxShadow: shadow.sheet[scheme] }}
         >
           <View className="h-4 w-40 self-center rounded-full bg-border-strong" />
           {children}
