@@ -14,8 +14,10 @@ export function useIsWide() {
  * Android draws edge to edge, so the window no longer shrinks when the keyboard opens and a box
  * near the bottom hides behind it (owner found this on Opening dip and Sign in, 27 Sep). Here, on
  * Android, the content gets room under it equal to the keyboard, and the box being typed in is
- * scrolled to just above the keyboard. `revealToEnd` scrolls to the very end instead, for short
- * forms whose main button sits below the last box (Sign in). iPhone uses KeyboardAvoidingView.
+ * scrolled to just above the keyboard, with room for a short message under it (an error that
+ * appears while typing is scrolled into view too). `revealToEnd` scrolls to the very end instead,
+ * for short forms whose main button sits below the last box (Sign in). iPhone uses
+ * KeyboardAvoidingView.
  */
 export function KeyboardSafeScroll({
   children,
@@ -28,23 +30,34 @@ export function KeyboardSafeScroll({
 }) {
   const scrollRef = useRef<ScrollView>(null);
   const scrollY = useRef(0);
+  const keyboardTop = useRef<number | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
+  // Room kept under the box being typed in: enough for a two-line message below it.
+  const ROOM_BELOW = 72;
+  const reveal = () => {
+    const top = keyboardTop.current;
+    if (top === null) return;
+    if (revealToEnd) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      return;
+    }
+    TextInput.State.currentlyFocusedInput()?.measureInWindow((_x, y, _w, h) => {
+      const overlap = y + h + ROOM_BELOW - top;
+      if (overlap > 0) scrollRef.current?.scrollTo({ y: scrollY.current + overlap, animated: true });
+    });
+  };
+
   useAndroidKeyboard(
-    (keyboardTop, height) => {
+    (top, height) => {
+      keyboardTop.current = top;
       setKeyboardHeight(height);
-      setTimeout(() => {
-        if (revealToEnd) {
-          scrollRef.current?.scrollToEnd({ animated: true });
-          return;
-        }
-        TextInput.State.currentlyFocusedInput()?.measureInWindow((_x, y, _w, h) => {
-          const overlap = y + h + 24 - keyboardTop;
-          if (overlap > 0) scrollRef.current?.scrollTo({ y: scrollY.current + overlap, animated: true });
-        });
-      }, 50);
+      setTimeout(reveal, 50);
     },
-    () => setKeyboardHeight(0),
+    () => {
+      keyboardTop.current = null;
+      setKeyboardHeight(0);
+    },
   );
 
   return (
@@ -58,6 +71,10 @@ export function KeyboardSafeScroll({
         scrollEventThrottle={32}
         onScroll={(e) => {
           scrollY.current = e.nativeEvent.contentOffset.y;
+        }}
+        // A message that appears under the box while typing makes the content taller: reveal again.
+        onContentSizeChange={() => {
+          if (keyboardTop.current !== null) setTimeout(reveal, 50);
         }}
       >
         {children}

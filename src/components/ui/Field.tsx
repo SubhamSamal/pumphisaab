@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { TextInput, View, type KeyboardTypeOptions, type TextInputProps } from "react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { text as textTokens, fontFamilyForWeight } from "@/theme/theme";
+import { fromShown, showTyped } from "@/lib/numberInput";
 import { Icon } from "./Icon";
 import { AutoTag } from "./Tag";
 import { Text } from "./Text";
@@ -18,14 +19,14 @@ export function FieldLabel({ children, extra }: { children: string; extra?: Reac
   );
 }
 
-/** Red message under a field. Says what to fix. Never a toast. */
+/** Red message under a field. Says what to fix. Never a toast. 14 px, so it stays short next to the number. */
 export function FieldError({ message }: { message: string }) {
   return (
     <View className="flex-row items-start gap-4" accessibilityLiveRegion="polite">
       <View className="mt-[2px]">
-        <Icon name="error" color="danger" />
+        <Icon name="error" size="small" color="danger" />
       </View>
-      <Text variant="body" tone="danger" className="flex-1">
+      <Text variant="label" weight="400" tone="danger" className="flex-1">
         {message}
       </Text>
     </View>
@@ -156,8 +157,9 @@ export function NumericInput({
         <TextInput
           ref={inputRef}
           accessibilityLabel={label}
-          value={focused || formatted === undefined ? value : formatted}
-          onChangeText={onChangeText}
+          // Indian commas appear while typing (1,26,942.71); the number itself is kept without them.
+          value={focused || formatted === undefined ? showTyped(value) : formatted}
+          onChangeText={onChangeText ? (t) => onChangeText(fromShown(t)) : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false);

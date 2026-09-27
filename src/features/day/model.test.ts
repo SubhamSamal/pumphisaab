@@ -195,6 +195,11 @@ describe("shift meters (slice 4b)", () => {
     const shift = shifts[0];
     expect(shiftProgress(shift, setup, data(lines))).toMatchObject({ typedCount: 2, total: 3, done: false, started: true });
     expect(shiftProgress(shift, setup, data(lines), { "A:ms3": "520" })).toMatchObject({ typedCount: 3, people: 0, done: false });
+    // A closing below the opening (H1) is not "typed": the shift can't look done with it.
+    expect(shiftProgress(shift, setup, data(lines), { "A:ms3": "5" }).typedCount).toBe(2);
+    // A first opening typed on screen (not saved yet) counts too.
+    const noOpening = [lines[0], lines[1], line("A", "ms3", { hasPrevious: false })];
+    expect(shiftProgress(shift, setup, data(noOpening), { "open:A:ms3": "500", "A:ms3": "520" }).typedCount).toBe(3);
     const withPeople = data(lines, { attendants: [{ id: "x", shiftId: "A", staffId: "s" }] });
     expect(shiftProgress(shift, setup, withPeople, { "A:ms3": "520" }).done).toBe(true);
   });

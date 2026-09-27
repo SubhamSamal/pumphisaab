@@ -28,3 +28,21 @@ export function readTypedNumber(raw: string, decimals: number): TypedNumber {
   const cleanWhole = whole.replace(/^0+(?=\d)/, "") || "0";
   return { kind: "ok", value: frac ? `${cleanWhole}.${frac}` : cleanWhole };
 }
+
+/**
+ * What a typing box shows while the number is being typed: Indian commas as you go, so a lakh
+ * never looks like a thousand ("126942.7" shows "1,26,942.7"). Whatever was typed after the
+ * point is kept exactly, and anything that isn't a plain number is shown as typed.
+ */
+export function showTyped(raw: string): string {
+  const m = /^(\d+)(\.\d*)?$/.exec(raw);
+  if (!m) return raw;
+  const whole = m[1];
+  const grouped = whole.length <= 3 ? whole : `${whole.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",")},${whole.slice(-3)}`;
+  return grouped + (m[2] ?? "");
+}
+
+/** The number as stored, from what the box shows (commas and spaces taken out). */
+export function fromShown(shown: string): string {
+  return shown.replace(/[,\s]/g, "");
+}

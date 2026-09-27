@@ -2,6 +2,15 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (4b phone check, owner feedback)
+
+**D55. Nozzle row redesigned by the owner** (overrides the canvas F5 row): name and litres sold ("223.26 L") on one line, then two boxes side by side, **Opening** and **Closing**. A copied opening is a grey locked box (tap it for a meter change); where there's nothing to copy (first reading in the app, or the earlier shift has no closing yet) the opening is a white box typed directly. Meter numbers are 18 px so a lakh reading fits.
+Why: "Tap to type" wasn't obvious and the closing box did nothing until the opening existed.
+
+**D56. Numbers show Indian commas while being typed** (1,26,942.71) in every number box, so lakhs and thousands can't be confused. The stored number never has commas.
+
+**D57. Error messages under a box are 14 px and short** ("Less than the opening. Check the meter."), and the screen keeps a message that appears while typing above the keyboard.
+
 ## 27 Sep 2026 (slice 4b build)
 
 **D54. Meter readings, as built in 4b** (inside the approved plan):

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { readTypedNumber } from "./numberInput";
+import { fromShown, readTypedNumber, showTyped } from "./numberInput";
 
 it("reads typed numbers as exact text", () => {
   expect(readTypedNumber("", 1)).toEqual({ kind: "empty" });
@@ -19,4 +19,17 @@ it("refuses what can't be a reading", () => {
   expect(readTypedNumber("12a", 2)).toMatchObject({ kind: "bad" });
   expect(readTypedNumber("1.2.3", 2)).toMatchObject({ kind: "bad" });
   expect(readTypedNumber(".", 1)).toMatchObject({ kind: "bad" });
+});
+
+it("shows Indian commas while typing, and takes them out again", () => {
+  expect(showTyped("")).toBe("");
+  expect(showTyped("999")).toBe("999");
+  expect(showTyped("1000")).toBe("1,000");
+  expect(showTyped("126942.71")).toBe("1,26,942.71");
+  expect(showTyped("12345678")).toBe("1,23,45,678");
+  expect(showTyped("100000.")).toBe("1,00,000.");
+  expect(showTyped("5.0")).toBe("5.0");
+  expect(showTyped("12a")).toBe("12a");
+  expect(fromShown("1,26,942.71")).toBe("126942.71");
+  expect(fromShown(showTyped("100000."))).toBe("100000.");
 });

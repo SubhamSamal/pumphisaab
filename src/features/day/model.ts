@@ -6,7 +6,7 @@
 
 import { evaluateDay, priceFor, shiftLitres, type DayInput, type DayResult, type Issue, type Product, type ShiftCode, type ShiftInput, type TankDay } from "@/calc";
 import { addDays } from "@/lib/businessDay";
-import { toDecimal } from "@/lib/decimal";
+import { Decimal, toDecimal } from "@/lib/decimal";
 import { fmtClock, fmtLitres, fmtRupees } from "@/lib/format";
 import type { SectionStatus } from "@/components/ui";
 import type { Day, DaySetup, DayStatus, NozzleLine, SetupNozzle, Shift, ShiftData, TankReading, TankYesterday } from "./queries";
@@ -139,9 +139,19 @@ export function todaySections(
 }
 
 // ─── Shift meters and testing (slice 4b) ──────────────────────────────────
-/** Closing readings typed on screen but maybe not saved yet, by `${shiftId}:${nozzleId}`. */
+/**
+ * Readings typed on screen but maybe not saved yet: closings by `${shiftId}:${nozzleId}`, and
+ * typed openings (first reading, nothing to copy) by `open:${shiftId}:${nozzleId}`. null = empty.
+ */
 export type TypedClosings = Record<string, string | null>;
 export const lineKey = (shiftId: string, nozzleId: string) => `${shiftId}:${nozzleId}`;
+export const openingKey = (shiftId: string, nozzleId: string) => `open:${shiftId}:${nozzleId}`;
+
+/** The opening on screen: typed (not yet saved) if there is one, else the saved or copied one. */
+function openingShown(line: NozzleLine | undefined, shiftId: string, nozzleId: string, typed: TypedClosings): string | null {
+  const key = openingKey(shiftId, nozzleId);
+  return key in typed ? typed[key] : openingOf(line);
+}
 
 export const inUseNozzles = (setup: DaySetup) => setup.nozzles.filter((n) => n.inUse);
 
@@ -165,13 +175,14 @@ export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosin
       const line = data.lines.find((l) => l.shiftId === shift.id && l.nozzleId === n.id);
       const key = lineKey(shift.id, n.id);
       const closing = key in typed ? typed[key] : line?.closing;
+      const opening = openingShown(line, shift.id, n.id, typed);
       return {
         nozzleId: n.id,
         label: n.label,
         product: n.product,
         tankId: n.tankId,
         inUse: n.inUse,
-        ...(openingOf(line) ? { opening: openingOf(line) as string } : {}),
+        ...(opening ? { opening } : {}),
         ...(closing ? { closing } : {}),
         ...(line?.hasPrevious && line.previousClosing ? { previousClosing: line.previousClosing } : {}),
         ...(line?.meterChange === "APPROVED" ? { meterChangeApproved: true } : {}),
@@ -192,7 +203,12 @@ export function shiftProgress(shift: Shift, setup: DaySetup, data: ShiftData, ty
     const key = lineKey(shift.id, n.id);
     return key in typed ? typed[key] : lines[i]?.closing;
   };
-  const typedCount = nozzles.filter((n, i) => openingOf(lines[i]) && closingOf(n, i)).length;
+  // A reading counts as typed only when it can be true (closing not below opening, H1).
+  const typedCount = nozzles.filter((n, i) => {
+    const opening = openingShown(lines[i], shift.id, n.id, typed);
+    const closing = closingOf(n, i);
+    return opening && closing && !new Decimal(closing).lessThan(opening);
+  }).length;
   const people = data.attendants.filter((a) => a.shiftId === shift.id).length;
   const started = nozzles.some((n, i) => closingOf(n, i)) || people > 0 || data.tests.some((t) => t.shiftId === shift.id);
   return { typedCount, total: nozzles.length, people, started, done: nozzles.length > 0 && typedCount === nozzles.length && people > 0 };

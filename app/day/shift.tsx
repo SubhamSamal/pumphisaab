@@ -27,7 +27,7 @@ import {
   useIsWide,
 } from "@/components/ui";
 import { shiftLitres, type Product } from "@/calc";
-import { evaluate, inUseNozzles, lineKey, openingOf, shiftHours, shiftInputs, shiftProgress, type TypedClosings } from "@/features/day/model";
+import { evaluate, inUseNozzles, lineKey, openingKey, openingOf, shiftHours, shiftInputs, shiftProgress, type TypedClosings } from "@/features/day/model";
 import {
   useApproveMeterChange,
   useDay,
@@ -148,16 +148,27 @@ function ShiftForm({
   const [closings, setClosings] = useState<Record<string, string>>(() =>
     Object.fromEntries(inUseNozzles(setup).map((n) => [n.id, lineOf(n.id)?.closing ?? ""])),
   );
+  // Openings typed here: only where there's no earlier closing to copy (first reading in the app).
+  const [openings, setOpenings] = useState<Record<string, string>>(() =>
+    Object.fromEntries(inUseNozzles(setup).map((n) => [n.id, lineOf(n.id)?.openingTyped ? (lineOf(n.id)?.opening ?? "") : ""])),
+  );
+  const typesOpening = (line: NozzleLine | undefined) => !line?.hasPrevious || !line.previousClosing;
 
-  // What the engine sees: valid typed closings only.
+  // What the engine sees: valid typed numbers only.
   const typed: TypedClosings = useMemo(() => {
     const out: TypedClosings = {};
     for (const [nozzleId, v] of Object.entries(closings)) {
       const r = readTypedNumber(v, 2);
       out[lineKey(shift.id, nozzleId)] = r.kind === "ok" ? r.value : null;
     }
+    for (const [nozzleId, v] of Object.entries(openings)) {
+      const line = data.lines.find((l) => l.shiftId === shift.id && l.nozzleId === nozzleId);
+      if (!typesOpening(line)) continue;
+      const r = readTypedNumber(v, 2);
+      out[openingKey(shift.id, nozzleId)] = r.kind === "ok" ? r.value : null;
+    }
     return out;
-  }, [closings, shift.id]);
+  }, [closings, openings, shift.id, data.lines]);
   const inputs = useMemo(() => shiftInputs(setup, data, typed), [setup, data, typed]);
   const result = useMemo(() => evaluate(setup, day, [], inputs), [setup, day, inputs]);
   const index = data.shifts.findIndex((s) => s.id === shift.id);
@@ -170,7 +181,7 @@ function ShiftForm({
   const order = FUELS.flatMap((f) => inUseNozzles(setup).filter((n) => n.product === f));
   const focusNextEmpty = (after: string) => {
     const start = order.findIndex((n) => n.id === after);
-    const next = [...order.slice(start + 1), ...order.slice(0, start)].find((n) => !closings[n.id] && openingOf(lineOf(n.id)));
+    const next = [...order.slice(start + 1), ...order.slice(0, start)].find((n) => !closings[n.id]);
     if (next) refs.current[next.id]?.focus();
   };
 
@@ -181,7 +192,6 @@ function ShiftForm({
     const value = r.kind === "ok" ? r.value : null;
     const saved = line?.closing ?? null;
     if (value === saved || (value && saved && new Decimal(value).equals(new Decimal(saved)))) return;
-    if (!openingOf(line) && value !== null) return; // opening not known yet: nothing to save against
     if (issues.some((i) => i.code === "H1" && i.where?.nozzleId === n.id)) {
       track("hard_error_shown", { rule_code: "H1", section: `shift${shift.code}` });
       return; // the database would refuse it too
@@ -196,6 +206,21 @@ function ShiftForm({
           setProblem(e.message);
         },
       },
+    );
+  };
+
+  // First reading in the app: the typed opening is saved when its box is left.
+  const saveOpening = (n: SetupNozzle) => {
+    const r = readTypedNumber(openings[n.id], 2);
+    if (r.kind === "bad") return;
+    const line = lineOf(n.id);
+    const value = r.kind === "ok" ? r.value : null;
+    const saved = line?.openingTyped ? (line.opening ?? null) : null;
+    if (value === saved || (value && saved && new Decimal(value).equals(new Decimal(saved)))) return;
+    setProblem(null);
+    saveReading.mutate(
+      { shiftId: shift.id, nozzleId: n.id, opening: value, openingTyped: value !== null },
+      { onSuccess: () => track("field_autosaved", { section: `shift${shift.code}` }), onError: (e) => setProblem(e.message) },
     );
   };
 
@@ -277,9 +302,9 @@ function ShiftForm({
               <View>
                 {nozzles.map((n) => {
                   const line = lineOf(n.id);
-                  const opening = openingOf(line);
-                  const waiting = !opening && Boolean(line?.hasPrevious);
-                  const firstEver = !opening && !line?.hasPrevious;
+                  const typeOpening = typesOpening(line);
+                  const o = readTypedNumber(openings[n.id], 2);
+                  const opening = typeOpening ? (o.kind === "ok" ? o.value : null) : openingOf(line);
                   const r = readTypedNumber(closings[n.id], 2);
                   const h1 = issues.find((i) => i.code === "H1" && i.where?.nozzleId === n.id);
                   const sale = opening && r.kind === "ok" && !h1 ? new Decimal(r.value).minus(opening) : null;
@@ -288,23 +313,34 @@ function ShiftForm({
                     <NozzleRow
                       key={n.id}
                       label={n.label}
-                      opening={opening ? fmtMeter(opening) : "Tap to type"}
+                      opening={opening ? fmtMeter(opening) : undefined}
+                      openingInput={
+                        typeOpening
+                          ? {
+                              value: openings[n.id],
+                              onChange: (t) => setOpenings((c) => ({ ...c, [n.id]: t })),
+                              onBlur: () => saveOpening(n),
+                              editable: !locked,
+                            }
+                          : undefined
+                      }
                       closing={closings[n.id]}
                       onChangeClosing={(t) => setClosings((c) => ({ ...c, [n.id]: t }))}
                       onBlur={() => saveClosing(n)}
                       sale={sale ? fmtMeter(sale) : undefined}
-                      error={r.kind === "bad" ? r.message : h1?.message}
+                      error={o.kind === "bad" ? o.message : r.kind === "bad" ? r.message : h1 ? "Less than the opening. Check the meter." : undefined}
                       openingChanged={Boolean(line?.openingTyped && line.meterChange !== "NONE")}
                       note={
                         pending
                           ? isOwner
-                            ? "New opening waits for your approval. Tap the opening."
-                            : "New opening waits for the owner's approval. You can keep working."
-                          : undefined
+                            ? "New opening waits for your approval. Tap it."
+                            : "New opening waits for the owner. Keep working."
+                          : typeOpening && line?.hasPrevious
+                            ? `${before ? `Shift ${before.code}` : "Last night's shift"} has no closing yet. Type the opening from the meter.`
+                            : undefined
                       }
-                      editable={!locked && !waiting && !firstEver}
-                      placeholder={waiting ? (before ? `After Shift ${before.code}` : "After last night's shift") : firstEver ? "Type the opening first" : "Type here"}
-                      onPressOpening={locked ? undefined : () => setSheet({ nozzle: n, line })}
+                      editable={!locked}
+                      onPressOpening={locked || typeOpening ? undefined : () => setSheet({ nozzle: n, line })}
                       inputRef={(el) => {
                         refs.current[n.id] = el;
                       }}
@@ -397,10 +433,8 @@ function OpeningSheet({
   if (!state) return <BottomSheet visible={false} onClose={close}>{null}</BottomSheet>;
 
   const { nozzle, line } = state;
-  // No earlier closing to compare with: the very first reading, or the earlier shift isn't typed yet.
-  const firstEver = !line?.hasPrevious || !line.previousClosing;
-  const noEarlierYet = Boolean(line?.hasPrevious) && !line?.previousClosing;
-  const previous = line?.previousClosing;
+  // Opened only from a copied (locked) opening, so the previous closing is known.
+  const previous = line?.previousClosing ?? "";
   const earlier = before ? `Shift ${before.code}` : "Last night's shift";
   const r = readTypedNumber(value, 2);
   const pending = line?.meterChange === "PENDING";
@@ -412,7 +446,7 @@ function OpeningSheet({
       { shiftId: shift.id, nozzleId: nozzle.id, opening: r.value, openingTyped: true },
       {
         onSuccess: () => {
-          if (!firstEver && previous && !new Decimal(r.value).equals(previous)) track("meter_change_requested", { shift: shift.code });
+          if (!new Decimal(r.value).equals(previous)) track("meter_change_requested", { shift: shift.code });
           close();
         },
       },
@@ -423,24 +457,12 @@ function OpeningSheet({
 
   return (
     <BottomSheet visible onClose={close}>
-      <Text variant="heading">{firstEver ? `Type ${nozzle.label} opening` : `Change ${nozzle.label} opening?`}</Text>
-      {noEarlierYet ? (
-        <Text variant="body" tone="secondary">
-          {`${earlier} has no closing for ${nozzle.label} yet. Type the opening from the meter, or fill ${earlier} first and it is copied. If the two differ later, the owner is asked to approve.`}
-        </Text>
-      ) : firstEver ? (
-        <Text variant="body" tone="secondary">
-          This is the first reading in the app for this nozzle, so there is no earlier closing to copy.
-        </Text>
-      ) : (
-        <KeyValueRow label={`${earlier} closed at`} value={fmtMeter(previous as string)} />
-      )}
-      <NumericInput label={firstEver ? "Opening reading" : "New opening"} value={value} onChangeText={setValue} error={r.kind === "bad" ? r.message : undefined} />
-      {!firstEver ? (
-        <Text variant="body" tone="secondary">
-          Only do this if the meter was replaced or repaired. The owner has to approve it. You can keep working until then.
-        </Text>
-      ) : null}
+      <Text variant="heading">{`Change ${nozzle.label} opening?`}</Text>
+      <KeyValueRow label={`${earlier} closed at`} value={fmtMeter(previous)} />
+      <NumericInput label="New opening" value={value} onChangeText={setValue} error={r.kind === "bad" ? r.message : undefined} />
+      <Text variant="body" tone="secondary">
+        Only do this if the meter was replaced or repaired. The owner has to approve it. You can keep working until then.
+      </Text>
       {problem ? <Banner tone="danger" title={problem} /> : null}
       {isOwner && pending && line?.readingId ? (
         <Button
@@ -451,13 +473,13 @@ function OpeningSheet({
         />
       ) : null}
       <Button
-        label={firstEver ? "Save opening" : "Send to owner"}
+        label="Send to owner"
         variant={isOwner && pending ? "secondary" : "primary"}
         loading={saveReading.isPending}
         disabled={r.kind !== "ok"}
         onPress={send}
       />
-      {!firstEver && previous ? <Button label={`Keep ${fmtMeter(previous)}`} variant="ghost" onPress={keep} /> : null}
+      {previous ? <Button label={`Keep ${fmtMeter(previous)}`} variant="ghost" onPress={keep} /> : null}
     </BottomSheet>
   );
 }
