@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status snapshot (last updated 27 Sep 2026)
 
-**Where we are:** Phases 0-3 done. Next: Phase 4 (daily entry, slice by slice), plan to come.
+**Where we are:** Phases 0-3 done. Phase 4 plan written (`docs/plans/phase-4-daily-entry.md`), MCQs answered (D45-D52); waiting for the owner's "go".
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -54,7 +54,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
 - [x] Cash: note count (D20)
 - [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
-- [ ] Owner to confirm: cash counted includes opening drawer cash; machine totals include customers' dues payments (needed in Phase 4, Sales slice)
+- [x] Owner confirmed: drawer starting cash prefilled from the last count (D46); card/XtraPower/Paytm/cash dues are in shift totals, bank dues are not (D47)
 - Deferred: Sentry → Phase 4 (D40); PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
 ---
@@ -112,7 +112,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Own development build of the app (EAS) replacing Expo Go; EAS Update channels for instant fixes; Sentry crash tracking
 - **Exit:** owner and manager log in on their phones; RLS test proves Pump X can't see Pump Y; CI green including pgTAP
 
-### Phase 4: Daily entry, slice by slice (~10-12 days)
+### Phase 4: Daily entry, slice by slice (~10-12 days) — plan: `docs/plans/phase-4-daily-entry.md`
 Each slice = its tables (migration) + SQL view part + screen + calc wiring + tests + tried on the owner's phone.
 - 4a Day lifecycle, price Confirm strip, opening stock and dip
 - 4b Shift meters (A/B/C) + testing, H1/H2/H8
@@ -120,6 +120,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - 4d Sales tab: cash note count, other types per shift, credit slips, Done
 - 4e Expenses with "paid from" drawer
 - 4f Closing dip, Review (tank vs meters, money by shift, flags list), Submit, "yesterday first", autosave + local drafts
+- Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook
 

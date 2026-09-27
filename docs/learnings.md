@@ -6,7 +6,7 @@ Anyone new to the project (a person, or Claude Code in a new session) should be 
 - **Decisions** (what we chose) live in `docs/decisions.md` (D1, D2 …). This file explains the **why** and the **how things really work**, and points to the decisions.
 - **Keep it growing:** every new notebook day, owner answer or surprise gets added here, newest learnings at the end of each section, with the date.
 
-Last updated: 27 Sep 2026 (end of Phase 3)
+Last updated: 27 Sep 2026 (Phase 4 MCQ round)
 
 ---
 
@@ -111,6 +111,9 @@ Plus some Excel sheets. Mismatches used to be spotted about 10 days late, with n
 | 13 | Expenses are more varied than the PRD's 4 types | 10 types, owner can add more | D33 |
 | 14 | Diesel dominates, and sales volumes of petrol are tiny (225 L on 15 Sep) | A 0.5% petrol limit is ~1 L; expect petrol flags until limits are tuned on real data (Phase 8) | Watch |
 | 15 | The notebook's arithmetic was right everywhere; differences come from rounding and the tanker short, not mistakes | The app's value is catching drift daily, not fixing sums | Report |
+| 16 | XtraPower is IOCL's fleet card and behaves like a credit card at the machine: dues paid with it show up in the shift's XtraPower total. Bank transfers for old dues never touch a shift | Dues by card/XtraPower/Paytm/cash are taken off the shift; bank dues only recorded (27 Sep) | D47 |
+| 17 | The drawer is not emptied at each shift change: the next shift starts with what was counted, unless the owner takes cash out | Starting cash prefilled from the previous count, editable (27 Sep) | D46 |
+| 18 | The owner wants old days to close themselves: submitted days lock after 3 business days, but an unsubmitted day must stay fixable | Auto-lock submitted days only; warn about yesterday and the day before (27 Sep) | D49 |
 
 ## 4. Numbers from the real day (15 Sep 2026)
 - Petrol: tank 229.54 L vs meters 224.80 L → **−4.74 L (−2.07%)**
@@ -165,6 +168,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Real data beats assumptions:** one notebook day changed 13 decisions. Get real data before designing anything that touches money.
 - **Write down what's decided** in `docs/decisions.md` the same day, and the learning here.
 - **Test like CI before pushing** (fresh clone); tell the owner plainly when something failed and why.
+- **Check an owner answer against the notebook before building on it** (27 Sep): "dues come separately" contradicted the 15 Sep XtraPower figures; re-asking with the exact numbers gave the precise rule (card-type dues in the shift, bank dues outside). Free-text answers often add new rules (auto-lock came this way): split them into small follow-up MCQs.
 
 ## 8. Still open
 See `docs/HANDOFF.md` section 7 (kept there so there is one list). Also: whether "Adj" on XtraPower/Paytm needs its own field later (owner to check).

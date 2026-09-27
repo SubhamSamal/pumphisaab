@@ -8,7 +8,7 @@ PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps.
 
 - **Behaviour source of truth:** `docs/PRD-PumpHisaab-v1.1.md`
 - **Visual source of truth:** Claude Design canvas + `docs/design-tokens.json`
-- **Pilot pump:** Shree Lokanath Filling Station (IOCL). 1 MS + 1 HSD tank (20 KL, same chart, max 21,628.93 L), nozzles HSD-A..D and MS-A..D, shifts A 06-14, B 14-22, C 22-06, business day starts 06:00 IST.
+- **Pilot pump:** Shree Lokanath Filling Station (IOCL). 1 MS + 1 HSD tank (20 KL, same chart, max 21,628.93 L), nozzles HSD-1..4 and MS-1..4 (1 and 2 not in use, D30), shifts A 06-14, B 14-22, C 22-06, business day starts 06:00 IST.
 
 ## The owner of this repo does not write code
 - Explain what you changed in plain language, in short bullets, after every task.

@@ -2,6 +2,31 @@
 
 Newest first. Date, decision, why.
 
+## 27 Sep 2026 (Phase 4 MCQ round)
+
+Plan: `docs/plans/phase-4-daily-entry.md`.
+
+**D45. Phase 4 slices are tried on the real pump** (Shree Lokanath), not a separate practice pump. A separate, clearly marked clean-up script removes the test days and the `manager.test` link before the pilot; the audit log keeps their history (it can't be deleted).
+Why: owner's choice; keeps one pump and one setup.
+
+**D46. Drawer cash at shift start is prefilled** from the previous shift's counted cash (Shift A from the day before's Shift C) and the manager can change it (e.g. the owner took cash out). Confirms D24 and closes the open item "cash counted includes opening drawer cash".
+
+**D47. Customer dues payments by method** (refines D29). XtraPower (IOCL's fleet card, works like a credit card), Card (POS), Paytm and Cash dues payments land inside that shift's total, so the app takes them off before matching. Dues paid by **bank transfer** come separately, outside every shift total, so they are recorded only and never taken off. Closes the open item "machine totals include customers' dues payments". Formula change: engine, SQL view and golden cases (incl. 15 Sep) updated together in slice 4d.
+Why: owner confirmed after being shown the 15 Sep XtraPower figures (₹10,03,216.67 total incl. ₹9,65,052 dues).
+
+**D48. IOCL report stock ("Op. Stock") is optional** at the opening dip; S3 runs only on days it's typed. The opening dip is still required.
+
+**D49. Day locking (moves into Phase 4).** A submitted day locks automatically once it is 3 business days old: on the morning of 05 Oct, 02 Oct and older lock (the database works it out from the server date; no scheduled job). A day that was never submitted does **not** auto-lock; instead Today warns about yesterday and the day before (push alert in Phase 5), so it shouldn't happen. Managers can open and edit any unlocked day. The owner can Lock or Unlock any day; a day the owner unlocks stays open (managers may edit it) until the owner taps Lock again. Manager "Request unlock" stays in Phase 5.
+Why: owner wants old days fixed in place without having to lock each one by hand.
+
+**D50. Managers can add a new credit customer** while adding a slip (like Staff, D38). The owner can rename or switch it off later.
+
+**D51. One migration and one phone check per slice** (6 rounds in Phase 4).
+
+**D52. Sentry is added with the first preview build** at the end of Phase 4 (one Android rebuild for both). Library `@sentry/react-native` approved.
+
+**Housekeeping:** CLAUDE.md's pilot line said nozzles HSD-A..D / MS-A..D; the seed and D30 use HSD-1..4 / MS-1..4 (1 and 2 not in use). CLAUDE.md corrected to match.
+
 ## 27 Sep 2026 (Phase 3 close)
 
 **D44. The first EAS Update test moves to Phase 4,** with the first standalone preview build. The development app loads code from the Mac, so an over-the-air update can't be meaningfully tested on it yet.

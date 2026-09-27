@@ -1,12 +1,12 @@
 # Start here (new Claude Code session)
 
-Last updated: 27 Sep 2026, end of Phase 3. This is the one page a new session reads first to pick up exactly where the last one stopped.
+Last updated: 27 Sep 2026, start of Phase 4 (plan written, MCQs answered, waiting for "go"). This is the one page a new session reads first to pick up exactly where the last one stopped.
 
 ## 1. Read, in this order
 1. `CLAUDE.md` (repo root): hard rules. They override everything.
 2. **This file.**
 3. `docs/EXECUTION.md`: phase plan and status checklist (verify it against the repo).
-4. `docs/decisions.md`: every decision D1-D44, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
+4. `docs/decisions.md`: every decision D1-D52, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
 5. `docs/learnings.md`: how the pump and notebooks really work, product, technical and process lessons.
 6. `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with the decisions above layered on top).
 7. `docs/design/canvas/` (v2 screen flows, final) and `docs/design-tokens.json`: visual source of truth. `docs/design/design-system/components/*/README.md` notes are partly stale (D2, D13).
@@ -19,13 +19,13 @@ Last updated: 27 Sep 2026, end of Phase 3. This is the one page a new session re
 | 1 App shell and design system | Done 26 Sep |
 | 2 Calculation engine + golden cases | Done 26 Sep (`docs/plans/phase-2-report.md`) |
 | 3 Foundations: database, security, login | Done 27 Sep (`docs/plans/phase-3-foundations.md`) |
-| **4 Daily entry, slice by slice** | **Next. Not started. First step: write `docs/plans/phase-4-daily-entry.md`, ask the owner MCQs, wait for "go".** |
+| **4 Daily entry, slice by slice** | **Plan written (`docs/plans/phase-4-daily-entry.md`), MCQs answered (D45-D52). Waiting for the owner's "go". Nothing built yet. First slice: 4a.** |
 | 5 Notebook comparison + owner loop (flags, lock, alerts, push) | Later |
 | 6 Owner settings screens, dashboard, PostHog | Later |
 | 7 Hardening and go-live | Later |
 | 8 Pilot | Later |
 
-Phase 4 slices (from EXECUTION.md): 4a day lifecycle + price Confirm + opening dip → 4b shift meters + testing → 4c tanker → 4d sales + credit + customer payments → 4e expenses → 4f closing dip, review, submit, autosave/drafts. Each slice = its migration + SQL view part + screen + calc wiring + tests + owner tries it on the phone.
+Phase 4 slices (details in the Phase 4 plan): 4a day lifecycle + price Confirm + opening dip → 4b shift meters + testing → 4c tanker → 4d sales + credit + customer payments → 4e expenses → 4f closing dip, review, submit, autosave/drafts. Each slice = its migration + SQL view part + screen + calc wiring + tests + owner tries it on the phone.
 
 ## 3. What exists (short map)
 - **App:** `app/` (Expo Router screens: sign-in, starting, (tabs) today/sales/tanker/dashboard/profile, profile/logins, profile/add-manager, profile/staff, alerts, gallery [dev only]).
@@ -69,10 +69,10 @@ Before every push: run the checks, and for anything touching config or types, te
 - Commit messages end with the Co-Authored-By line from the harness; push to `main`; check CI.
 
 ## 7. Open items to pick up
-1. **Owner to confirm before the Sales slice (4d):** (a) the drawer cash count includes cash already in the drawer at shift start, which the app subtracts; (b) the Paytm/Card/XtraPower/Bank totals typed per shift include customers' old-dues payments, which the app then takes off.
+1. ~~Owner to confirm drawer cash and dues in machine totals~~: answered 27 Sep (D46, D47). D47 is a formula change to make in slice 4d.
 2. More notebook days (1 of 7 transcribed: 15 Sep 2026). Each becomes a golden case.
 3. Backups: Supabase Pro vs nightly copy, decide before real pilot data (Phase 5).
 4. First EAS Update test with the first preview build (Phase 4, D44). Preview/production builds will need `EXPO_PUBLIC_*` set as EAS environment variables.
 5. App icon and splash are still Expo's defaults (make them from the logo before the pilot).
 6. Sentry comes in Phase 4 (D40); PostHog in Phase 6; Cloudflare + pumphisaab.com in Phase 7.
-7. Remove `manager.test` before the pilot.
+7. Remove `manager.test` before the pilot (part of the pre-pilot clean-up script, D45).
