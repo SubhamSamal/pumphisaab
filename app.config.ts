@@ -49,7 +49,7 @@ const config: ExpoConfig = {
     "expo-font",
     // Crash reports (D52, D89). Readable reports: source maps go up with each build using the
     // SENTRY_AUTH_TOKEN secret the owner stored in Expo (never in this repo).
-    ["@sentry/react-native/expo", { organization: "pumphisaab", project: "pumphisaab-app", url: "https://de.sentry.io/" }],
+    ["@sentry/react-native/expo", { organization: "pumphisaab", project: "pumphisaab-app" }],
   ],
   experiments: {
     typedRoutes: true,

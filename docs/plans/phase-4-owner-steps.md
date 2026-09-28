@@ -329,3 +329,26 @@ Why 28 Sep: it comes right after 27 Sep (submitted in Step 3), so "yesterday fir
 
 ### What's next (4g, together)
 The preview APK (installed like a normal app, no Mac needed), Sentry crash reports, and the first over-the-air update test. These need your Expo and Sentry accounts, so we do them together after this check.
+
+---
+
+## 4g: the preview app, crash reports, over-the-air update (29 Sep 2026)
+
+**What's new:** a real app, **PumpHisaab Preview**, that works without the Mac (any Wi-Fi or mobile data). It installs **beside** your development app (different name and icon label), has the new drop icon, sends crash reports to Sentry (no names, emails or typed numbers), and gets fixes over the air. Profile shows which code it runs: "App 1.0.0 · preview · built-in code" (after an update: "update 3f2a91c").
+
+> Your development app needs one restart of the Mac server after this change (the Sentry setup changed how the code is packed): stop `npm run start:android-app` (Ctrl+C) and start it again.
+
+### Step 1: install the preview app (5 minutes)
+1. On the Android phone, open the install link I send (expo.dev › build page) in Chrome › **Install** (or download the .apk and open it).
+2. Android asks to allow installs from Chrome/Files once: **Settings › Allow from this source** › back › **Install**. If Play Protect warns ("unknown app"), tap **More details › Install anyway** (the app is ours, built by Expo).
+3. Open **PumpHisaab Preview** › sign in as `subham` › Today loads (turn Wi-Fi off once to see it works on mobile data).
+4. **Send me** a screenshot of Today and of Profile (with the version line at the bottom).
+
+### Step 2: test crash report (1 minute)
+1. Profile › tap the grey version line **5 times** › **Send a test crash report** › "Sent…".
+2. Tell me; I check it arrived in Sentry (you can see it too: sentry.io › Issues).
+
+### Step 3: over-the-air update (3 minutes, when I say it's sent)
+1. Close PumpHisaab Preview fully (swipe it away from recent apps) and open it. It downloads the update quietly.
+2. Close it fully again and open it: Profile's version line now ends with **"update …"** and says **OTA test**.
+3. **Send me** that screenshot.

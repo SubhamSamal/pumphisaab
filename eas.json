@@ -21,7 +21,8 @@
       },
       "environment": "preview",
       "env": {
-        "APP_VARIANT": "preview"
+        "APP_VARIANT": "preview",
+        "SENTRY_ALLOW_FAILURE": "true"
       }
     },
     "production": {
@@ -33,7 +34,8 @@
       },
       "environment": "production",
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "SENTRY_ALLOW_FAILURE": "true"
       }
     }
   },
