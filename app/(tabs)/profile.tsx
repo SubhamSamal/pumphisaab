@@ -1,8 +1,12 @@
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { View } from "react-native";
+import * as Updates from "expo-updates";
+import { useState } from "react";
+import { Pressable, View } from "react-native";
 import { Button, Card, ListItem, ScreenBody, SegmentedControl, Text } from "@/components/ui";
 import { useMembership, useSession } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
+import { sendTestReport } from "@/lib/crashReports";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { ThemePreference } from "@/theme/theme";
 
@@ -12,6 +16,13 @@ const THEME_OPTIONS = [
   { value: "auto", label: "Auto" },
 ] as const satisfies readonly { value: ThemePreference; label: string }[];
 
+/** "App 1.0.0 · preview · update 3f2a91c": which code this phone runs (4g). */
+function versionLine() {
+  const variant = (Constants.expoConfig?.extra as { variant?: string } | undefined)?.variant ?? "development";
+  const update = Updates.updateId ? `update ${Updates.updateId.slice(0, 7)}` : "built-in code";
+  return `App ${Constants.expoConfig?.version ?? "?"} · ${variant} · ${update}`;
+}
+
 /** Canvas Flow 13 · Profile. Managers see their name, Staff, Screen and Sign out. */
 export default function ProfileScreen() {
   const { preference, setPreference } = useTheme();
@@ -19,6 +30,9 @@ export default function ProfileScreen() {
   const me = useMembership();
   const router = useRouter();
   const isOwner = me.role === "owner";
+  // Tap the version line 5 times: a hidden button to prove crash reports arrive (4g).
+  const [taps, setTaps] = useState(0);
+  const [testSent, setTestSent] = useState<string | null>(null);
 
   return (
     <>
@@ -46,6 +60,27 @@ export default function ProfileScreen() {
         </View>
 
         <Button label="Sign out" variant="secondary" icon="signOut" onPress={signOut} />
+
+        <Pressable onPress={() => setTaps((n) => n + 1)} accessibilityLabel="App version">
+          <Text variant="label" weight="400" tone="muted" className="text-center">
+            {versionLine()}
+          </Text>
+        </Pressable>
+        {taps >= 5 ? (
+          <View className="gap-8">
+            <Button
+              label="Send a test crash report"
+              variant="secondary"
+              size="M"
+              onPress={() => setTestSent(sendTestReport() ? "Sent. It shows in Sentry within a minute." : "Crash reports are only on in the installed app.")}
+            />
+            {testSent ? (
+              <Text variant="label" weight="400" tone="secondary" className="text-center">
+                {testSent}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
 
         {__DEV__ ? (
           <Card tone="summary">

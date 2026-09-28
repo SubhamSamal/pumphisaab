@@ -1,6 +1,8 @@
-const { getDefaultConfig } = require("expo/metro-config");
+// Sentry's version of Expo's Metro config: adds the ids that let crash reports point at our
+// readable code (D89). NativeWind on top, as before.
+const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 const { withNativeWind } = require("nativewind/metro");
 
-const config = getDefaultConfig(__dirname);
+const config = getSentryExpoConfig(__dirname);
 
 module.exports = withNativeWind(config, { input: "./global.css" });

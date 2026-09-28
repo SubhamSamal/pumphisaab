@@ -11,13 +11,15 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { OutboxProvider } from "@/features/day/Outbox";
+import { startCrashReports, withCrashReports } from "@/lib/crashReports";
 import { SelectedDayProvider } from "@/features/day/SelectedDay";
 import { SessionProvider, useSession } from "@/features/session/SessionProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+startCrashReports();
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1 } } }));
   const ready = fontsLoaded || fontError != null;
@@ -42,6 +44,8 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
+
+export default withCrashReports(RootLayout);
 
 /**
  * Which screens exist depends on the sign-in state:
