@@ -8,6 +8,14 @@ Newest first. Date, decision, why.
 
 **D65. Every chamber has its own dip before and dip after** (migration 10: `receipt_chambers.dip_before_cm`). Diesel may be sold between two chambers to make room, so a chamber's rise = its own after − its own before, and the tanker's rise (for the S6 dip check) = the chambers' rises added up, not last-after − first-before. Adding a chamber pre-fills its "before" with the previous chamber's "after" (editable). The separate "Tank dip before unloading" box is gone. Chambers saved earlier without a "before" use the previous chamber's "after".
 
+**D86. Claude runs EAS from the Mac for 4g (owner MCQ, 29 Sep 2026)**: preview settings (public Supabase URL and key, Sentry DSN), the build and the test update, telling the owner before each. Secrets (the Sentry auth token) are pasted by the owner into Expo, never seen by Claude.
+
+**D87. The preview app installs beside the development app (owner MCQ):** Android ID `com.pumphisaab.app.preview`, name "PumpHisaab Preview". Production keeps `com.pumphisaab.app` (D34).
+
+**D88. App icon and splash are made from the drop logo now (owner MCQ).**
+
+**D89. Readable Sentry crash reports (owner MCQ):** source maps are uploaded with each build and update, using a Sentry auth token the owner stores as an Expo secret.
+
 **D82. Pick-from-a-list boxes show only the 2 most used (owner, 29 Sep 2026).** Company (slips, customer payments) and expense type ("What for") use one picker: nothing typed → the 2 most used (from the latest slips/payments/expenses), typing → up to 5 matches, no exact match → "Add … as a new company/type". Managers can add expense types too (migration 13), like companies (D50). Replaces D68's "first few" and the expense type chips.
 
 **D83. Review is the last card on Today, not a bar (owner, 29 Sep 2026).** Today's bottom Submit bar is gone. A 9th card "Review and submit" (not counted in the 8) says what's left or "Ready", and after submit "Submitted · Matched/Not matched". Replaces D79.
