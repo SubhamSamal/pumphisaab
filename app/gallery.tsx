@@ -47,6 +47,7 @@ import {
   StatusPill,
   StickyActionBar,
   SuggestList,
+  SummaryGroup,
   Text,
   TextField,
   Toast,
@@ -336,6 +337,9 @@ function GalleryContent() {
             <Divider />
             <KeyValueRow label="Received" value="₹4,01,100" big />
           </Card>
+          <SummaryGroup tone="red" title="Fix these to submit" lines={[{ text: "Sales: tap Done on Shift C", onPress: () => {} }]} />
+          <SummaryGroup tone="yellow" title="Minor: the owner will see these" lines={[{ text: "MS-3 sold nothing today.", onPress: () => {} }]} />
+          <SummaryGroup tone="green" title="Checks passed" lines={[{ text: "Shift A money matched (within ₹100)" }]} />
           <SuggestList
             items={[
               { id: "1", label: "ABC Traders", selected: true },

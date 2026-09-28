@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES, type DayResult } from "@/calc";
 import { Decimal } from "@/lib/decimal";
-import { reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import { reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
 import type { Day, DaySetup, ExpenseRow, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
@@ -31,8 +31,8 @@ const setup: DaySetup = {
     { id: "p2", product: "HSD", perLitre: "101.74", startsOn: "2026-09-15", margin: "2.60" },
   ],
   expenseTypes: [
-    { id: "tiffin", name: "Tiffin", defaultType: "VARIABLE", dailyCap: null },
-    { id: "salary", name: "Salary", defaultType: "FIXED", dailyCap: null },
+    { id: "tiffin", name: "Tiffin", defaultType: "VARIABLE", dailyCap: null, uses: 0 },
+    { id: "salary", name: "Salary", defaultType: "FIXED", dailyCap: null, uses: 0 },
   ],
   rules: DEFAULT_RULES,
   firstBusinessDate: "2026-09-28",
@@ -293,8 +293,8 @@ describe("sales (slice 4d)", () => {
       { id: "n200", value: "200.00" },
     ],
     customers: [
-      { id: "dord", name: "Dord Logistics", isActive: true },
-      { id: "maa", name: "Maa Bhawani Roadlines", isActive: true },
+      { id: "dord", name: "Dord Logistics", isActive: true, uses: 0 },
+      { id: "maa", name: "Maa Bhawani Roadlines", isActive: true, uses: 0 },
     ],
   };
   // MS 100 L at ₹110.07 = ₹11,007 should have.
@@ -471,30 +471,55 @@ describe("review and submit (slice 4f)", () => {
     const r = reviewModel(setup, day({ priceConfirmed: true }), result(), done(), receipt);
     expect(r.fuels[0].note).toBe("About ₹3,780 · limit is 40.60 L (0.5%)");
     expect(r.dayTotal?.toString()).toBe("-950");
-    expect(r.flags.map((f) => [f.text, f.section])).toEqual([
+    expect(r.ownerMessage).toBe("01 Oct submitted. Diesel short 42 L, Shift B short ₹1,250, Shift C excess ₹300, 1 more flag");
+    expect(r.canSubmit).toBe(true);
+  });
+
+  it("sorts the summary into red (must fix), yellow (minor, owner sees) and green (passed)", () => {
+    const r = reviewModel(setup, day({ priceConfirmed: true }), result(), done(), receipt);
+    expect(r.red).toEqual([]);
+    expect(r.yellow.map((l) => [l.text, l.target])).toEqual([
       ["Diesel short 42 L (0.52%): tank vs meters.", "closingDip"],
       ["Shift B short ₹1,250.", "sales"],
       ["Shift C excess ₹300.", "sales"],
       ["Opening dip 80 L below IOCL.", "openingDip"],
     ]);
-    expect(r.ownerMessage).toBe("01 Oct submitted. Diesel short 42 L, Shift B short ₹1,250, Shift C excess ₹300, 1 more flag");
-    expect(r.canSubmit).toBe(true);
+    expect(r.green.map((l) => l.text)).toEqual([
+      "Today's price confirmed",
+      "All 8 sections done",
+      "Petrol: tank and meters agree (within 0.5%)",
+      "Shift A money matched (within ₹100)",
+      "Tanker received as per challan",
+      "No meter change waiting",
+    ]);
   });
 
-  it("says Day matched when nothing is off", () => {
-    const r = reviewModel(setup, day({ priceConfirmed: true }), result({ flags: [], products: [], shifts: [] }), done(), receipt);
+  it("says Day matched when nothing is off, and 'Nothing sold' instead of a 0 L limit", () => {
+    const quiet = result({ flags: [], shifts: [] });
+    const r = reviewModel(setup, day({ priceConfirmed: true }), { ...quiet, products: [] }, done(), receipt);
     expect(r.ownerMessage).toBe("01 Oct submitted. Day matched.");
+    const zero = { ...quiet.products[1], soldAsPerTank: D("0"), soldAsPerMeters: D("0"), difference: D("0") };
+    expect(reviewModel(setup, day({ priceConfirmed: true }), { ...quiet, products: [zero] }, done(), receipt).fuels[0].note).toBe("Nothing sold today");
   });
 
-  it("blocks submit on a section not done, a red box, no price, a locked day, or an unanswered tanker", () => {
+  it("red: a section not done (in plain words), a red box, no price, a locked day; the tanker question", () => {
     const ok = day({ priceConfirmed: true });
-    expect(reviewModel(setup, ok, result(), done(["closingDip"]), receipt)).toMatchObject({ notDone: ["closingDip"], canSubmit: false });
+    const shifts = (["A", "B", "C"] as const).map((code) => ({ id: code, code, startsAt: "", endsAt: "", openingCash: null, salesDoneAt: code === "C" ? null : "x" }));
+    const salesOpen = done(["sales"]).map((x) => (x.key === "sales" ? { ...x, title: "Sales" } : x));
+    expect(reviewModel(setup, ok, result(), salesOpen, receipt, shifts)).toMatchObject({ red: [{ text: "Sales: tap Done on Shift C", target: "sales" }], canSubmit: false });
     const h8 = result({ hardErrors: [{ code: "H8", severity: "hard", message: "HSD-3: 12 L tested…", where: { shift: "B" } }] });
-    expect(reviewModel(setup, ok, h8, done(), receipt)).toMatchObject({ canSubmit: false, errors: [{ code: "H8", section: "shiftB" }] });
-    expect(reviewModel(setup, day(), result(), done(), receipt).canSubmit).toBe(false);
+    expect(reviewModel(setup, ok, h8, done(), receipt)).toMatchObject({ canSubmit: false, red: [{ text: "HSD-3: 12 L tested…", target: "shiftB" }] });
+    expect(reviewModel(setup, day(), result(), done(), receipt).red).toEqual([{ text: "Confirm today's price on Today", target: "today" }]);
     expect(reviewModel(setup, day({ priceConfirmed: true, isLocked: true }), result(), done(), receipt).canSubmit).toBe(false);
     expect(reviewModel(setup, ok, result(), done(), [])).toMatchObject({ askNoTanker: true, canSubmit: false });
     expect(reviewModel(setup, day({ priceConfirmed: true, noTanker: true }), result(), done(), [])).toMatchObject({ askNoTanker: false, canSubmit: true });
+  });
+
+  it("the last card on Today opens Review and says what's left", () => {
+    expect(reviewCard(day(), 8).subtitle).toBe("Confirm the price first");
+    expect(reviewCard(day({ priceConfirmed: true }), 6)).toEqual({ subtitle: "Finish 2 more sections first", status: "todo" });
+    expect(reviewCard(day({ priceConfirmed: true }), 8).status).toBe("inProgress");
+    expect(reviewCard(day({ status: "SUBMITTED", isMatched: true }), 8)).toMatchObject({ status: "done" });
   });
 
   it("sends each issue to the place to check it", () => {

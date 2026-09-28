@@ -13,6 +13,7 @@ export { AutoValueRow, FieldError, FieldHint, FieldLabel, NumericInput, TextFiel
 export { Icon, type IconName } from "./Icon";
 export { ListItem } from "./ListItem";
 export { SuggestList, type Suggestion } from "./SuggestList";
+export { SummaryGroup, type SummaryTone } from "./SummaryGroup";
 export { LogoMark, Wordmark } from "./Logo";
 export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./Navigation";
 export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";

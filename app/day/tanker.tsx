@@ -348,7 +348,7 @@ function TankerForm({
             tone="info"
             icon="edit"
             title="Brought back what you typed"
-            action={<Button label="Start again" size="M" variant="ghost" onPress={onStartAgain} />}
+            action={<Button label="Start again" size="M" variant="secondary" onPress={onStartAgain} />}
           >
             {"Not saved yet. Tap Save tanker when it's done."}
           </Banner>

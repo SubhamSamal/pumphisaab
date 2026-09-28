@@ -525,7 +525,6 @@ export function shiftNow(shifts: Shift[], nowMs: number): "SHIFT_A" | "SHIFT_B" 
 
 // ─── Review and submit (slice 4f, canvas F8) ──────────────────────────────
 const FUEL_WORD: Record<Product, string> = { HSD: "Diesel", MS: "Petrol" };
-const OWNER_SEES = / The owner will see this\.$/;
 
 /** Where to go to check a flag or fix an error (tap on the Review list). "today" = the Today screen (price). */
 export type ReviewTarget = SectionKey | "today";
@@ -560,9 +559,12 @@ export type ReviewFuel = {
   soldAsPerMeters: Decimal;
   difference: Decimal;
   withinLimit: boolean;
-  /** "About ₹3,780 · limit is 40 L (0.5%)" */
+  /** "About ₹3,780 · limit is 40 L (0.5%)", or "Nothing sold" */
   note: string;
 };
+
+/** One line in the Summary (owner, 29 Sep: red must be fixed, yellow can be ignored, green passed). */
+export type SummaryLine = { text: string; target?: ReviewTarget };
 
 export type ReviewModel = {
   fuels: ReviewFuel[];
@@ -570,19 +572,43 @@ export type ReviewModel = {
   fuelsWaiting: string[];
   shifts: DayResult["shifts"];
   dayTotal: Decimal | null;
-  flags: { code: string; text: string; section: ReviewTarget }[];
-  errors: { code: string; text: string; section: ReviewTarget }[];
-  /** Today sections not done (H4), by title. */
-  notDone: string[];
-  /** No tanker added and "none came" not answered yet (asked once on Review). */
+  /** Can't submit until these are cleared: sections not done, red boxes, price, lock. */
+  red: SummaryLine[];
+  /** Minor: the owner sees them, submit is allowed (every flag, S1-S9 and R1). */
+  yellow: SummaryLine[];
+  /** The main checks that passed. */
+  green: SummaryLine[];
+  /** No tanker added and "none came" not answered yet (asked once, in red). */
   askNoTanker: boolean;
   ownerMessage: string;
   canSubmit: boolean;
 };
 
+const OWNER_WILL_SEE = / The owner will see this\.$/;
+
+/** What's missing in a section, in plain words (the Summary's red list). */
+function notDoneLine(section: Section, shifts: Shift[]): SummaryLine {
+  const target = section.key as ReviewTarget;
+  if (section.key === "sales") {
+    const open = shifts.filter((s) => !s.salesDoneAt).map((s) => s.code);
+    return { text: open.length ? `Sales: tap Done on Shift ${open.join(", ")}` : "Sales: tap Done on every shift", target };
+  }
+  if (section.key === "expenses") return { text: "Expenses: add them, or tap No expenses today", target };
+  if (section.key === "openingDip" || section.key === "closingDip") return { text: `${section.title}: type every tank's dip`, target };
+  return { text: `${section.title}: ${section.subtitle}`, target };
+}
+
 /** Everything the 3 Review steps show, from the engine's result and Today's sections. */
-export function reviewModel(setup: DaySetup, day: Day, result: DayResult, sections: Section[], receipts: Receipt[]): ReviewModel {
+export function reviewModel(
+  setup: DaySetup,
+  day: Day,
+  result: DayResult,
+  sections: Section[],
+  receipts: Receipt[],
+  shifts: Shift[] = [],
+): ReviewModel {
   const flagPct = new Decimal(setup.rules.stockDifference.flagBeyondPercent);
+  const moneyLimit = new Decimal(setup.rules.shiftMoney.flagBeyondRupees);
   const fuels = result.products.map((p): ReviewFuel => {
     const price = result.prices[p.product];
     const about = price && !p.difference.isZero() ? `About ${fmtRupees(p.difference.abs().times(price))} · ` : "";
@@ -593,19 +619,35 @@ export function reviewModel(setup: DaySetup, day: Day, result: DayResult, sectio
       soldAsPerMeters: p.soldAsPerMeters,
       difference: p.difference,
       withinLimit: p.withinLimit,
-      note: `${about}limit is ${fmtLitres(p.soldAsPerTank.abs().times(flagPct).div(100))} (${flagPct.toString()}%)`,
+      note:
+        p.soldAsPerTank.isZero() && p.soldAsPerMeters.isZero()
+          ? "Nothing sold today"
+          : `${about}limit is ${fmtLitres(p.soldAsPerTank.abs().times(flagPct).div(100))} (${flagPct.toString()}%)`,
     };
   });
   const inUse = [...new Set(activeTanks(setup).map((t) => t.product))];
   const fuelsWaiting = inUse.filter((f) => !result.products.some((p) => p.product === f)).map((f) => FUEL_WORD[f]);
   const dayTotal = result.shifts.length ? result.shifts.reduce((t, s) => t.plus(s.difference), new Decimal(0)) : null;
 
-  const flags = result.flags.map((f) => ({ code: f.code, text: f.message.replace(OWNER_SEES, ""), section: sectionFor(f) }));
-  // H4 is shown as "not done" below; the other hard errors are red boxes somewhere.
-  const errors = result.hardErrors.filter((e) => e.code !== "H4").map((e) => ({ code: e.code, text: e.message, section: sectionFor(e) }));
-  const tankerCard = sections.find((s) => s.key === "tanker");
-  const notDone = sections.filter((s) => s.key !== "tanker" && s.status !== "done").map((s) => s.title);
-  const askNoTanker = receipts.length === 0 && !day.noTanker && tankerCard?.status !== "locked";
+  // Red: what stops Submit (PRD F12: an empty section or a red box; plus the price and the lock).
+  const red: SummaryLine[] = [];
+  if (day.isLocked) red.push({ text: "This day is locked. Ask the owner to unlock it." });
+  if (!day.priceConfirmed) red.push({ text: "Confirm today's price on Today", target: "today" });
+  for (const s of sections) if (s.key !== "tanker" && s.status !== "done" && s.status !== "locked") red.push(notDoneLine(s, shifts));
+  for (const e of result.hardErrors) if (e.code !== "H4" && e.code !== "H6") red.push({ text: e.message, target: sectionFor(e) });
+  const askNoTanker = receipts.length === 0 && !day.noTanker && !day.isLocked;
+
+  // Yellow: every flag (never blocks; the owner sees them).
+  const yellow = result.flags.map((f) => ({ text: f.message.replace(OWNER_WILL_SEE, ""), target: sectionFor(f) }));
+
+  // Green: the main checks that passed.
+  const green: SummaryLine[] = [];
+  if (day.priceConfirmed) green.push({ text: "Today's price confirmed" });
+  if (!sections.some((s) => s.key !== "tanker" && s.status !== "done")) green.push({ text: "All 8 sections done" });
+  for (const p of result.products) if (p.withinLimit) green.push({ text: `${FUEL_WORD[p.product]}: tank and meters agree (within ${flagPct.toString()}%)` });
+  for (const s of result.shifts) if (s.withinLimit) green.push({ text: `Shift ${s.shift} money matched (within ${fmtRupees(moneyLimit)})` });
+  if (receipts.length && !result.flags.some((f) => f.code === "S6")) green.push({ text: `Tanker${receipts.length > 1 ? "s" : ""} received as per challan` });
+  if (!result.hardErrors.some((e) => e.code === "H2")) green.push({ text: "No meter change waiting" });
 
   // The message the owner will get (canvas F8): the fuel and money headlines, then the rest as a count.
   const parts: string[] = [];
@@ -619,6 +661,14 @@ export function reviewModel(setup: DaySetup, day: Day, result: DayResult, sectio
   if (others) parts.push(`${others} more flag${others === 1 ? "" : "s"}`);
   const ownerMessage = `${fmtDate(day.businessDate, "short")} submitted. ${parts.length ? parts.join(", ") : "Day matched."}`;
 
-  const canSubmit = day.priceConfirmed && notDone.length === 0 && errors.length === 0 && !askNoTanker && !day.isLocked;
-  return { fuels, fuelsWaiting, shifts: result.shifts, dayTotal, flags, errors, notDone, askNoTanker, ownerMessage, canSubmit };
+  const canSubmit = red.length === 0 && !askNoTanker;
+  return { fuels, fuelsWaiting, shifts: result.shifts, dayTotal, red, yellow, green, askNoTanker, ownerMessage, canSubmit };
+}
+
+/** The last card on Today (owner, 29 Sep: Review is its own task, not a bar). */
+export function reviewCard(day: Day, sectionsDoneCount: number): { subtitle: string; status: SectionStatus } {
+  if (day.status !== "DRAFT") return { subtitle: `Submitted · ${day.isMatched ? "Matched" : "Not matched"}. Open to check or submit again`, status: day.isLocked ? "locked" : "done" };
+  if (!day.priceConfirmed) return { subtitle: "Confirm the price first", status: "todo" };
+  if (sectionsDoneCount < 8) return { subtitle: `Finish ${8 - sectionsDoneCount} more section${8 - sectionsDoneCount === 1 ? "" : "s"} first`, status: "todo" };
+  return { subtitle: "Ready: check the summary and submit", status: "inProgress" };
 }

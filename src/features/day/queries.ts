@@ -11,6 +11,7 @@ import { DEFAULT_RULES, type DipChartRow, type Price, type Product, type Rules }
 import { addDays } from "@/lib/businessDay";
 import { friendlyError } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
+import { countUses } from "./customers";
 import { registerOutboxRunner, saveOrQueue, useOutbox, useWaiting } from "./Outbox";
 import { overlayReadings, overlaySales, overlayShiftData } from "./outboxOverlay";
 
@@ -20,7 +21,7 @@ export type SetupNozzle = { id: string; label: string; product: Product; tankId:
 /** An owner price row with its dealer margin (owner sets both, D64). */
 export type PriceRow = { id: string; product: Product; perLitre: string; startsOn: string; margin: string | null };
 /** An expense type (D33): Salary, Tiffin … Other. A daily limit makes S9 flag it (D72: none yet). */
-export type ExpenseType = { id: string; name: string; defaultType: "FIXED" | "VARIABLE"; dailyCap: string | null };
+export type ExpenseType = { id: string; name: string; defaultType: "FIXED" | "VARIABLE"; dailyCap: string | null; uses: number };
 export type DaySetup = {
   tanks: SetupTank[];
   expenseTypes: ExpenseType[];
@@ -38,7 +39,7 @@ export function useDaySetup(pumpId: string) {
     queryKey: ["daySetup", pumpId],
     staleTime: 10 * 60 * 1000,
     queryFn: async (): Promise<DaySetup> => {
-      const [pump, tanks, prices, nozzles, expenseTypes] = await Promise.all([
+      const [pump, tanks, prices, nozzles, expenseTypes, recentExpenses] = await Promise.all([
         supabase.from("pumps").select("rules, first_business_date").eq("id", pumpId).single(),
         supabase.from("tanks").select("id, label, product, chart_id, is_active").eq("pump_id", pumpId).order("product").order("label"),
         supabase.from("fuel_prices").select("id, product, per_litre::text, starts_on, margin_per_l::text").eq("pump_id", pumpId),
@@ -49,8 +50,12 @@ export function useDaySetup(pumpId: string) {
           .eq("pump_id", pumpId)
           .eq("is_active", true)
           .order("sort_order"),
+        // The latest expenses, to show the most used types first (D68).
+        supabase.from("expenses").select("category_id").eq("pump_id", pumpId).order("created_at", { ascending: false }).limit(300),
       ]);
       if (expenseTypes.error) throw expenseTypes.error;
+      if (recentExpenses.error) throw recentExpenses.error;
+      const typeUses = countUses(recentExpenses.data.map((e) => e.category_id as string));
       if (nozzles.error) throw nozzles.error;
       if (pump.error) throw pump.error;
       if (tanks.error) throw tanks.error;
@@ -73,7 +78,7 @@ export function useDaySetup(pumpId: string) {
         charts,
         prices: prices.data.map((p) => ({ product: p.product, perLitre: p.per_litre, startsOn: p.starts_on })),
         priceRows: prices.data.map((p) => ({ id: p.id, product: p.product, perLitre: p.per_litre, startsOn: p.starts_on, margin: p.margin_per_l })),
-        expenseTypes: expenseTypes.data.map((e) => ({ id: e.id, name: e.name, defaultType: e.default_type, dailyCap: e.daily_cap })),
+        expenseTypes: expenseTypes.data.map((e) => ({ id: e.id, name: e.name, defaultType: e.default_type, dailyCap: e.daily_cap, uses: typeUses[e.id] ?? 0 })),
         // Same shape as src/calc/rules.ts (the seed test keeps them in step); defaults fill any gap.
         // S9 limits live on the expense types (one place, same as the database's v_expense_caps).
         rules: {
@@ -661,23 +666,27 @@ export function useDeleteTanker(pumpId: string, dayId: string | undefined) {
 // ─── Sales (slice 4d) ─────────────────────────────────────────────────────
 export type PaymentType = { id: string; name: string; kind: "CASH" | "CREDIT" | "OTHER" };
 export type Denomination = { id: string; value: string };
-export type Customer = { id: string; name: string; isActive: boolean };
+export type Customer = { id: string; name: string; isActive: boolean; uses: number };
 export type SalesSetup = { types: PaymentType[]; notes: Denomination[]; customers: Customer[] };
 
 export function useSalesSetup(pumpId: string) {
   return useQuery({
     queryKey: ["salesSetup", pumpId],
     queryFn: async (): Promise<SalesSetup> => {
-      const [types, notes, customers] = await Promise.all([
+      const [types, notes, customers, slipUse, paymentUse] = await Promise.all([
         supabase.from("payment_types").select("id, name, kind").eq("pump_id", pumpId).eq("is_active", true).order("sort_order"),
         supabase.from("cash_denominations").select("id, value::text").eq("pump_id", pumpId).eq("is_active", true).order("value", { ascending: false }),
         supabase.from("credit_customers").select("id, name, is_active").eq("pump_id", pumpId).order("name"),
+        // The latest slips and payments, to show the most used companies first (D68).
+        supabase.from("credit_sales").select("customer_id").eq("pump_id", pumpId).order("created_at", { ascending: false }).limit(300),
+        supabase.from("customer_payments").select("customer_id").eq("pump_id", pumpId).order("created_at", { ascending: false }).limit(100),
       ]);
-      for (const r of [types, notes, customers]) if (r.error) throw r.error;
+      for (const r of [types, notes, customers, slipUse, paymentUse]) if (r.error) throw r.error;
+      const uses = countUses([...slipUse.data!, ...paymentUse.data!].map((r) => r.customer_id as string));
       return {
         types: types.data as PaymentType[],
         notes: notes.data!.map((n) => ({ id: n.id, value: n.value })),
-        customers: customers.data!.map((c) => ({ id: c.id, name: c.name, isActive: c.is_active })),
+        customers: customers.data!.map((c) => ({ id: c.id, name: c.name, isActive: c.is_active, uses: uses[c.id] ?? 0 })),
       };
     },
   });
@@ -1067,5 +1076,23 @@ export function useSubmitDay(pumpId: string) {
       qc.invalidateQueries({ queryKey: ["day", pumpId] });
       qc.invalidateQueries({ queryKey: ["recentDays", pumpId] });
     },
+  });
+}
+
+/** Adds a new expense type (D82: owner or manager, like companies) and gives back its id. */
+export function useAddExpenseType(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "expenseType"],
+    mutationFn: async (name: string): Promise<string> => {
+      const { data, error } = await supabase
+        .from("expense_categories")
+        .insert({ pump_id: pumpId, name: name.trim(), default_type: "VARIABLE", sort_order: 100 })
+        .select("id")
+        .single();
+      if (error) throw new Error(friendlyError(error, "Couldn't add the type. Try again."), { cause: error });
+      return data.id as string;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
   });
 }

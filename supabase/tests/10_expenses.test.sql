@@ -2,7 +2,7 @@
 -- shift's money, day totals, S9, locked day, security.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(16);
 
 insert into auth.users (id, email) values
   ('22222222-2222-2222-2222-222222222222', 'manager.x@users.pumphisaab.com'),
@@ -69,6 +69,8 @@ insert into public.expenses (pump_id, day_id, category_id, amount, paid_from) se
 select is((select s9_flag from public.v_expense_caps where day_id = (select day from d) and category_id = (select bakshis from ids)), true,
   'S9: Bakshis ₹500 is over its ₹300 daily limit');
 
+select lives_ok($$ insert into public.expense_categories (pump_id, name, default_type) select x, 'Generator diesel', 'VARIABLE' from ids $$,
+  'D82: a manager adds a new expense type');
 select throws_ok($$ insert into public.expenses (pump_id, day_id, category_id, amount, paid_from)
   select x, old_day, tiffin, 100, 'SHIFT_A' from ids $$, 'P0001', null, 'A locked day can''t get an expense');
 

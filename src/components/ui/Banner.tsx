@@ -46,7 +46,8 @@ export function Banner({
             </Text>
           ) : null}
         </View>
-        {action}
+        {/* Buttons sit at the text's left edge and take only their own width. */}
+        {action ? <View className="flex-row flex-wrap items-center gap-8">{action}</View> : null}
       </View>
     </View>
   );

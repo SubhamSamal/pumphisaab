@@ -1,20 +1,22 @@
 import { expect, it } from "vitest";
-import { matchCustomers, normName } from "./customers";
+import { countUses, matchNamed, normName } from "./customers";
 
-const c = (name: string, isActive = true) => ({ id: name, name, isActive });
-const list = [c("ABC Traders"), c("ABCD Logistics"), c("Mahanadi ABC"), c("SVT"), c("Old ABC Co", false)];
+const c = (name: string, uses = 0, isActive = true) => ({ id: name, name, isActive, uses });
+const list = [c("ABC Traders", 1), c("ABCD Logistics", 7), c("Mahanadi ABC", 3), c("SVT"), c("Old ABC Co", 9, false)];
 
 it("shows every company that matches, names starting with the typed text first", () => {
-  expect(matchCustomers(list, "abc").map((x) => x.name)).toEqual(["ABC Traders", "ABCD Logistics", "Mahanadi ABC"]);
-  expect(matchCustomers(list, "  ABCD ").map((x) => x.name)).toEqual(["ABCD Logistics"]);
-  expect(matchCustomers(list, "xyz")).toEqual([]);
+  expect(matchNamed(list, "abc").map((x) => x.name)).toEqual(["ABC Traders", "ABCD Logistics", "Mahanadi ABC"]);
+  expect(matchNamed(list, "  ABCD ").map((x) => x.name)).toEqual(["ABCD Logistics"]);
+  expect(matchNamed(list, "xyz")).toEqual([]);
 });
 
-it("shows the first few when nothing is typed, and never a stopped company", () => {
-  expect(matchCustomers(list, "", 2).map((x) => x.name)).toEqual(["ABC Traders", "ABCD Logistics"]);
-  expect(matchCustomers(list, "old")).toEqual([]);
+it("with nothing typed shows only the 2 most used, never a stopped one (owner, 29 Sep)", () => {
+  expect(matchNamed(list, "").map((x) => x.name)).toEqual(["ABCD Logistics", "Mahanadi ABC"]);
+  expect(matchNamed([c("New"), c("Newer")], "")).toEqual([]);
+  expect(matchNamed(list, "old")).toEqual([]);
 });
 
-it("treats extra spaces and capitals as the same name", () => {
+it("counts uses and treats extra spaces and capitals as the same name", () => {
+  expect(countUses(["a", "b", "a", null])).toEqual({ a: 2, b: 1 });
   expect(normName("  Dord   logistics ")).toBe(normName("Dord Logistics"));
 });

@@ -9,13 +9,13 @@ import {
   Divider,
   ErrorState,
   KeyValueRow,
-  ListItem,
   ProductTag,
   ScreenBody,
   ScreenHeader,
   Skeleton,
   StatusPill,
   StickyActionBar,
+  SummaryGroup,
   Text,
   useIsWide,
 } from "@/components/ui";
@@ -29,9 +29,9 @@ import { addDays } from "@/lib/businessDay";
 import { fmtDate, fmtLitres, fmtRupees } from "@/lib/format";
 
 type Step = 1 | 2 | 3 | "done";
-const STEP_TITLE = { 1: "Fuel", 2: "Money", 3: "Flags" } as const;
+const STEP_TITLE = { 1: "Fuel", 2: "Money", 3: "Summary" } as const;
 
-/** Review and submit (canvas F8, PRD F12): 1 Fuel, 2 Money, 3 Flags the owner will see, then Submit. */
+/** Review and submit (canvas F8, PRD F12): 1 Fuel, 2 Money, 3 Summary (red / yellow / green, owner 29 Sep), then Submit. */
 export default function ReviewScreen() {
   const me = useMembership();
   const router = useRouter();
@@ -45,10 +45,10 @@ export default function ReviewScreen() {
   const [openedAt] = useState(() => Date.now());
 
   const m = whole.model;
-  const review = m ? reviewModel(m.setup, m.day, m.result, m.sections, m.receipts) : null;
+  const review = m ? reviewModel(m.setup, m.day, m.result, m.sections, m.receipts, m.shifts.shifts) : null;
 
   useEffect(() => {
-    if (step === 3 && review) for (const e of review.errors) track("hard_error_shown", { rule_code: e.code, section: "review" });
+    if (step === 3 && m) for (const e of m.result.hardErrors) track("hard_error_shown", { rule_code: e.code, section: "review" });
     // Only when step 3 opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -66,7 +66,7 @@ export default function ReviewScreen() {
     if (!m || !review) return;
     submit.mutate(m.day.id, {
       onSuccess: ({ isMatched }) => {
-        track("day_submitted", { is_matched: isMatched, total_entry_sec: Math.round((Date.now() - openedAt) / 1000), open_flags: review.flags.length });
+        track("day_submitted", { is_matched: isMatched, total_entry_sec: Math.round((Date.now() - openedAt) / 1000), open_flags: review.yellow.length });
         setStep("done");
       },
     });
@@ -108,7 +108,7 @@ export default function ReviewScreen() {
               note={
                 step === 3 && !review.canSubmit ? (
                   <Text variant="label" tone="danger" className="text-center">
-                    {m.day.isLocked ? "This day is locked" : "Fix what's listed above to submit"}
+                    {m.day.isLocked ? "This day is locked" : "Clear the red list above to submit"}
                   </Text>
                 ) : undefined
               }
@@ -135,7 +135,7 @@ export default function ReviewScreen() {
           {step === 1 ? <FuelStep review={review} /> : null}
           {step === 2 ? <MoneyStep review={review} /> : null}
           {step === 3 ? (
-            <FlagsStep
+            <SummaryStep
               review={review}
               answering={answer.isPending}
               answerError={answer.error?.message}
@@ -164,7 +164,8 @@ function FuelStep({ review }: { review: ReviewModel }) {
           <KeyValueRow label="Sold as per tank (dip)" value={fmtLitres(f.soldAsPerTank)} />
           <KeyValueRow label="Sold as per meters" value={fmtLitres(f.soldAsPerMeters)} />
           <Divider />
-          <View className="flex-row items-center justify-between gap-8">
+          {/* Wraps to its own line when long, never cut off (CLAUDE.md, D69). */}
+          <View className="flex-row flex-wrap items-center justify-between gap-8">
             <Text variant="body" weight="600">
               Difference
             </Text>
@@ -190,7 +191,7 @@ function MoneyStep({ review }: { review: ReviewModel }) {
       <Text variant="heading">Money: should have vs received</Text>
       {review.shifts.map((s) => (
         <Card key={s.shift}>
-          <View className="flex-row items-center justify-between gap-8">
+          <View className="flex-row flex-wrap items-center justify-between gap-8">
             <Text variant="heading">{`Shift ${s.shift}`}</Text>
             <DifferenceValue value={s.difference} unit="rupees" withinLimit={s.withinLimit} />
           </View>
@@ -205,7 +206,7 @@ function MoneyStep({ review }: { review: ReviewModel }) {
       ) : null}
       {review.dayTotal ? (
         <Card tone="summary">
-          <View className="flex-row items-center justify-between gap-8">
+          <View className="flex-row flex-wrap items-center justify-between gap-8">
             <Text variant="heading">Day total</Text>
             <DifferenceValue value={review.dayTotal} unit="rupees" />
           </View>
@@ -215,7 +216,7 @@ function MoneyStep({ review }: { review: ReviewModel }) {
   );
 }
 
-function FlagsStep({
+function SummaryStep({
   review,
   answering,
   answerError,
@@ -232,51 +233,28 @@ function FlagsStep({
   submitError?: string;
   onGo: (t: ReviewTarget) => void;
 }) {
+  const lines = (list: ReviewModel["red"]) => list.map((l, i) => ({ key: `${i}`, text: l.text, onPress: l.target ? () => onGo(l.target as ReviewTarget) : undefined }));
   return (
     <>
       {submitError ? <Banner tone="danger" title={submitError} /> : null}
-      {review.notDone.length ? (
-        <Banner tone="danger" title="Not done yet">
-          {`Finish these first: ${review.notDone.join(", ")}.`}
-        </Banner>
-      ) : null}
       {review.askNoTanker ? (
         <Banner
-          tone="warning"
+          tone="danger"
           title="Did no tanker come today?"
           action={
-            <View className="flex-row flex-wrap gap-8">
+            <>
               <Button label="Yes, none came" size="M" variant="secondary" loading={answering} onPress={onNoTanker} />
-              <Button label="Add tanker" size="M" variant="ghost" onPress={onAddTanker} />
-            </View>
+              <Button label="Add tanker" size="M" variant="secondary" onPress={onAddTanker} />
+            </>
           }
         >
-          No tanker is added for this day.
+          Answer this to submit.
         </Banner>
       ) : null}
       {answerError ? <Banner tone="danger" title={answerError} /> : null}
-
-      {review.errors.length ? (
-        <View>
-          <Text variant="label" tone="danger">
-            Red boxes to fix
-          </Text>
-          {review.errors.map((e, i) => (
-            <ListItem key={`${e.code}${i}`} title={e.text} icon="error" iconTone="danger" onPress={() => onGo(e.section)} />
-          ))}
-        </View>
-      ) : null}
-
-      <Text variant="body" tone="secondary">
-        {review.flags.length ? "The owner will see these. Nothing to fill in. Tap one to check the numbers again." : "No flags. Everything is within the limits."}
-      </Text>
-      {review.flags.length ? (
-        <View>
-          {review.flags.map((f, i) => (
-            <ListItem key={`${f.code}${i}`} title={f.text} icon="flag" iconTone={f.code === "R1" ? "danger" : "warning"} onPress={() => onGo(f.section)} />
-          ))}
-        </View>
-      ) : null}
+      <SummaryGroup tone="red" title="Fix these to submit" lines={lines(review.red)} />
+      <SummaryGroup tone="yellow" title="Minor. You can submit; the owner will see these" lines={lines(review.yellow)} />
+      <SummaryGroup tone="green" title="Checks passed" lines={lines(review.green)} />
       <Card tone="summary">
         <Text variant="label" tone="secondary">
           The owner gets
@@ -299,18 +277,18 @@ function Submitted({ day, review, today, onStartNext, onBack }: { day: Day; revi
       }
     >
       <Card>
-        <View className="flex-row items-center justify-between gap-8">
+        <View className="flex-row flex-wrap items-center justify-between gap-8">
           <Text variant="heading">{`${fmtDate(day.businessDate, "short")} submitted`}</Text>
           <StatusPill status="submitted" />
         </View>
         {review.fuels.map((f) => (
-          <View key={f.product} className="flex-row items-center justify-between gap-8">
+          <View key={f.product} className="flex-row flex-wrap items-center justify-between gap-8">
             <ProductTag product={f.product} />
             <DifferenceValue value={f.difference} unit="litres" withinLimit={f.withinLimit} look="inline" />
           </View>
         ))}
         {review.dayTotal ? (
-          <View className="flex-row items-center justify-between gap-8">
+          <View className="flex-row flex-wrap items-center justify-between gap-8">
             <Text variant="body" weight="600">
               Money
             </Text>
@@ -318,7 +296,7 @@ function Submitted({ day, review, today, onStartNext, onBack }: { day: Day; revi
           </View>
         ) : null}
         <Text variant="label" weight="400" tone="secondary">
-          {review.flags.length ? `${review.flags.length} flag${review.flags.length === 1 ? "" : "s"} for the owner.` : "No flags."}
+          {review.yellow.length ? `${review.yellow.length} minor point${review.yellow.length === 1 ? "" : "s"} for the owner.` : "Nothing for the owner to check."}
         </Text>
       </Card>
       <Text variant="body" tone="secondary">

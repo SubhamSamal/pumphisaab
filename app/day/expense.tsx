@@ -8,7 +8,6 @@ import {
   Chip,
   ChipGroup,
   ErrorState,
-  FieldError,
   FieldHint,
   FieldLabel,
   NumericInput,
@@ -21,10 +20,12 @@ import {
   useIsWide,
 } from "@/components/ui";
 import { CustomerPicker } from "@/features/day/CustomerPicker";
+import { NamePicker } from "@/features/day/NamePicker";
 import { shiftNow } from "@/features/day/model";
 import {
   useDay,
   useDaySetup,
+  useAddExpenseType,
   useDeleteExpense,
   useExpenses,
   useSalesSetup,
@@ -33,6 +34,7 @@ import {
   type Day,
   type DaySetup,
   type ExpenseRow,
+  type ExpenseType,
   type PaidFrom,
   type SalesSetup,
   type Shift,
@@ -144,6 +146,8 @@ function ExpenseForm({
 }) {
   const save = useSaveExpense(pumpId, day.id);
   const remove = useDeleteExpense(pumpId, day.id);
+  const addType = useAddExpenseType(pumpId);
+  const [added, setAdded] = useState<ExpenseType[]>([]);
   const locked = day.isLocked;
   // The expense as saved (or empty); a draft from the phone goes on top of it. Paid from starts on the shift running now.
   const [base] = useState<ExpenseDraft>(() => ({
@@ -166,12 +170,14 @@ function ExpenseForm({
   const [confirmRemove, setConfirmRemove] = useState(false);
   const discardDraft = useKeepDraft<ExpenseDraft>(keyOfDraft, { expenseId, typeId, description, amount, paidFrom, customerId }, base);
 
-  const type = setup.expenseTypes.find((t) => t.id === typeId);
+  // Types added here show at once, before the list reloads.
+  const types = [...setup.expenseTypes, ...added.filter((a) => !setup.expenseTypes.some((t) => t.id === a.id))];
+  const type = types.find((t) => t.id === typeId);
   const isOther = type?.name.toLowerCase() === "other";
   const isAdvance = type?.name.toLowerCase() === CASH_ADVANCE;
   const a = readTypedNumber(amount, 2);
   const problems = {
-    type: !type ? "Pick what it was for." : undefined,
+    type: !type ? "Pick what it was for, or add it." : undefined,
     description: isOther && !description.trim() ? "Write what it was." : undefined,
     amount: a.kind === "bad" ? a.message : a.kind === "empty" || new Decimal(a.value).lte(0) ? "Type the amount." : undefined,
   };
@@ -220,21 +226,30 @@ function ExpenseForm({
       >
         {locked ? <Banner tone="info" icon="lock" title="This day is locked" /> : null}
         {restored && !locked ? (
-          <Banner tone="info" icon="edit" title="Brought back what you typed" action={<Button label="Start again" size="M" variant="ghost" onPress={onStartAgain} />}>
+          <Banner tone="info" icon="edit" title="Brought back what you typed" action={<Button label="Start again" size="M" variant="secondary" onPress={onStartAgain} />}>
             {"Not saved yet. Tap Save expense when it's done."}
           </Banner>
         ) : null}
         {save.error ? <Banner tone="danger" title={formSaveError(save.error.message)} /> : null}
 
-        <View className="gap-8">
-          <FieldLabel>What for</FieldLabel>
-          <ChipGroup>
-            {setup.expenseTypes.map((t) => (
-              <Chip key={t.id} label={t.name} selected={t.id === typeId} onPress={locked ? undefined : () => setTypeId(t.id)} />
-            ))}
-          </ChipGroup>
-          {tried && problems.type ? <FieldError message={problems.type} /> : null}
-        </View>
+        <NamePicker
+          label="What for"
+          placeholder="Type what it was for (Tiffin, Salary…)"
+          addWord="type"
+          items={types}
+          value={typeId}
+          onChange={setTypeId}
+          onAdd={(name) =>
+            addType.mutateAsync(name).then((id) => {
+              setAdded((a) => [...a, { id, name, defaultType: "VARIABLE", dailyCap: null, uses: 0 }]);
+              return id;
+            })
+          }
+          adding={addType.isPending}
+          addError={addType.error?.message}
+          error={tried ? problems.type : undefined}
+          disabled={locked}
+        />
         {isOther ? (
           <TextField
             label="Write what it was"

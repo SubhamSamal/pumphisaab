@@ -97,7 +97,7 @@ export default function SalesScreen() {
             return (
               <Pressable key={s.id} onPress={() => openShift(s)} accessibilityRole="button" accessibilityLabel={`Shift ${s.code} sales`}>
                 <Card>
-                  <View className="flex-row items-center justify-between gap-8">
+                  <View className="flex-row flex-wrap items-center justify-between gap-8">
                     <View>
                       <Text variant="heading">{`Shift ${s.code}`}</Text>
                       <Text variant="label" weight="400" tone="secondary">

@@ -12,7 +12,6 @@ import {
   SectionCard,
   Skeleton,
   StatusPill,
-  StickyActionBar,
 } from "@/components/ui";
 import {
   customerPaymentInputs,
@@ -20,6 +19,7 @@ import {
   evaluate,
   expenseInputs,
   priceStrip,
+  reviewCard,
   sectionsDone,
   shiftInputs,
   tankDays,
@@ -128,36 +128,12 @@ export default function TodayScreen() {
     }
   };
 
-  // The bar (canvas F2): teal "Review and submit" once all 8 are done; otherwise what's left.
-  const allDone = Boolean(model && day.data?.priceConfirmed && model.done === 8);
-  const submitted = day.data?.status === "SUBMITTED";
-  const barLabel = !model
-    ? "Review and submit"
-    : submitted
-      ? "Review · Submit again"
-      : allDone
-        ? "Review and submit"
-        : !day.data?.priceConfirmed
-          ? "Confirm price and finish 8 sections"
-          : `Finish ${8 - model.done} more section${8 - model.done === 1 ? "" : "s"} to submit`;
   const openReview = () => router.push({ pathname: "/day/review", params: { date } });
 
   return (
     <>
       <MainHeader title={me.pump.name} subtitle={fmtDate(date, "weekday")} />
-      <ScreenBody
-        sticky={
-          model && !day.data?.isLocked ? (
-            <StickyActionBar>
-              {allDone || submitted ? (
-                <Button label={barLabel} icon="send" onPress={openReview} variant={submitted ? "secondary" : "primary"} />
-              ) : (
-                <Button label={barLabel} disabled />
-              )}
-            </StickyActionBar>
-          ) : undefined
-        }
-      >
+      <ScreenBody>
         <DateStepper
           label={fmtDate(date, "weekday")}
           caption={daysAgo(today, date)}
@@ -281,6 +257,8 @@ export default function TodayScreen() {
                   onPress={s.ready ? () => openSection(s) : undefined}
                 />
               ))}
+              {/* Review is its own last task (owner, 29 Sep), not a bar at the bottom. */}
+              <SectionCard title="Review and submit" {...reviewCard(day.data, model.done)} onPress={openReview} />
             </View>
           </>
         )}

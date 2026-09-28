@@ -359,7 +359,7 @@ function SalesForm({
         </Card>
 
         <Card tone="summary">
-          <View className="flex-row items-center justify-between gap-8">
+          <View className="flex-row flex-wrap items-center justify-between gap-8">
             <Text variant="heading">{`Shift ${shift.code}`}</Text>
             {money ? <DifferenceValue value={money.difference} unit="rupees" withinLimit={money.withinLimit && !money.difference.isZero()} /> : null}
           </View>

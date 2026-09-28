@@ -292,6 +292,17 @@ Check (as owner, 3 minutes): open **Sales › Shift A**: the 0s in Card and Bank
 5. **Review**: Fuel › Next › Money › Next › Flags. Answer **Yes, none came** if asked about a tanker. Read the message you'd get. **Submit day**.
 6. **Send me** screenshots of each Review step and the Submitted screen.
 
+### Fixes after your 4e/4f check (29 Sep 2026) — before Step 4
+- **Company and "What for" boxes:** only the **2 most used** show; type to find the rest; "Add … as a new company/type" when nothing matches. Managers can add expense types too.
+- **"Start again"** is now an outlined button lined up with the text.
+- **Today:** no Submit bar at the bottom. The last card is **Review and submit**: it says what's left ("Finish 1 more section first"), "Ready…", or "Submitted · Matched".
+- **Review step 3 is "Summary":** **red** = fix before you can submit (e.g. "Sales: tap Done on Shift C"), **yellow** = minor, you can submit, the owner sees it (e.g. "MS-3 sold nothing today"), **green** = checks passed. Long differences wrap instead of running off the card.
+- What's allowed: money **±₹100 per shift**, fuel **±0.5%**. Beyond that is yellow only; it never stops Submit. On 27 Sep it was Shift C's sales not being marked Done that stopped you, not Shift B's ₹22.
+
+Paste **migration 13** first (`supabase/migrations/20260929140000_expense_types_by_managers.sql`: one permission, nothing deleted). Check: `select count(*) from schema_migrations_applied;` → **13**.
+
+Then on 27 Sep: **Sales › Shift C › Done**, open **Review and submit** (last card), Summary: red list empty → **Submit day**. Send me the Summary screenshot.
+
 ### Step 4: the real test, the 15 Sep notebook numbers typed into 28 Sep (as owner, with a stopwatch)
 Why 28 Sep: it comes right after 27 Sep (submitted in Step 3), so "yesterday first" is happy and it stays open for fixes. (Typing it into 15 Sep itself would put a day before 27 Sep and make 27 Sep's openings look wrong.) The 15 Sep totals are known, so we can compare. Open **Mon, 28 Sep 2026** with the date arrows. Start the stopwatch.
 1. **Confirm** the price (MS ₹110.07, HSD ₹101.74).

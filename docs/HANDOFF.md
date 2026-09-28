@@ -6,7 +6,7 @@ Last updated: 29 Sep 2026 (overnight build), Phase 4 slices 4a-4f all built. Wai
 1. `CLAUDE.md` (repo root): hard rules. They override everything.
 2. **This file.**
 3. `docs/EXECUTION.md`: phase plan and status checklist (verify it against the repo).
-4. `docs/decisions.md`: every decision D1-D81, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
+4. `docs/decisions.md`: every decision D1-D85, newest first. Where it differs from the PRD, the decision wins (D21-D33 especially).
 5. `docs/learnings.md`: how the pump and notebooks really work, product, technical and process lessons.
 6. `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with the decisions above layered on top).
 7. `docs/design/canvas/` (v2 screen flows, final) and `docs/design-tokens.json`: visual source of truth. `docs/design/design-system/components/*/README.md` notes are partly stale (D2, D13).
@@ -19,7 +19,7 @@ Last updated: 29 Sep 2026 (overnight build), Phase 4 slices 4a-4f all built. Wai
 | 1 App shell and design system | Done 26 Sep |
 | 2 Calculation engine + golden cases | Done 26 Sep (`docs/plans/phase-2-report.md`) |
 | 3 Foundations: database, security, login | Done 27 Sep (`docs/plans/phase-3-foundations.md`) |
-| **4 Daily entry, slice by slice** | **All slices built. 4a-4d checked on Android by the owner (fixes D53-D69: keyboard, cut-off text, drafts, company drop-down, tanker chambers and margin). 4e expenses + 4f closing dip / Review / Submit / offline outbox built overnight 28→29 Sep (migrations 11, 12; D70-D81). Migrations 1-10 pasted on live; 11 and 12 written, not pasted. Next: owner pastes 11 and 12 and does the 4e/4f steps (incl. the 15 Sep notebook numbers typed into 28 Sep), then 4g: preview APK + Sentry + EAS Update test (needs the owner).** |
+| **4 Daily entry, slice by slice** | **All slices built. 4a-4d checked on Android by the owner (fixes D53-D69: keyboard, cut-off text, drafts, company drop-down, tanker chambers and margin). 4e expenses + 4f closing dip / Review / Submit / offline outbox built overnight 28→29 Sep (migrations 11, 12; D70-D81). Migrations 1-12 pasted on live; 13 (managers add expense types) written 29 Sep. Owner's 4e/4f check done up to Step 3; fixes D82-D85 (2-most-used pickers, Review as the last Today card, red/yellow/green Summary). Next: owner pastes 11 and 12 and does the 4e/4f steps (incl. the 15 Sep notebook numbers typed into 28 Sep), then 4g: preview APK + Sentry + EAS Update test (needs the owner).** |
 | 5 Notebook comparison + owner loop (flags, lock, alerts, push) | Later |
 | 6 Owner settings screens, dashboard, PostHog | Later |
 | 7 Hardening and go-live | Later |
@@ -34,7 +34,7 @@ Phase 4 slices (details in the Phase 4 plan; 4e/4f in `docs/plans/phase-4ef-expe
 - **Helpers:** `src/lib/` (format, businessDay, decimal, supabase client, errors, username).
 - **Session:** `src/features/session/SessionProvider.tsx` (states: starting, signedOut, loading, noPump, error, notConfigured, ready). Screens are guarded by state in `app/_layout.tsx`.
 - **Data hooks:** `src/features/setup/queries.ts`, `src/features/day/queries.ts` (TanStack Query). Day model (pure, tested): `src/features/day/model.ts`. Whole day for Today/Review: `useWholeDay.ts`. Drafts of Save forms: `src/lib/drafts.ts` + `useDraft.ts` (D67). Offline outbox: `src/lib/outbox.ts` + `Outbox.tsx` + `outboxOverlay.ts` (D70, D78).
-- **Database:** `supabase/migrations/` (12 files; 1-10 applied on live), `supabase/tests/` (pgTAP, 00-11), `supabase/functions/create-user/` (deployed on live), `supabase/cleanup/remove-test-days.sql` (pre-pilot clean-up, DELETES data, pasted only when the owner decides, D80). Match views: `v_shift_money`, `v_shift_match`, `v_day_match`; submit: `submit_day()`.
+- **Database:** `supabase/migrations/` (13 files; 1-12 applied on live), `supabase/tests/` (pgTAP, 00-11), `supabase/functions/create-user/` (deployed on live), `supabase/cleanup/remove-test-days.sql` (pre-pilot clean-up, DELETES data, pasted only when the owner decides, D80). Match views: `v_shift_money`, `v_shift_match`, `v_day_match`; submit: `submit_day()`.
 - **Golden cases:** `tests/golden/cases/*.json` (29 files; expected values computed in Python by `tests/golden/generate.py`). `npm run golden:sql` regenerates `supabase/tests/03_golden.test.sql`.
 - **CI:** `.github/workflows/ci.yml`: App job (typecheck, lint, Vitest) + Database job (throwaway Supabase, all migrations, pgTAP). Both green.
 - **Local DB check (optional):** `tools/db-local-check/` (PGlite, no Docker needed).
@@ -44,7 +44,7 @@ Phase 4 slices (details in the Phase 4 plan; 4e/4f in `docs/plans/phase-4ef-expe
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main` |
 | Supabase | project `pumphisaab`, URL `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Sign-up OFF, confirm email OFF, min password 8 |
-| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`). Also `20260927120000_day_opening` (4a, pasted 27 Sep). `20260927130000_shift_meters` (4b, pasted 27 Sep). `20260927140000_tanker` (4c) and `20260927150000_sales` (4d) pasted 27 Sep. `20260927160000_tanker_chambers` (4c fixes) pasted 27 Sep. `20260928120000_margin_and_chamber_dips` pasted 28 Sep (10 in all). Written, not yet pasted: `20260929120000_expenses` (11), `20260929130000_closing_and_submit` (12) |
+| Applied migrations | `20260926120000_foundations`, `…120100_setup_tables`, `…120200_calc_functions`, `…120300_seed_pilot_pump` (check `schema_migrations_applied`). Also `20260927120000_day_opening` (4a, pasted 27 Sep). `20260927130000_shift_meters` (4b, pasted 27 Sep). `20260927140000_tanker` (4c) and `20260927150000_sales` (4d) pasted 27 Sep. `20260927160000_tanker_chambers` (4c fixes) pasted 27 Sep. `20260928120000_margin_and_chamber_dips` pasted 28 Sep (10 in all). `20260929120000_expenses` (11) and `20260929130000_closing_and_submit` (12) pasted 29 Sep. Written, not yet pasted: `20260929140000_expense_types_by_managers` (13) |
 | Edge Function | `create-user` deployed by the owner (verify JWT on) |
 | Logins | `subham` (Owner), `manager.test` (Manager, test only, remove before pilot). Hidden emails `<username>@users.pumphisaab.com` |
 | `.env` | On the owner's Mac only (gitignored): `EXPO_PUBLIC_SUPABASE_URL` + publishable key. Never commit; never put a secret/service key in the app |
