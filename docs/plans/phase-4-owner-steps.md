@@ -1,5 +1,7 @@
 # Phase 4: your steps, slice by slice
 
+> **Owner: don't start here.** Your current checklist is `docs/plans/START-HERE-owner-checklist.md`. This file keeps the details of each slice.
+
 One section per slice. Do the steps in order and send back what each step asks for.
 
 ---

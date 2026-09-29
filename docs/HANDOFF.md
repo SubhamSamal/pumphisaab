@@ -9,7 +9,7 @@ Last updated: 29 Sep 2026. **This file is the one place for "where are we".** EX
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.
-- The current plan: `docs/plans/go-live-trial.md` (4g: `docs/plans/phase-4g-preview-build.md`); owner steps still to do: `docs/plans/phase-4-owner-steps.md`. Finished plans are in `docs/plans/archive/`.
+- The current plan: `docs/plans/go-live-trial.md` (4g: `docs/plans/phase-4g-preview-build.md`); owner's current tick-box list: `docs/plans/START-HERE-owner-checklist.md` (keep it up to date; it's the only list the owner follows). Finished plans are in `docs/plans/archive/`.
 
 ## 2. Where we are
 | Phase | Status |

@@ -1,5 +1,7 @@
 # Go-live trial plan: managers use the app beside the notebooks
 
+> The owner's tick-box version of this plan: `docs/plans/START-HERE-owner-checklist.md`.
+
 Status: **plan written 29 Sep 2026; owner answers D92-D95; waiting for "go"**
 Replaces the order in EXECUTION.md: Phase 5's parallel run starts now, before the rest of Phase 5 and Phase 6 are built. New work reaches phones over the air.
 
