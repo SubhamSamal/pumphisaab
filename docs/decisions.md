@@ -5,6 +5,8 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 28-29 Sep 2026 (4d-4g: owner checks, 4e/4f, preview app)
 
+**D96. The pilot's first day is 15 Sep 2026 (owner, 29 Sep 2026).** Managers type the notebook days from 15 Sep onwards in front of the owner (the live demo is the real test; the earlier test steps were skipped), so the clean-up runs now and sets the first day to 15 Sep. Cold start is covered and tested (`supabase/tests/12_cold_start.test.sql`): the first day's openings are typed with no approval; a day whose previous closing is missing takes a typed opening with no approval; when that closing is typed later it either agrees (becomes a normal copied opening) or waits for the owner (H2).
+
 **D95. 1-2 managers, all Android (owner MCQ, 29 Sep 2026):** the production app's install link goes on WhatsApp with a one-page manager guide.
 
 **D94. Two apps (owner MCQ, 29 Sep 2026):** managers and the owner's real days use production (`com.pumphisaab.app`); the owner also keeps PumpHisaab Preview, which gets every change first. Updates go preview → owner checks → production. The development app is replaced by production.

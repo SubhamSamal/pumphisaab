@@ -5,7 +5,7 @@ Last updated: 29 Sep 2026. **This file is the one place for "where are we".** EX
 ## 1. What to read (and what not to)
 **Always:** `CLAUDE.md` (hard rules), then this file. That's enough to start.
 **Only when the task needs it** (search, don't read whole files):
-- `docs/decisions.md`: D1-D95, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
+- `docs/decisions.md`: D1-D96, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.

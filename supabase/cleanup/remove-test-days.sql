@@ -19,7 +19,7 @@
 --    "submit yesterday first" starts counting from then.
 --
 --  HOW TO USE:
---    1. The pilot start date is on the line marked ▶ (run at night: the next day; in the day: today).
+--    1. The pilot's first day is on the line marked ▶ (15 Sep 2026).
 --    2. Supabase › SQL editor › New query › paste the whole file › Run.
 --    3. It prints how many days were removed. Then, in Supabase › Authentication › Users,
 --       delete the user manager.test@users.pumphisaab.com yourself (one click).
@@ -36,13 +36,9 @@ begin
     raise exception 'Pump not found. Nothing was changed.';
   end if;
 
-  -- ▶ The pilot's first day. Run in the evening or at night (18:00-06:00): the next business day.
-  --   Run in the daytime: today. To choose yourself, write e.g.  v_pilot_start := '2026-09-30'::date;
-  v_pilot_start := case
-    when (now() at time zone 'Asia/Kolkata')::time >= '18:00' then (now() at time zone 'Asia/Kolkata')::date + 1
-    when (now() at time zone 'Asia/Kolkata')::time < '06:00' then (now() at time zone 'Asia/Kolkata')::date
-    else public.current_business_date(v_pump)
-  end;
+  -- ▶ The pilot's first day: 15 Sep 2026 (owner, 29 Sep: managers type the past records from
+  --   the notebooks, oldest first). Earlier days can't be submitted in order before it.
+  v_pilot_start := '2026-09-15'::date;
 
   select count(*) into v_days from public.business_days where pump_id = v_pump;
 
