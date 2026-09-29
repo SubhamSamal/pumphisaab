@@ -5,7 +5,6 @@
  */
 import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
-import * as Updates from "expo-updates";
 import { Platform } from "react-native";
 
 const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
@@ -18,8 +17,7 @@ export function startCrashReports() {
   Sentry.init({
     dsn,
     environment: variant,
-    release: `pumphisaab@${Constants.expoConfig?.version ?? "0"}`,
-    dist: Updates.updateId ?? "embedded",
+    // Release and dist are left to Sentry, so they match the readable code uploaded with the build.
     sendDefaultPii: false,
     // Console lines can hold typed numbers; keep them out.
     beforeBreadcrumb: (b) => (b.category === "console" ? null : b),

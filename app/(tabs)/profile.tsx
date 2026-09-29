@@ -16,10 +16,11 @@ const THEME_OPTIONS = [
   { value: "auto", label: "Auto" },
 ] as const satisfies readonly { value: ThemePreference; label: string }[];
 
-/** "App 1.0.0 · preview · update 3f2a91c": which code this phone runs (4g). */
+/** "App 1.0.0 · preview · built-in code" or "… · update 3f2a91c (over the air)": which code this phone runs (4g). */
 function versionLine() {
   const variant = (Constants.expoConfig?.extra as { variant?: string } | undefined)?.variant ?? "development";
-  const update = Updates.updateId ? `update ${Updates.updateId.slice(0, 7)}` : "built-in code";
+  // The code inside the installed app has an id too; only a downloaded update says "over the air".
+  const update = !Updates.isEmbeddedLaunch && Updates.updateId ? `update ${Updates.updateId.slice(0, 7)} (over the air)` : "built-in code";
   return `App ${Constants.expoConfig?.version ?? "?"} · ${variant} · ${update}`;
 }
 
