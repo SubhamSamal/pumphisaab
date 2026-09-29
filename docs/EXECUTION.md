@@ -1,12 +1,12 @@
 # PumpHisaab: Execution Plan
 
-This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It has the full phase plan and what is done so far. **Verify the "Status" section against the real repo and environment before trusting it** — it was last updated by hand and may be stale.
+This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It has the full phase plan and what is done so far. Current status: `docs/HANDOFF.md`.
 
 ---
 
-## Status snapshot (last updated 29 Sep 2026)
+## Status
 
-**Where we are:** Phases 0-3 done. Phase 4: all slices 4a-4f built; 4a-4d checked on Android; 4e/4f built overnight 28→29 Sep (migrations 11, 12 to paste, owner check pending). Next: 4g preview APK + Sentry + OTA test with the owner, then the Phase 4 exit check.
+**Where we are lives in `docs/HANDOFF.md` §2 (one place, so it can't drift).** The checkboxes below are the long-term record per phase.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -34,7 +34,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Engine in `src/calc/` (pure TypeScript, exact decimals); every limit in `src/calc/rules.ts`
 - [x] All hard checks H1-H9 and soft checks S1-S4, S6, S7, S9, R1
 - [x] 28 golden case files incl. PRD 1-8, the canvas day and the real notebook day 15 Sep 2026; expected answers computed separately in Python
-- [x] Real notebook day understood (16 MCQs, decisions D21-D33); report in `docs/plans/phase-2-report.md`
+- [x] Real notebook day understood (16 MCQs, decisions D21-D33); report in `docs/plans/archive/phase-2-report.md`
 - [x] 65 tests green, CI green
 - [x] Project KT started: `docs/learnings.md` (how the pump and notebooks really work, product, build and process learnings); CLAUDE.md now requires keeping it updated
 
@@ -97,13 +97,13 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 
 > **Re-planned 26 Sep 2026** (decisions D15-D17). Old order: DB → calc → setup UI → Today → Sales/Tanker → flags → dashboard → hardening. New order below: maths first, daily entry in vertical slices, notebook comparison starts as soon as a full day can be submitted, full setup screens after the pilot starts.
 
-### Phase 2: Calculation engine + golden cases — done 26 Sep 2026 (plan: `docs/plans/phase-2-calc-engine.md`, report: `docs/plans/phase-2-report.md`)
+### Phase 2: Calculation engine + golden cases — done 26 Sep 2026 (plan: `docs/plans/archive/phase-2-calc-engine.md`, report: `docs/plans/archive/phase-2-report.md`)
 - Pure TypeScript in `src/calc/` with decimal.js: dip cm → litres (linear interpolation on the real chart), meter sales, test deduction, sold as per tank, stock Difference and %, shift Should have / Received / Difference (drawer expenses added back), tanker totals, Matched decision against tolerances, hard checks H1-H9 and soft checks S1-S9/R1 as pure functions
 - `tests/golden/*.json`: every PRD acceptance case (1-8) plus the owner's notebook week once transcribed; 30+ cases. Same files will drive the SQL tests later
 - Output: the exact list of inputs the engine needs, which becomes the database design in Phase 3
 - **Exit:** 100% golden cases pass in Vitest; engine reviewed against the notebook numbers
 
-### Phase 3: Foundations — done 27 Sep 2026 (plan: `docs/plans/phase-3-foundations.md`, owner steps: `docs/plans/phase-3-owner-steps.md`)
+### Phase 3: Foundations — done 27 Sep 2026 (plan: `docs/plans/archive/phase-3-foundations.md`, owner steps: `docs/plans/archive/phase-3-owner-steps.md`)
 - **Database safety net:** GitHub CI builds a throwaway Supabase from every migration on each push and runs pgTAP (RLS, triggers, constraints, golden cases through the SQL views). The live project is never touched by CI or Claude Code
 - **Migration ledger:** every migration ends by recording itself in a `schema_migrations_applied` table, so we can check the live database matches the repo
 - Core tables only: pumps, pump_members, dip_charts (versioned, never edited in place) + rows, tanks, nozzles, shift_templates, fuel_prices, staff, payment_types, cash_denominations, expense_categories, audit_log; audit trigger; RLS on every table; row version for conflict detection

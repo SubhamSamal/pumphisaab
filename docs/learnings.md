@@ -122,7 +122,7 @@ Plus some Excel sheets. Mismatches used to be spotted about 10 days late, with n
 - Payments from customers ₹15,65,052; expenses ₹27,110; cash in hand ₹22,919.99
 - Our digitised dip chart matched the notebook's four dip readings to within 1 litre, so the chart is right.
 
-Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison: `docs/plans/phase-2-report.md`.
+Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison: `docs/plans/archive/phase-2-report.md`.
 
 ## 5. Product learnings (from the design walkthrough and PRD review)
 - **No reasons, ever.** Asking a manager "why" slows them and reads as blame. Flags go to the owner, who calls (D3, hard rule 7).
@@ -134,6 +134,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Nothing fake in the app:** tabs show one honest "arrives in Phase N" line until built (D9).
 
 ## 6. Technical learnings (for whoever builds next)
+**Read first (these bit us on the owner's phone):** keyboard never covers input (`ScreenBody`/`KeyboardSafeScroll`, test-guarded) · every `TextInput` uses `typingText` (test-guarded) · a value beside a label wraps (`flex-row flex-wrap`) · lists that grow show the 2 most used, never everything · Save-button forms keep a draft · outbox saves stay in order · `metro.config.js` changes need a Metro restart · EAS builds read env vars from EAS, not `.env`. Details below.
 - **Folder map:** screens in `app/`, design components in `src/components/ui/`, maths in `src/calc/` (no React, no database), helpers in `src/lib/`, golden cases in `tests/golden/`, docs in `docs/`.
 - **All limits live in `src/calc/rules.ts`.** A test fails if a limit is written anywhere else in the engine.
 - **Golden cases** (`tests/golden/cases/*.json`) are the truth for the maths. Their expected answers are computed separately in Python (`tests/golden/generate.py`), not copied from the engine. This caught two engine bugs in Phase 2. Add each new notebook day there.
@@ -190,6 +191,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
 ## 7. How we work (process learnings)
+- **Keep the docs cheap to use** (29 Sep audit): HANDOFF.md is the only status page; decisions and learnings are searched, not read top to bottom; finished plans and owner steps go to `docs/plans/archive/`; a replaced decision is marked "(Replaced by Dxx)".
 - **Give the owner all steps at once** (numbered, click by click, what to send back); one step at a time felt slow. Plans for each phase live in `docs/plans/`, and `docs/HANDOFF.md` is the start page for a new session.
 - **Every phase:** plan → owner MCQs → owner says "go" → build → check → plain-language summary. Nothing is built before "go".
 - **MCQs over open questions:** the owner answers fastest with 3-4 options and a recommendation; when an answer doesn't match the question, ask again with the exact text quoted (happened once with "Payment Received").
@@ -199,4 +201,4 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Check an owner answer against the notebook before building on it** (27 Sep): "dues come separately" contradicted the 15 Sep XtraPower figures; re-asking with the exact numbers gave the precise rule (card-type dues in the shift, bank dues outside). Free-text answers often add new rules (auto-lock came this way): split them into small follow-up MCQs.
 
 ## 8. Still open
-See `docs/HANDOFF.md` section 7 (kept there so there is one list). Also: whether "Adj" on XtraPower/Paytm needs its own field later (owner to check).
+See `docs/HANDOFF.md` §2 "Still open" (kept there so there is one list). Also: whether "Adj" on XtraPower/Paytm needs its own field later (owner to check).

@@ -1,7 +1,7 @@
 # CLAUDE.md: PumpHisaab
 
 Read this file fully before every task. If a request conflicts with this file, stop and ask.
-In a new session, read `docs/HANDOFF.md` next: it says where the project stands and what to do first.
+In a new session, read `docs/HANDOFF.md` next: it says where the project stands, what to do first, and which other docs to search (don't read them all).
 
 ## What we are building
 PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps. Managers enter the day's dips, meter readings, testing, money received, credit sales, tanker receipts and expenses. The app auto-calculates and matches **sold as per tank vs sold as per meters vs money received**, per shift and per day, and flags leaks to the owner.
@@ -25,16 +25,16 @@ PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps.
 
 ## Folder map
 ```
-app/                    Expo Router screens: (auth), (tabs)/today, sales, tanker, dashboard, profile
+app/                    Expo Router screens: sign-in, (tabs)/index (Today), sales, tanker, dashboard, profile; day/* entry screens
 src/components/ui/      Design system components only (no business logic)
-src/features/<name>/    Feature screens, hooks, queries (today, sales, tanker, setup, flags, dashboard)
+src/features/<name>/    Feature hooks, queries, pure models (day, session, setup, shell)
 src/calc/               Pure calculation engine (no React, no Supabase imports)
 src/lib/                supabase client, formatting (₹, L, cm), dates/business day, analytics
 supabase/migrations/    SQL migrations (only way to change the database)
 supabase/functions/     Edge Functions (create user, push sender)
 supabase/tests/         pgTAP tests (RLS, triggers, views)
 tests/golden/           Golden calculation cases (JSON) shared by Vitest and pgTAP
-docs/                   PRD, design tokens, decisions log (docs/decisions.md), learnings/KT (docs/learnings.md), start-here (docs/HANDOFF.md), phase plans (docs/plans/)
+docs/                   PRD, design tokens, decisions log (docs/decisions.md), learnings/KT (docs/learnings.md), start-here (docs/HANDOFF.md), phase plans (docs/plans/, finished ones in docs/plans/archive/)
 tools/                  Developer-only helpers, not part of the app (tools/db-local-check)
 ```
 
@@ -55,9 +55,9 @@ tools/                  Developer-only helpers, not part of the app (tools/db-lo
 14. **Formatting:** ₹ in Indian grouping (₹1,50,490), litres with "L" and up to 2 decimals, dips with 1 decimal and "cm", dates like 01 Oct 2026.
 
 ## Definition of done (every task)
-- `npm run typecheck`, `npm run lint`, `npm test` pass; `supabase test db` passes if SQL changed.
+- `npm run typecheck`, `npm run lint`, `npm test` pass; if SQL changed, the database tests pass (locally `tools/db-local-check`, then the CI Database job).
 - New logic has tests; formula changes update `tests/golden/`.
-- Screens checked in light and dark mode at 390 px width and on web.
+- Screens checked in light and dark mode at 390 px width and on web: new components in `/gallery`; signed-in screens (live data) on the owner's phone.
 - **Keyboard never covers what's being typed** (owner's rule, 27 Sep): every screen with a typing box sits in `ScreenBody` or `KeyboardSafeScroll`, and sheets use `BottomSheet` (never a raw ScrollView/KeyboardAvoidingView). The box being typed in, any message under it, and the button needed next must stay visible above the keyboard on Android and iPhone. `tests/keyboard-safety.test.ts` enforces the first part; check the second on the phone for every new form.
 - **Text is never cut off on any side** (owner's rule, 28 Sep): typed numbers, labels and values show whole on Android and iPhone, at every length (a single "0" too). Every `TextInput` uses `typingText` from `src/components/ui/Field.tsx`; `tests/text-clipping.test.ts` enforces it. Check new screens on the phone with short and long values.
 - Analytics events from the PRD are fired where relevant.
