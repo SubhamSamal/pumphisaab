@@ -5,28 +5,28 @@ Last updated: 29 Sep 2026. **This file is the one place for "where are we".** EX
 ## 1. What to read (and what not to)
 **Always:** `CLAUDE.md` (hard rules), then this file. That's enough to start.
 **Only when the task needs it** (search, don't read whole files):
-- `docs/decisions.md`: D1-D91, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
+- `docs/decisions.md`: D1-D95, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.
-- The current plan: `docs/plans/phase-4g-preview-build.md`; owner steps still to do: `docs/plans/phase-4-owner-steps.md`. Finished plans are in `docs/plans/archive/`.
+- The current plan: `docs/plans/go-live-trial.md` (4g: `docs/plans/phase-4g-preview-build.md`); owner steps still to do: `docs/plans/phase-4-owner-steps.md`. Finished plans are in `docs/plans/archive/`.
 
 ## 2. Where we are
 | Phase | Status |
 |---|---|
 | 0 Setup · 1 App shell · 2 Engine · 3 Foundations | Done 25-27 Sep |
-| **4 Daily entry** | **4a-4f built and checked on Android** (day, price, dips, shifts, tanker, sales, expenses, closing dip, Review with red/yellow/green Summary, Submit, offline outbox, drafts). **4g in progress:** preview APK built and installed (`com.pumphisaab.app.preview`), Sentry test report received; first over-the-air update published (`eas update --channel preview`, update 01a0eb4), waiting for the owner's screenshot. |
+| **4 Daily entry** | **4a-4f built and checked on Android** (day, price, dips, shifts, tanker, sales, expenses, closing dip, Review with red/yellow/green Summary, Submit, offline outbox, drafts). **4g done 29 Sep:** preview APK installed (`com.pumphisaab.app.preview`), Sentry test report received, first over-the-air update 01a0eb4 arrived. **Next: go-live trial** (`docs/plans/go-live-trial.md`, D92-D95): end-to-end test → nightly encrypted backup → clean-up → production app → managers start beside the notebooks. |
 | 5 Owner loop (flags, bell, push, unlock request, owner notes, backups, notebook comparison) | Not started |
 | 6 Settings screens, dashboard, PostHog | Not started |
 | 7 Hardening, go-live, web on pumphisaab.com | Not started |
 | 8 Pilot | Not started |
 
 **Still open in Phase 4:**
-1. Owner: confirm the OTA update arrived (Profile line "… update 01a0eb4 (over the air)").
+1. Owner says "go" on `docs/plans/go-live-trial.md`.
 2. Owner: paste migration 13 if not done (`select count(*) from schema_migrations_applied` → 13), finish and submit 27 Sep.
 3. Owner: Step 4, the end-to-end test (15 Sep notebook numbers typed into 28 Sep, stopwatch; expected totals in the owner steps file). This is the **Phase 4 exit check**.
 4. Owner to confirm D78 (what the offline outbox covers).
-Then plan Phase 5 (plan → MCQs → "go").
+Then the go-live steps B-G, and Phase 5/6 built during the parallel run, over the air.
 
 ## 3. Map of the code
 - **Screens** `app/`: sign-in, starting, (tabs) today/sales/tanker/dashboard/profile, day/{opening-dip, shift, tanker, sales, credit-slip, expenses, expense, closing-dip, review}, profile/{logins, add-manager, staff}, alerts, gallery (dev only).
