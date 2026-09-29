@@ -5,6 +5,20 @@ Use the **PumpHisaab Preview** app for everything here (not the old development 
 
 ---
 
+> **Changed 29 Sep (owner short on time):** Part A is skipped (the 15 Sep day is checked by the automatic tests; the live demo with the managers is the real test). New order: **D → E → F (demo) → C tonight → B today.**
+
+## Today, in this order
+- [ ] **D. Real app:** install **PumpHisaab** from the link I send (replaces the old development app). Sign in as `subham`.
+- [ ] **E. Setup:** Profile › **Logins** › add the 2 managers (username + password for each) · Profile › **Staff** › every attendant · check today's price and the diesel margin chip (₹2.60).
+- [ ] **F. Demo:** send each manager the link + the guide (`docs/manager-guide.md`, I also paste it in chat; it's WhatsApp-ready). Fill today together as practice. Note every question or problem, and send me the list.
+- [ ] **B. Backup:** when I say it's ready, add the 2 GitHub passwords (10 minutes, steps from me).
+- [ ] **C. Clean-up, tonight after the demo** (after 6 PM): paste `supabase/cleanup/remove-test-days.sql`. It deletes every test and demo day and makes **tomorrow** the first real day (the message at the end says the date). Then Supabase › Authentication › Users › delete `manager.test@users.pumphisaab.com`.
+- [ ] **Tomorrow:** managers enter the real day beside the notebook. Evening: compare Review with the notebook; send me any difference.
+
+---
+
+<details><summary>Skipped: Part A (kept for later)</summary>
+
 ## Part A · Finish the test days (about 1 hour 15 minutes)
 
 ### A1. Paste migration 13 (2 minutes)
@@ -85,6 +99,8 @@ If any number is different, stop and send me a screenshot. That's exactly what t
 - [ ] Turn airplane mode off. Within 20 seconds it says **Saved**.
 
 ---
+
+</details>
 
 ## Part B · Nightly backup (I build it; you add 2 passwords, 10 minutes)
 - [ ] Wait for my message "backup is ready", then follow the click-by-click steps I send. You'll add `SUPABASE_DB_URL` and `BACKUP_PASSPHRASE` to GitHub.
