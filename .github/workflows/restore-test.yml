@@ -1,0 +1,50 @@
+# Proves a backup can really be restored (run by hand, e.g. monthly): takes the latest nightly
+# copy, decrypts it, loads it into a throwaway Supabase on the runner and counts what's there.
+# Never touches the live project.
+name: Restore test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the latest backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh api "repos/${{ github.repository }}/actions/workflows/backup.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id')
+          test -n "$run_id" && test "$run_id" != "null" || { echo "No successful backup yet."; exit 1; }
+          echo "RUN_ID=$run_id" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ github.token }}
+          path: dl
+      - name: Decrypt
+        env:
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          f=$(find dl -name '*.gpg' | head -1)
+          echo "Restoring $f"
+          gpg --batch --yes --passphrase "$PASS" -o backup.tar.gz -d "$f"
+          mkdir backup && tar xzf backup.tar.gz -C backup
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Throwaway Supabase (empty, no migrations)
+        run: |
+          mkdir empty && cd empty && supabase init --force >/dev/null
+          supabase start -x realtime,storage-api,imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor,postgres-meta
+      - name: Restore and count
+        run: |
+          DB=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          psql "$DB" -v ON_ERROR_STOP=0 -q -f backup/roles.sql
+          psql "$DB" -v ON_ERROR_STOP=1 -q -f backup/schema.sql
+          psql "$DB" -v ON_ERROR_STOP=1 -q -c 'SET session_replication_role = replica' -f backup/data.sql
+          psql "$DB" -c "select (select count(*) from public.business_days) as days, (select count(*) from public.nozzle_readings) as readings, (select count(*) from public.credit_sales) as slips, (select count(*) from public.schema_migrations_applied) as migrations, (select count(*) from auth.users) as logins"
