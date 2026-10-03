@@ -5,7 +5,7 @@ Last updated: 29 Sep 2026. **This file is the one place for "where are we".** EX
 ## 1. What to read (and what not to)
 **Always:** `CLAUDE.md` (hard rules), then this file. That's enough to start.
 **Only when the task needs it** (search, don't read whole files):
-- `docs/decisions.md`: D1-D96, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
+- `docs/decisions.md`: D1-D102, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.
@@ -15,18 +15,18 @@ Last updated: 29 Sep 2026. **This file is the one place for "where are we".** EX
 | Phase | Status |
 |---|---|
 | 0 Setup · 1 App shell · 2 Engine · 3 Foundations | Done 25-27 Sep |
-| **4 Daily entry** | **4a-4f built and checked on Android** (day, price, dips, shifts, tanker, sales, expenses, closing dip, Review with red/yellow/green Summary, Submit, offline outbox, drafts). **4g done 29 Sep:** preview APK installed (`com.pumphisaab.app.preview`), Sentry test report received, first over-the-air update 01a0eb4 arrived. **Next: go-live trial** (`docs/plans/go-live-trial.md`, D92-D95): end-to-end test → nightly encrypted backup → clean-up → production app → managers start beside the notebooks. |
+| **4 Daily entry + go-live** | **Done.** 4a-4g built; production app `com.pumphisaab.app` installed by the owner and given to 2 managers (03 Oct demo; managers type from 1 Oct, beside the notebooks). **Pilot fixes round 1** (`docs/plans/pilot-fixes-1.md`, D97-D102) built 03 Oct: split tanker over two days, drop-downs + tick list, instant ticks, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back. Needs migration 14 pasted, then an over-the-air update preview → production. |
 | 5 Owner loop (flags, bell, push, unlock request, owner notes, backups, notebook comparison) | Not started |
 | 6 Settings screens, dashboard, PostHog | Not started |
 | 7 Hardening, go-live, web on pumphisaab.com | Not started |
 | 8 Pilot | Not started |
 
-**Still open in Phase 4:**
-1. Owner says "go" on `docs/plans/go-live-trial.md`.
-2. Owner: paste migration 13 if not done (`select count(*) from schema_migrations_applied` → 13), finish and submit 27 Sep.
-3. Owner: Step 4, the end-to-end test (15 Sep notebook numbers typed into 28 Sep, stopwatch; expected totals in the owner steps file). This is the **Phase 4 exit check**.
-4. Owner to confirm D78 (what the offline outbox covers).
-Then the go-live steps B-G, and Phase 5/6 built during the parallel run, over the air.
+**Still open:**
+1. Owner: paste `supabase/fixes/2026-10-03-first-day-1-oct.sql` (first day = 1 Oct) and migration 14; then Claude sends the round-1 update to preview, owner checks, then production (`eas update --channel production`).
+2. Nightly backup: owner adds `SUPABASE_DB_URL` + `BACKUP_PASSPHRASE` GitHub secrets; Claude runs the first backup and the restore test (`.github/workflows/backup.yml`, `restore-test.yml`).
+3. Owner to confirm D78 (what the offline outbox covers).
+4. Next phase: staff-wise entry (owner's #7), then Phase 5 (flags, bell, push: push needs one reinstall) and Phase 6, delivered over the air.
+The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 
 ## 3. Map of the code
 - **Screens** `app/`: sign-in, starting, (tabs) today/sales/tanker/dashboard/profile, day/{opening-dip, shift, tanker, sales, credit-slip, expenses, expense, closing-dip, review}, profile/{logins, add-manager, staff}, alerts, gallery (dev only).
@@ -41,7 +41,7 @@ Then the go-live steps B-G, and Phase 5/6 built during the parallel run, over th
 | Thing | Where / what |
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main`, CI = App job + Database job |
-| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-12 pasted; 13 written (check the ledger `schema_migrations_applied`) |
+| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-13 pasted; 14 written 03 Oct (check the ledger `schema_migrations_applied`). One-off data fixes live in `supabase/fixes/` |
 | Edge Function | `create-user` (owner deployed) |
 | Logins | `subham` (owner), `manager.test` (test only; removed by the clean-up script) |
 | Expo / EAS | `@pumphisaab/pumphisaab`; EAS CLI logged in on the Mac as `pumphisaab`. Env vars in EAS for preview + production: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` (secret, owner's) |

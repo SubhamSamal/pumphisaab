@@ -307,6 +307,29 @@ write("day-16-s6-tanker-dip-check", {
                      {"product": "HSD", "tankId": "HSD-1", "orderedLitres": "14000", "shortLitres": "28", "dipBeforeCm": "59.8", "dipAfterCm": "119.8"}]}]),
     "expected": {"tankers": {"T1": {"receivedNetLitres": "13972.00", "dipRiseLitres": q(rise)}}, "flags": ["S6"], "isMatched": False}})
 
+# A tanker that finished unloading the next day (owner, 03 Oct 2026; D97). 10,000 L ordered, 40 L
+# short, chambers 4,000 + 3,000 + 3,000; chamber 3 unloaded after 6 AM the next day.
+split_tanker = {"id": "T9", "vehicleNo": "OD02CD9087", "invoiceNo": "7018875699", "lines": [
+    {"product": "HSD", "tankId": "HSD-1", "orderedLitres": "10000", "shortLitres": "40", "chambers": [
+        {"litres": "4000", "dipBeforeCm": "50.0", "dipAfterCm": "90.0"},
+        {"litres": "3000", "dipBeforeCm": "85.0", "dipAfterCm": "115.0"},
+        {"litres": "3000", "dipBeforeCm": "100.0", "dipAfterCm": "130.0", "nextDay": True}]}]}
+day1_received = D("10000") - D("40") - D("3000")          # 6,960 L in the tank on day 1
+day1_sold = lin("50.0") + day1_received - lin("100.0")    # 1,960 L
+write("day-24-tanker-split-first-day", {
+    "kind": "day", "source": "Owner, 03 Oct 2026 (D97)",
+    "description": "Day 1 of a tanker that finished unloading the next day: chambers 1-2 (7,000 L) unloaded today, chamber 3 (3,000 L) tomorrow. Today receives 7,000 − 40 short = 6,960 L, so 5,000 + 6,960 − 10,000 = 1,960 L sold as per tank = meters: Matched. Counting the whole tanker today would show −3,000 L.",
+    "input": hsd_simple("50.0", "100.0", str(day1_sold), tankers=[split_tanker]),
+    "expected": {"products": {"HSD": {"soldAsPerTank": q(day1_sold), "soldAsPerMeters": q(day1_sold), "difference": "0.00", "withinLimit": True}},
+                 "tankers": {"T9": {"receivedNetLitres": "9960.00"}}}})
+
+day2_sold = lin("100.0") + D("3000") - lin("105.0")        # 2,500 L
+write("day-25-tanker-split-next-day", {
+    "kind": "day", "source": "Owner, 03 Oct 2026 (D97)",
+    "description": "Day 2 of the same tanker: yesterday's chamber 3 (3,000 L) was unloaded today, so today receives 3,000 L: 10,000 + 3,000 − 10,500 = 2,500 L sold as per tank = meters: Matched.",
+    "input": hsd_simple("100.0", "105.0", str(day2_sold), date="2026-10-02", tankersFromYesterday=[split_tanker]),
+    "expected": {"products": {"HSD": {"soldAsPerTank": q(day2_sold), "soldAsPerMeters": q(day2_sold), "difference": "0.00", "withinLimit": True}}}})
+
 write("day-17-s7-opening-dip", {
     "kind": "day", "source": "S7",
     "description": "MS opening 129.1 cm vs last night's 128.5 cm: 0.6 cm, beyond 0.5 cm (flag). HSD 128.9 vs 128.5: 0.4 cm (OK).",

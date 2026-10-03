@@ -5,11 +5,9 @@ import {
   Banner,
   BottomSheet,
   Button,
-  Chip,
-  ChipGroup,
+  SelectField,
   ErrorState,
   FieldHint,
-  FieldLabel,
   NumericInput,
   ScreenBody,
   ScreenHeader,
@@ -255,7 +253,7 @@ function ExpenseForm({
             label="Write what it was"
             value={description}
             onChangeText={setDescription}
-            placeholder="Generator repair"
+            placeholder="e.g. Generator repair"
             capitalize="words"
             disabled={locked}
             error={tried ? problems.description : undefined}
@@ -271,12 +269,7 @@ function ExpenseForm({
           error={tried || a.kind === "bad" ? problems.amount : undefined}
         />
         <View className="gap-8">
-          <FieldLabel>Where did the money come from?</FieldLabel>
-          <ChipGroup>
-            {PAID_FROM.map((p) => (
-              <Chip key={p.value} label={p.label} selected={p.value === paidFrom} onPress={locked ? undefined : () => setPaidFrom(p.value)} />
-            ))}
-          </ChipGroup>
+          <SelectField label="Where did the money come from?" value={paidFrom} options={PAID_FROM} onChange={setPaidFrom} disabled={locked} />
           <FieldHint>Money from a shift&apos;s drawer is added back to that shift&apos;s sales, so the shift won&apos;t show as short.</FieldHint>
         </View>
         <Text variant="label" weight="400" tone="muted">

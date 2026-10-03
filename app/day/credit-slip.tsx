@@ -218,8 +218,8 @@ function SlipForm({
           <SegmentedControl options={shifts.map((s) => ({ value: s.code, label: s.code }))} value={shiftCode} onChange={setShiftCode} />
         </View>
         <CustomerPicker pumpId={pumpId} customers={salesSetup.customers} value={customerId} onChange={setCustomerId} error={tried ? problems.customer : undefined} />
-        <TextField label="Vehicle number" value={vehicle} onChangeText={setVehicle} vehicle placeholder="OD05AB1234" error={tried || vehicle.length >= 4 ? problems.vehicle : undefined} />
-        <TextField label="Slip number" value={slipNo} onChangeText={setSlipNo} placeholder="4471" error={tried ? problems.slip : undefined} />
+        <TextField label="Slip number" value={slipNo} onChangeText={setSlipNo} placeholder="e.g. 4471" error={tried ? problems.slip : undefined} />
+        <TextField label="Vehicle number" value={vehicle} onChangeText={setVehicle} vehicle placeholder="e.g. OD05AB1234" error={tried || vehicle.length >= 4 ? problems.vehicle : undefined} />
         <View className="gap-4">
           <FieldLabel>Fuel</FieldLabel>
           <SegmentedControl options={fuels.map((f) => ({ value: f, label: f }))} value={product} onChange={setProduct} />

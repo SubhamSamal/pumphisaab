@@ -7,6 +7,8 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 03 Oct 2026 (owner's demo with the managers)
 
+**D102. "Pick one" is a drop-down, "pick many" is a tick list (owner, 03 Oct 2026).** `SelectField` (a box with ▾, the list opens from the bottom) replaces chips for: testing nozzle, expense "where did the money come from", customer payment "how was it paid". "Who worked" is a `CheckRow` tick list; the tick shows at once and the row greys while it saves (no double taps). The 2-3 option switches (shift, fuel, ₹/litres) stay. Example text in empty boxes starts with "e.g." and uses the new very light `placeholder` colour; helper lines use the lighter `text-faint` (managers thought the example text was typed and pressed back to delete it). Credit slip: slip number before vehicle.
+
 **D101. The pilot's first day is 1 Oct 2026 (replaces D96's 15 Sep).** Fix file `supabase/fixes/2026-10-03-first-day-1-oct.sql` sets it and removes empty days before it. Managers can go back 10 days (rule `managerDaysBack`), and the 3-day lock after submit stays.
 
 **D100. Nozzles are switched on/off by the owner in Profile › Nozzles (owner MCQ).** A nozzle switched on shows on every shift from then; its first opening is typed (cold start).

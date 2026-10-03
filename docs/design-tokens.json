@@ -110,6 +110,22 @@
     "usage": "Hints, opening-reading caption, placeholders. Never for values, errors or actions. at least 4.5:1 on every ground (darker than the brief's #94A3B8, which was 2.6:1)."
    },
    {
+    "name": "color-text-faint",
+    "value": {
+     "light": "#8592A3",
+     "dark": "#6E7F96"
+    },
+    "usage": "Helper lines under boxes (owner, 03 Oct: hints read as 'something is written'). Lighter than text-muted; still readable."
+   },
+   {
+    "name": "color-placeholder",
+    "value": {
+     "light": "#B4BDC9",
+     "dark": "#4B5B73"
+    },
+    "usage": "Example text inside an empty box ('e.g. OD05AB1234'). Very light on purpose so it never looks typed (owner, 03 Oct)."
+   },
+   {
     "name": "color-auto-field-bg",
     "value": {
      "light": "#F1F5F9",

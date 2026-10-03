@@ -1,7 +1,8 @@
 /**
  * The fuel check, per fuel for the whole day:
  *
- *   Sold as per tank    = opening dip litres + tanker litres received − closing dip litres
+ *   Sold as per tank    = opening dip litres + tanker litres received today − closing dip litres
+ *                         (a tanker that finished unloading the next day is split between the days, D97)
  *   Sold as per meters  = all shifts' meter litres − testing
  *   Difference          = sold as per meters − sold as per tank
  *
@@ -28,6 +29,7 @@ export function productStock(
   tankers: TankerResult[],
   shifts: ShiftLitres[],
   rules: Rules,
+  tankersFromYesterday: TankerResult[] = [],
 ): ProductResult | null {
   const productTanks = tanks.filter((t) => t.product === product);
   if (productTanks.length === 0) return null;
@@ -46,9 +48,11 @@ export function productStock(
 
   const openingDipLitres = sum(openings);
   const closingDipLitres = sum(closings);
-  const receivedLitres = sum(
-    tankers.flatMap((t) => t.lines).filter((l) => l.product === product).map((l) => l.receivedNetLitres),
-  );
+  // Today's tankers, less chambers unloaded tomorrow; plus yesterday's chambers unloaded today (D97).
+  const receivedLitres = sum([
+    ...tankers.flatMap((t) => t.lines).filter((l) => l.product === product).map((l) => l.receivedNetLitres.minus(l.receivedNextDayLitres)),
+    ...tankersFromYesterday.flatMap((t) => t.lines).filter((l) => l.product === product).map((l) => l.receivedNextDayLitres),
+  ]);
   const soldAsPerTank = openingDipLitres.plus(receivedLitres).minus(closingDipLitres);
 
   const meterLitres = sum(shifts.map((s) => s.meterLitres[product]));

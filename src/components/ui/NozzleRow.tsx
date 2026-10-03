@@ -83,7 +83,7 @@ function MeterInput({ value, onChange, onBlur, editable, placeholder, error, a11
         returnKeyType="next"
         onSubmitEditing={onSubmitEditing}
         placeholder={placeholder}
-        placeholderTextColor={colors["text-muted"]}
+        placeholderTextColor={colors.placeholder}
         selectionColor={colors.primary}
         style={[
           value === "" ? placeholderStyle : meterStyle,

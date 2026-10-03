@@ -52,7 +52,7 @@ export function NoteCountRow({ note, count, onChangeCount, onBlur, amount, edita
           inputMode="numeric"
           returnKeyType="next"
           placeholder="0"
-          placeholderTextColor={colors["text-muted"]}
+          placeholderTextColor={colors.placeholder}
           selectionColor={colors.primary}
           style={[countStyle, typingText, { color: colors["text-primary"] }]}
         />

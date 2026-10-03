@@ -60,9 +60,10 @@ export function evaluateDay(day: DayInput, rules: Rules = DEFAULT_RULES): DayRes
   // 3. Litres per shift, tanker totals, then the two matches.
   const litresPerShift = day.shifts.map(shiftLitres);
   const tankers = day.tankers.map((t) => receiptTotals(t, charts));
+  const fromYesterday = (day.tankersFromYesterday ?? []).map((t) => receiptTotals(t, charts));
 
   const tankInfo = day.tanks.flatMap((t) => (charts.has(t.id) ? [{ id: t.id, product: t.product, chart: charts.get(t.id) as CheckedChart }] : []));
-  const products = FUELS.map((fuel) => productStock(fuel, tankInfo, day.tankDays, tankers, litresPerShift, rules)).filter(
+  const products = FUELS.map((fuel) => productStock(fuel, tankInfo, day.tankDays, tankers, litresPerShift, rules, fromYesterday)).filter(
     (p): p is ProductResult => p !== null,
   );
 

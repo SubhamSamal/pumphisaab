@@ -530,3 +530,42 @@ describe("review and submit (slice 4f)", () => {
     expect(sectionFor({ code: "H1", severity: "hard", message: "", where: { shift: "C" } })).toBe("shiftC");
   });
 });
+
+describe("tanker finished the next day (D97)", () => {
+  const receipt = (nextDay: boolean): Receipt => ({
+    id: "r",
+    dayId: "d0",
+    businessDate: "2026-09-30",
+    vehicleNo: "OD02CD9087",
+    invoiceNo: null,
+    invoiceDate: null,
+    invoiceAmount: null,
+    lines: [
+      {
+        id: "l",
+        product: "HSD",
+        tankId: "hsd",
+        orderedLitres: "6000",
+        shortLitres: "0",
+        pricePerLitre: null,
+        marginPerLitre: null,
+        dipBeforeCm: null,
+        dipAfterCm: null,
+        chambers: [
+          { litres: "4000", dipBeforeCm: "50.0", dipAfterCm: "80.0", nextDay: false },
+          { litres: "2000", dipBeforeCm: "80.0", dipAfterCm: "95.0", nextDay },
+        ],
+      },
+    ],
+  });
+
+  it("passes the next-day chambers to the engine", () => {
+    expect(tankerInputs([receipt(true)])[0].lines[0].chambers?.map((c) => Boolean(c.nextDay))).toEqual([false, true]);
+  });
+
+  it("Today's Tanker card on the next day says what came from yesterday's tanker", () => {
+    const result = evaluate(setup, day(), []);
+    expect(tankerSection(day(), [], result, [receipt(true)]).subtitle).toBe("Done · 2,000 L from yesterday's OD02CD9087");
+    expect(tankerSection(day(), [], result, []).subtitle).toBe("No tanker today");
+  });
+});

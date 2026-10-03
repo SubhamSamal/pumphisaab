@@ -7,8 +7,7 @@ import {
   BottomSheet,
   Button,
   Card,
-  Chip,
-  ChipGroup,
+  SelectField,
   DifferenceValue,
   Divider,
   ErrorState,
@@ -442,14 +441,13 @@ function CustomerPaymentSheet({
       <Text variant="heading">{existing ? "Payment from customer" : "Add payment from customer"}</Text>
       <CustomerPicker pumpId={pumpId} customers={salesSetup.customers} value={customerId} onChange={setCustomerId} disabled={locked} />
       <NumericInput label="Amount" value={amount} onChangeText={setAmount} unit="₹" error={a.kind === "bad" ? a.message : undefined} />
-      <Text variant="label" tone="secondary">
-        How was it paid?
-      </Text>
-      <ChipGroup>
-        {methods.map((t) => (
-          <Chip key={t.id} small label={t.name} selected={t.id === typeId} onPress={() => setTypeId(t.id)} />
-        ))}
-      </ChipGroup>
+      <SelectField
+        label="How was it paid?"
+        value={typeId}
+        options={methods.map((t) => ({ value: t.id, label: t.name }))}
+        onChange={setTypeId}
+        disabled={locked}
+      />
       {typeId ? (
         <FieldHint>
           {isBank

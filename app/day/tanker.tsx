@@ -20,10 +20,12 @@ import {
   ProductTag,
   ScreenBody,
   ScreenHeader,
+  SelectField,
   Skeleton,
   StickyActionBar,
   Text,
   TextField,
+  ToggleRow,
   useIsWide,
 } from "@/components/ui";
 import { checkChart, dipToLitres, type Product, type TankerReceipt } from "@/calc";
@@ -113,7 +115,8 @@ export default function TankerFormScreen() {
 }
 
 type ChamberForm = { litres: string; before: string; after: string };
-type LineForm = { on: boolean; ordered: string; short: string; chambers: ChamberForm[] };
+/** nextFrom: unloading finished the next day from this chamber number on (D97); null = all today. */
+type LineForm = { on: boolean; ordered: string; short: string; chambers: ChamberForm[]; nextFrom?: number | null };
 type TankerDraft = { receiptId: string; vehicle: string; invoiceNo: string; invoiceAmount: string; invoiceDate: string; forms: Record<string, LineForm> };
 
 /** "14000.00" → "14000" for the typing box. */
@@ -176,6 +179,7 @@ function TankerForm({
                   after: plain(c.dipAfterCm),
                 }))
               : [{ litres: "", before: "", after: "" }],
+            nextFrom: l && l.chambers.some((c) => c.nextDay) ? l.chambers.findIndex((c) => c.nextDay) + 1 : null,
           },
         ];
       }),
@@ -219,9 +223,16 @@ function TankerForm({
     lines: onTanker.map((t) => {
       const f = forms[t.id];
       const cost = costOf(t);
-      const chambers = f.chambers.flatMap((c) =>
+      const chambers = f.chambers.flatMap((c, k) =>
         ok(c.litres) && ok(c.before, 1) && ok(c.after, 1)
-          ? [{ litres: ok(c.litres) as string, dipBeforeCm: ok(c.before, 1) as string, dipAfterCm: ok(c.after, 1) as string }]
+          ? [
+              {
+                litres: ok(c.litres) as string,
+                dipBeforeCm: ok(c.before, 1) as string,
+                dipAfterCm: ok(c.after, 1) as string,
+                ...(f.nextFrom && k + 1 >= f.nextFrom ? { nextDay: true } : {}),
+              },
+            ]
           : [],
       );
       const margin = marginOf(t);
@@ -299,7 +310,7 @@ function TankerForm({
         marginPerLitre: line.marginPerLitre ?? null,
         dipBeforeCm: line.dipBeforeCm ?? null,
         dipAfterCm: line.dipAfterCm ?? null,
-        chambers: (line.chambers ?? []).map((c) => ({ litres: c.litres, dipBeforeCm: c.dipBeforeCm ?? null, dipAfterCm: c.dipAfterCm })),
+        chambers: (line.chambers ?? []).map((c) => ({ litres: c.litres, dipBeforeCm: c.dipBeforeCm ?? null, dipAfterCm: c.dipAfterCm, nextDay: Boolean(c.nextDay) })),
       };
     });
     const removeLineIds = (existing?.lines ?? []).filter((l) => !onTanker.some((t) => t.id === l.tankId)).map((l) => l.id);
@@ -360,7 +371,7 @@ function TankerForm({
           value={vehicle}
           onChangeText={setVehicle}
           vehicle
-          placeholder="OD02CD9087"
+          placeholder="e.g. OD02CD9087"
           disabled={locked}
           error={tried || vehicle.length >= 4 ? vehicleProblem : undefined}
         />
@@ -468,6 +479,7 @@ function TankerForm({
                     shortWarn={warn}
                     error={p.chambers[k]}
                     editable={!locked}
+                    note={f.nextFrom && k + 1 >= f.nextFrom ? "Next day" : undefined}
                   />
                 );
               })}
@@ -484,7 +496,34 @@ function TankerForm({
                     />
                   ) : null}
                   {f.chambers.length > 1 ? (
-                    <Button label="Remove last" size="M" variant="ghost" onPress={() => setForm(t.id, { chambers: f.chambers.slice(0, -1) })} />
+                    <Button label="Remove last" size="M" variant="ghost" onPress={() =>
+                        setForm(t.id, {
+                          chambers: f.chambers.slice(0, -1),
+                          // Keep "next day from chamber" inside the chambers that are left.
+                          nextFrom: f.nextFrom ? (f.chambers.length - 1 >= 2 ? Math.min(f.nextFrom, f.chambers.length - 1) : null) : null,
+                        })
+                      }
+                    />
+                  ) : null}
+                </View>
+              ) : null}
+              {/* Unloading paused overnight and finished after 6 AM (D97): those chambers count on the next day. */}
+              {f.chambers.length > 1 ? (
+                <View className="gap-8">
+                  <ToggleRow
+                    label="Unloading finished next day"
+                    helper="Some chambers were unloaded after 6 AM the next day"
+                    value={Boolean(f.nextFrom)}
+                    onChange={locked ? () => {} : (v) => setForm(t.id, { nextFrom: v ? f.chambers.length : null })}
+                  />
+                  {f.nextFrom ? (
+                    <SelectField
+                      label="Next day from chamber"
+                      value={String(f.nextFrom)}
+                      options={f.chambers.slice(1).map((_, k) => ({ value: String(k + 2), label: `Chamber ${k + 2}`, detail: k + 2 === f.chambers.length ? "Only the last chamber" : `Chambers ${k + 2} to ${f.chambers.length}` }))}
+                      onChange={(v) => setForm(t.id, { nextFrom: Number(v) })}
+                      disabled={locked}
+                    />
                   ) : null}
                 </View>
               ) : null}

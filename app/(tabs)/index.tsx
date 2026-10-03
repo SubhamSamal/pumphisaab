@@ -39,6 +39,7 @@ import {
   useSalesSetup,
   useShiftData,
   useTankers,
+  useTankersFromYesterday,
   useTankReadings,
   useUnlockDay,
   type Day,
@@ -53,8 +54,7 @@ import { addDays } from "@/lib/businessDay";
 import { friendlyError } from "@/lib/errors";
 import { fmtDate } from "@/lib/format";
 
-/** How far back a manager can go (D49): today and the 2 days before. The owner can go back a year. */
-const MANAGER_DAYS_BACK = 2;
+/** How far back the owner can go; managers: the pump's rules.managerDaysBack (10 days, D101). */
 const OWNER_DAYS_BACK = 366;
 
 function daysAgo(today: string, date: string): string {
@@ -77,6 +77,7 @@ export default function TodayScreen() {
   const salesSetup = useSalesSetup(pumpId);
   const sales = useSalesData(day.data?.id);
   const expenses = useExpenses(day.data?.id);
+  const fromYesterday = useTankersFromYesterday(pumpId, serverKnown ? date : undefined);
   const recent = useRecentDays(pumpId, serverKnown ? today : undefined);
   const save = useSaveState();
   const outbox = useOutbox();
@@ -89,12 +90,12 @@ export default function TodayScreen() {
     if (dayId) track("day_opened", { date, is_today: isToday });
   }, [dayId, date, isToday]);
 
-  const minDate = addDays(today, -(isOwner ? OWNER_DAYS_BACK : MANAGER_DAYS_BACK));
-  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending || salesSetup.isPending || sales.isPending || expenses.isPending;
-  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error ?? salesSetup.error ?? sales.error ?? expenses.error;
+  const minDate = addDays(today, -(isOwner ? OWNER_DAYS_BACK : (setup.data?.rules.managerDaysBack ?? 10)));
+  const loading = setup.isPending || day.isPending || tanks.isPending || shifts.isPending || tankers.isPending || salesSetup.isPending || sales.isPending || expenses.isPending || fromYesterday.isPending;
+  const failed = setup.error ?? day.error ?? tanks.error ?? shifts.error ?? tankers.error ?? salesSetup.error ?? sales.error ?? expenses.error ?? fromYesterday.error;
 
   const model = useMemo(() => {
-    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data || !expenses.data) return null;
+    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data || !expenses.data || !fromYesterday.data) return null;
     const bundle: SalesBundle = { setup: salesSetup.data, data: sales.data };
     const result = evaluate(
       setup.data,
@@ -104,14 +105,15 @@ export default function TodayScreen() {
       tankerInputs(tankers.data),
       customerPaymentInputs(shifts.data.shifts, bundle),
       expenseInputs(setup.data, expenses.data),
+      tankerInputs(fromYesterday.data),
     );
-    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle, expenses.data);
+    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle, expenses.data, fromYesterday.data);
     // Shift codes with a meter change waiting for the owner (H2), for the owner's banner.
     const pendingMeter = shifts.data.lines
       .filter((l) => l.meterChange === "PENDING")
       .map((l) => shifts.data.shifts.find((s) => s.id === l.shiftId)?.code ?? "");
     return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data), pendingMeter };
-  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data]);
+  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data, fromYesterday.data]);
 
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
 
@@ -188,6 +190,7 @@ export default function TodayScreen() {
               salesSetup.refetch();
               sales.refetch();
               expenses.refetch();
+              fromYesterday.refetch();
             }}
           />
         ) : (

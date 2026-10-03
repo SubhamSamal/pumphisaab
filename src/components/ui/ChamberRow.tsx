@@ -29,7 +29,7 @@ function SmallNumber({ value, onChange, placeholder, a11y, editable }: { value: 
         inputMode="decimal"
         returnKeyType="next"
         placeholder={placeholder}
-        placeholderTextColor={colors["text-muted"]}
+        placeholderTextColor={colors.placeholder}
         selectionColor={colors.primary}
         style={[
           value === "" ? placeholderStyle : numStyle,
@@ -76,6 +76,8 @@ export type ChamberRowProps = {
   shortWarn?: boolean;
   error?: string;
   editable?: boolean;
+  /** A short tag on the result line, e.g. "Next day" (unloaded after 6 AM the next day, D97). */
+  note?: string;
 };
 
 /**
@@ -83,7 +85,7 @@ export type ChamberRowProps = {
  * the challan, our tank's dip just before and just after it is emptied (its own "before", since
  * fuel can be sold between chambers), then one line: how much the tank went up and the short.
  */
-export function ChamberRow({ no, litres, onChangeLitres, dipBefore, onChangeBefore, dipAfter, onChangeDip, rise, short, shortWarn, error, editable = true }: ChamberRowProps) {
+export function ChamberRow({ no, litres, onChangeLitres, dipBefore, onChangeBefore, dipAfter, onChangeDip, rise, short, shortWarn, error, editable = true, note }: ChamberRowProps) {
   return (
     <View className="gap-4">
       <View className="flex-row items-center gap-8">
@@ -94,8 +96,13 @@ export function ChamberRow({ no, litres, onChangeLitres, dipBefore, onChangeBefo
         <SmallNumber value={dipBefore} onChange={onChangeBefore} placeholder="cm" a11y={`Dip before chamber ${no}`} editable={editable} />
         <SmallNumber value={dipAfter} onChange={onChangeDip} placeholder="cm" a11y={`Dip after chamber ${no}`} editable={editable} />
       </View>
-      {rise || error ? (
-        <View className="flex-row items-center justify-end gap-8 pl-[28px]">
+      {rise || error || note ? (
+        <View className="flex-row flex-wrap items-center justify-end gap-8 pl-[28px]">
+          {note ? (
+            <Text variant="caption" weight="600" tone="accent" className="mr-auto">
+              {note}
+            </Text>
+          ) : null}
           {rise ? (
             <Text variant="caption" tone="secondary">
               {`Tank went up ${rise}`}

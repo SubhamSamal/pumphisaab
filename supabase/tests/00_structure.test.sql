@@ -46,7 +46,7 @@ select is(
 
 select is(
   (select array_agg(name order by name) from public.schema_migrations_applied),
-  array['20260926120000_foundations', '20260926120100_setup_tables', '20260926120200_calc_functions', '20260926120300_seed_pilot_pump', '20260927120000_day_opening', '20260927130000_shift_meters', '20260927140000_tanker', '20260927150000_sales', '20260927160000_tanker_chambers', '20260928120000_margin_and_chamber_dips', '20260929120000_expenses', '20260929130000_closing_and_submit', '20260929140000_expense_types_by_managers'],
+  array['20260926120000_foundations', '20260926120100_setup_tables', '20260926120200_calc_functions', '20260926120300_seed_pilot_pump', '20260927120000_day_opening', '20260927130000_shift_meters', '20260927140000_tanker', '20260927150000_sales', '20260927160000_tanker_chambers', '20260928120000_margin_and_chamber_dips', '20260929120000_expenses', '20260929130000_closing_and_submit', '20260929140000_expense_types_by_managers', '20261003120000_pilot_fixes_1'],
   'The migration change log lists every migration, in order'
 );
 

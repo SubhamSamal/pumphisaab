@@ -9,7 +9,7 @@ import {
   todaySections,
   type SalesBundle,
 } from "./model";
-import { useDay, useDaySetup, useExpenses, useSalesData, useSalesSetup, useShiftData, useTankers, useTankReadings } from "./queries";
+import { useDay, useDaySetup, useExpenses, useSalesData, useSalesSetup, useShiftData, useTankers, useTankersFromYesterday, useTankReadings } from "./queries";
 
 /**
  * Everything saved for one day, through the engine: what Today and Review show. `model` is null
@@ -24,10 +24,11 @@ export function useWholeDay(pumpId: string, date: string | undefined) {
   const salesSetup = useSalesSetup(pumpId);
   const sales = useSalesData(day.data?.id);
   const expenses = useExpenses(day.data?.id);
-  const parts = [setup, day, tanks, shifts, tankers, salesSetup, sales, expenses];
+  const fromYesterday = useTankersFromYesterday(pumpId, date);
+  const parts = [setup, day, tanks, shifts, tankers, salesSetup, sales, expenses, fromYesterday];
 
   const model = useMemo(() => {
-    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data || !expenses.data) return null;
+    if (!setup.data || !day.data || !tanks.data || !shifts.data || !tankers.data || !salesSetup.data || !sales.data || !expenses.data || !fromYesterday.data) return null;
     const bundle: SalesBundle = { setup: salesSetup.data, data: sales.data };
     const result = evaluate(
       setup.data,
@@ -37,10 +38,11 @@ export function useWholeDay(pumpId: string, date: string | undefined) {
       tankerInputs(tankers.data),
       customerPaymentInputs(shifts.data.shifts, bundle),
       expenseInputs(setup.data, expenses.data),
+      tankerInputs(fromYesterday.data),
     );
-    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle, expenses.data);
+    const sections = todaySections(setup.data, day.data, tanks.data.readings, result, shifts.data, {}, tankers.data, bundle, expenses.data, fromYesterday.data);
     return { setup: setup.data, day: day.data, shifts: shifts.data, receipts: tankers.data, result, sections };
-  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data]);
+  }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data, fromYesterday.data]);
 
   return {
     model,

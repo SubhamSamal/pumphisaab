@@ -82,6 +82,9 @@ export type Rules = {
     litreRounding: "up" | "halfUp";
   };
 
+  /** How many days back a manager may start a day (the owner: a year). Also read by open_day() (D101). */
+  managerDaysBack: number;
+
   /** Testing: litres poured back to the tank after a measure check. */
   testing: {
     /** Litres suggested for a new test row. */
@@ -111,4 +114,6 @@ export const DEFAULT_RULES: Rules = {
   creditSlip: { litreDecimals: 2, litreRounding: "up" },
 
   testing: { defaultLitres: "5" },
+
+  managerDaysBack: 10,
 };

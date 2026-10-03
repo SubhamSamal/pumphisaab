@@ -5,6 +5,7 @@ export type TextTone =
   | "primary"
   | "secondary"
   | "muted"
+  | "faint"
   | "accent"
   | "accentStrong"
   | "danger"
@@ -21,6 +22,7 @@ const toneClass: Record<TextTone, string> = {
   primary: "text-text-primary",
   secondary: "text-text-secondary",
   muted: "text-text-muted",
+  faint: "text-text-faint",
   accent: "text-primary",
   accentStrong: "text-primary-hover",
   danger: "text-danger",

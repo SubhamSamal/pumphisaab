@@ -7,7 +7,8 @@ import { colorChannels, colors, type ColorName, type Scheme, type ThemePreferenc
 
 const STORAGE_KEY = "pumphisaab.themePreference";
 
-const cssVars: Record<Scheme, ReturnType<typeof vars>> = {
+/** The theme's colour variables; pop-ups (Modal) render outside the app's root, so they apply these again. */
+export const cssVars: Record<Scheme, ReturnType<typeof vars>> = {
   light: vars(toVars(colorChannels.light)),
   dark: vars(toVars(colorChannels.dark)),
 };

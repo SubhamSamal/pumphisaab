@@ -1,0 +1,105 @@
+{
+  "kind": "day",
+  "source": "Owner, 03 Oct 2026 (D97)",
+  "description": "Day 2 of the same tanker: yesterday's chamber 3 (3,000 L) was unloaded today, so today receives 3,000 L: 10,000 + 3,000 − 10,500 = 2,500 L sold as per tank = meters: Matched.",
+  "input": {
+    "businessDate": "2026-10-02",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "100.0",
+        "closingDipCm": "105.0"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "200000.00",
+            "closing": "202500.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "225000.000"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": [],
+    "tankersFromYesterday": [
+      {
+        "id": "T9",
+        "vehicleNo": "OD02CD9087",
+        "invoiceNo": "7018875699",
+        "lines": [
+          {
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "orderedLitres": "10000",
+            "shortLitres": "40",
+            "chambers": [
+              {
+                "litres": "4000",
+                "dipBeforeCm": "50.0",
+                "dipAfterCm": "90.0"
+              },
+              {
+                "litres": "3000",
+                "dipBeforeCm": "85.0",
+                "dipAfterCm": "115.0"
+              },
+              {
+                "litres": "3000",
+                "dipBeforeCm": "100.0",
+                "dipAfterCm": "130.0",
+                "nextDay": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "products": {
+      "HSD": {
+        "soldAsPerTank": "2500.00",
+        "soldAsPerMeters": "2500.00",
+        "difference": "0.00",
+        "withinLimit": true
+      }
+    }
+  }
+}

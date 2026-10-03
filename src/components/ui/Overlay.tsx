@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "@/theme/ThemeProvider";
+import { cssVars, useTheme } from "@/theme/ThemeProvider";
 import { shadow } from "@/theme/theme";
 import { Icon } from "./Icon";
 import { useAndroidKeyboard } from "./Screen";
@@ -30,7 +30,7 @@ export function BottomSheet({ visible, onClose, children }: { visible: boolean; 
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView className="flex-1 justify-end" style={cssVars[scheme]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Pressable
           className="absolute inset-0 bg-text-primary/50"
           onPress={onClose}

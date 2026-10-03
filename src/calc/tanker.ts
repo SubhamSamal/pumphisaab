@@ -10,6 +10,8 @@
  *                       short = chamber litres − rise
  *   Dip rise          = with chambers: the chambers' rises added up (fuel may be sold between
  *                       chambers, so after-last − before-first would be wrong); without: after − before
+ *   Next day (D97)    = chambers unloaded after 6 AM the next day count as received that day;
+ *                       the tanker's day receives the rest, less the challan's short
  */
 
 import type { Decimal } from "@/lib/decimal";
@@ -56,6 +58,7 @@ export function receiptTotals(receipt: TankerReceipt, charts: Map<string, Checke
       margin: margin ? receivedNetLitres.times(margin) : null,
       dipRiseLitres,
       chambers,
+      receivedNextDayLitres: sum((line.chambers ?? []).filter((c) => c.nextDay).map((c) => num(c.litres))),
     };
   });
 

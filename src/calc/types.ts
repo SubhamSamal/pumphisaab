@@ -57,7 +57,7 @@ export type TankerLine = {
    * fuel can be sold between chambers (to make room). A missing "before" falls back to the previous
    * chamber's "after" (or dipBeforeCm for the first).
    */
-  chambers?: { litres: Num; dipBeforeCm?: Num; dipAfterCm: Num }[];
+  chambers?: { litres: Num; dipBeforeCm?: Num; dipAfterCm: Num; nextDay?: boolean }[];
 };
 
 export type TankerReceipt = {
@@ -143,6 +143,8 @@ export type DayInput = {
   tanks: Tank[];
   tankDays: TankDay[];
   tankers: TankerReceipt[];
+  /** Yesterday's tankers whose unloading finished today (D97): only their next-day chambers count today. */
+  tankersFromYesterday?: TankerReceipt[];
   shifts: ShiftInput[];
   expenses: Expense[];
   customerPayments: CustomerPayment[];
@@ -216,6 +218,11 @@ export type TankerLineResult = {
   dipRiseLitres: Decimal | null;
   /** Per chamber: how much the tank went up, and the chamber's short (its litres − that rise). */
   chambers: { litres: Decimal; riseLitres: Decimal | null; shortLitres: Decimal | null }[];
+  /**
+   * Unloading finished the next day (D97): litres of the chambers unloaded the next business day.
+   * The tanker's own day receives receivedNetLitres − this (the challan's short stays on that day).
+   */
+  receivedNextDayLitres: Decimal;
 };
 
 export type TankerResult = {

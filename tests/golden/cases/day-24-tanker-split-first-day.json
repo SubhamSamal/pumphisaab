@@ -1,0 +1,109 @@
+{
+  "kind": "day",
+  "source": "Owner, 03 Oct 2026 (D97)",
+  "description": "Day 1 of a tanker that finished unloading the next day: chambers 1-2 (7,000 L) unloaded today, chamber 3 (3,000 L) tomorrow. Today receives 7,000 − 40 short = 6,960 L, so 5,000 + 6,960 − 10,000 = 1,960 L sold as per tank = meters: Matched. Counting the whole tanker today would show −3,000 L.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "HSD-1",
+        "label": "HSD-1",
+        "product": "HSD",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "HSD-1",
+        "openingDipCm": "50.0",
+        "closingDipCm": "100.0"
+      }
+    ],
+    "tankers": [
+      {
+        "id": "T9",
+        "vehicleNo": "OD02CD9087",
+        "invoiceNo": "7018875699",
+        "lines": [
+          {
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "orderedLitres": "10000",
+            "shortLitres": "40",
+            "chambers": [
+              {
+                "litres": "4000",
+                "dipBeforeCm": "50.0",
+                "dipAfterCm": "90.0"
+              },
+              {
+                "litres": "3000",
+                "dipBeforeCm": "85.0",
+                "dipAfterCm": "115.0"
+              },
+              {
+                "litres": "3000",
+                "dipBeforeCm": "100.0",
+                "dipAfterCm": "130.0",
+                "nextDay": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "HSD-A",
+            "label": "HSD-A",
+            "product": "HSD",
+            "tankId": "HSD-1",
+            "inUse": true,
+            "opening": "200000.00",
+            "closing": "201960.00"
+          }
+        ],
+        "tests": [],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "176400.000"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "HSD": {
+        "soldAsPerTank": "1960.00",
+        "soldAsPerMeters": "1960.00",
+        "difference": "0.00",
+        "withinLimit": true
+      }
+    },
+    "tankers": {
+      "T9": {
+        "receivedNetLitres": "9960.00"
+      }
+    }
+  }
+}

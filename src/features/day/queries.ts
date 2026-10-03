@@ -484,8 +484,8 @@ export type ReceiptLine = {
   marginPerLitre: string | null;
   dipBeforeCm: string | null;
   dipAfterCm: string | null;
-  /** Chamber by chamber: litres and our tank's dip before and after it (in order). */
-  chambers: { litres: string; dipBeforeCm: string | null; dipAfterCm: string }[];
+  /** Chamber by chamber: litres and our tank's dip before and after it (in order); nextDay = unloaded after 6 AM the next day (D97). */
+  chambers: { litres: string; dipBeforeCm: string | null; dipAfterCm: string; nextDay: boolean }[];
 };
 export type Receipt = {
   id: string;
@@ -500,7 +500,7 @@ export type Receipt = {
 };
 
 const RECEIPT_COLUMNS =
-  "id, day_id, vehicle_no, invoice_no, invoice_date, invoice_amount::text, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text, chambers:receipt_chambers(chamber_no, litres::text, dip_before_cm::text, dip_after_cm::text))";
+  "id, day_id, vehicle_no, invoice_no, invoice_date, invoice_amount::text, created_at, day:business_days(business_date), lines:receipt_lines(id, product, tank_id, ordered_l::text, short_l::text, price_per_l::text, margin_per_l::text, dip_before_cm::text, dip_after_cm::text, chambers:receipt_chambers(chamber_no, litres::text, dip_before_cm::text, dip_after_cm::text, next_day))";
 
 type ReceiptRow = {
   id: string;
@@ -520,7 +520,7 @@ type ReceiptRow = {
     margin_per_l: string | null;
     dip_before_cm: string | null;
     dip_after_cm: string | null;
-    chambers: { chamber_no: number; litres: string; dip_before_cm: string | null; dip_after_cm: string }[];
+    chambers: { chamber_no: number; litres: string; dip_before_cm: string | null; dip_after_cm: string; next_day: boolean }[];
   }[];
 };
 
@@ -546,7 +546,7 @@ function toReceipt(r: ReceiptRow): Receipt {
         dipAfterCm: l.dip_after_cm,
         chambers: [...(l.chambers ?? [])]
           .sort((a, b) => a.chamber_no - b.chamber_no)
-          .map((c) => ({ litres: c.litres, dipBeforeCm: c.dip_before_cm, dipAfterCm: c.dip_after_cm })),
+          .map((c) => ({ litres: c.litres, dipBeforeCm: c.dip_before_cm, dipAfterCm: c.dip_after_cm, nextDay: Boolean(c.next_day) })),
       }))
       .sort((a, b) => (a.product === "HSD" ? -1 : 1) - (b.product === "HSD" ? -1 : 1)),
   };
@@ -561,6 +561,25 @@ export function useTankers(dayId: string | undefined) {
       const { data, error } = await supabase.from("tanker_receipts").select(RECEIPT_COLUMNS).eq("day_id", dayId as string).order("created_at");
       if (error) throw error;
       return (data as unknown as ReceiptRow[]).map(toReceipt);
+    },
+  });
+}
+
+/**
+ * Yesterday's tankers that finished unloading today (D97): only those with "next day" chambers.
+ * Their chambers count as received today.
+ */
+export function useTankersFromYesterday(pumpId: string, date: string | undefined) {
+  return useQuery({
+    queryKey: ["tankersFromYesterday", pumpId, date],
+    enabled: Boolean(date),
+    queryFn: async () => {
+      const yesterday = await supabase.from("business_days").select("id").eq("pump_id", pumpId).eq("business_date", addDays(date as string, -1)).maybeSingle();
+      if (yesterday.error) throw yesterday.error;
+      if (!yesterday.data) return [] as Receipt[];
+      const { data, error } = await supabase.from("tanker_receipts").select(RECEIPT_COLUMNS).eq("day_id", yesterday.data.id).order("created_at");
+      if (error) throw error;
+      return (data as unknown as ReceiptRow[]).map(toReceipt).filter((r) => r.lines.some((l) => l.chambers.some((c) => c.nextDay)));
     },
   });
 }
@@ -638,6 +657,7 @@ export function useSaveTanker(pumpId: string, dayId: string | undefined) {
             litres: c.litres,
             dip_before_cm: c.dipBeforeCm,
             dip_after_cm: c.dipAfterCm,
+            next_day: c.nextDay,
           })),
         );
         if (chamberRows.length) await check(supabase.from("receipt_chambers").insert(chamberRows));
@@ -646,6 +666,7 @@ export function useSaveTanker(pumpId: string, dayId: string | undefined) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["tankers", dayId] });
       qc.invalidateQueries({ queryKey: ["recentTankers", pumpId] });
+      qc.invalidateQueries({ queryKey: ["tankersFromYesterday", pumpId] });
     },
   });
 }
@@ -1093,6 +1114,17 @@ export function useAddExpenseType(pumpId: string) {
       if (error) throw new Error(friendlyError(error, "Couldn't add the type. Try again."), { cause: error });
       return data.id as string;
     },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
+  });
+}
+
+/** Owner: switch a nozzle on or off (D100). Row Level Security lets only the owner. */
+export function useSetNozzleInUse(pumpId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "nozzleInUse"],
+    mutationFn: ({ nozzleId, inUse }: { nozzleId: string; inUse: boolean }) =>
+      check(supabase.from("nozzles").update({ in_use: inUse }).eq("id", nozzleId).select("id").single()),
     onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
   });
 }

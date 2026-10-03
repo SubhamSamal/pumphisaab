@@ -36,7 +36,7 @@ export function FieldError({ message }: { message: string }) {
 /** Grey hint under a field ("Last night's closing dip: 128.5 cm"). */
 export function FieldHint({ children }: { children: string }) {
   return (
-    <Text variant="label" tone="muted">
+    <Text variant="label" weight="400" tone="faint">
       {children}
     </Text>
   );
@@ -190,7 +190,7 @@ export function NumericInput({
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}
           placeholder={placeholder}
-          placeholderTextColor={colors["text-muted"]}
+          placeholderTextColor={colors.placeholder}
           selectionColor={colors.primary}
           style={[
             value === "" ? placeholderStyle : compact ? { ...numberStyle, fontSize: textTokens.heading.fontSize } : numberStyle,
@@ -278,7 +278,7 @@ export function TextField({
           autoComplete={autoComplete}
           secureTextEntry={secure}
           placeholder={placeholder}
-          placeholderTextColor={colors["text-muted"]}
+          placeholderTextColor={colors.placeholder}
           selectionColor={colors.primary}
           style={[
             typingText,

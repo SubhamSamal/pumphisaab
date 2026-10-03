@@ -120,7 +120,8 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
     const allNozzles = input.shifts.flatMap((sh) => sh.nozzles);
     const needsYesterday =
       input.tankDays.some((td) => td.yesterdayClosingDipCm !== undefined || td.yesterdayBookGapLitres !== undefined) ||
-      allNozzles.some((n) => n.previousClosing !== undefined);
+      allNozzles.some((n) => n.previousClosing !== undefined) ||
+      (input.tankersFromYesterday ?? []).length > 0;
     if (needsYesterday) {
       lines.push(`insert into public.business_days (id, pump_id, business_date) values (${yesterday}, ${pump}, '${input.businessDate}'::date - 1);`);
     }
@@ -192,20 +193,22 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
       }
     }
 
-    // Tankers (slice 4c). Tanker numbers are saved in capitals without spaces.
-    for (const t of input.tankers) {
+    // Tankers (slice 4c). Tanker numbers are saved in capitals without spaces. Yesterday's tankers
+    // that finished unloading today (D97) are saved on yesterday.
+    const allTankers = [...input.tankers.map((t) => ({ t, dayId: day })), ...(input.tankersFromYesterday ?? []).map((t) => ({ t, dayId: yesterday }))];
+    for (const { t, dayId: tankerDay } of allTankers) {
       const vehicle = t.vehicleNo.toUpperCase().replace(/[^A-Z0-9]/g, "").padEnd(4, "0").slice(0, 12);
-      const receipt = `(select id from public.tanker_receipts where day_id = ${day} and invoice_no = ${sqlText(`golden ${t.id}`)})`;
+      const receipt = `(select id from public.tanker_receipts where day_id = ${tankerDay} and invoice_no = ${sqlText(`golden ${t.id}`)})`;
       lines.push(
-        `insert into public.tanker_receipts (pump_id, day_id, vehicle_no, invoice_no, invoice_amount) values (${pump}, ${day}, '${vehicle}', ${sqlText(`golden ${t.id}`)}, ${t.invoiceAmount ?? "null"});`,
+        `insert into public.tanker_receipts (pump_id, day_id, vehicle_no, invoice_no, invoice_amount) values (${pump}, ${tankerDay}, '${vehicle}', ${sqlText(`golden ${t.id}`)}, ${t.invoiceAmount ?? "null"});`,
       );
       for (const l of t.lines) {
         lines.push(
-          `insert into public.receipt_lines (pump_id, day_id, receipt_id, product, tank_id, ordered_l, short_l, price_per_l, margin_per_l, dip_before_cm, dip_after_cm) values (${pump}, ${day}, ${receipt}, '${l.product}', ${tank(l.tankId)}, ${l.orderedLitres}, ${l.shortLitres ?? 0}, ${l.pricePerLitre ?? "null"}, ${l.marginPerLitre ?? "null"}, ${l.dipBeforeCm ?? "null"}, ${l.dipAfterCm ?? "null"});`,
+          `insert into public.receipt_lines (pump_id, day_id, receipt_id, product, tank_id, ordered_l, short_l, price_per_l, margin_per_l, dip_before_cm, dip_after_cm) values (${pump}, ${tankerDay}, ${receipt}, '${l.product}', ${tank(l.tankId)}, ${l.orderedLitres}, ${l.shortLitres ?? 0}, ${l.pricePerLitre ?? "null"}, ${l.marginPerLitre ?? "null"}, ${l.dipBeforeCm ?? "null"}, ${l.dipAfterCm ?? "null"});`,
         );
         (l.chambers ?? []).forEach((ch, k) => {
           lines.push(
-            `insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_before_cm, dip_after_cm) values (${pump}, ${day}, (select id from public.receipt_lines where receipt_id = ${receipt} and product = '${l.product}'), ${k + 1}, ${ch.litres}, ${ch.dipBeforeCm ?? "null"}, ${ch.dipAfterCm});`,
+            `insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_before_cm, dip_after_cm, next_day) values (${pump}, ${tankerDay}, (select id from public.receipt_lines where receipt_id = ${receipt} and product = '${l.product}'), ${k + 1}, ${ch.litres}, ${ch.dipBeforeCm ?? "null"}, ${ch.dipAfterCm}, ${Boolean(ch.nextDay)});`,
           );
         });
       }

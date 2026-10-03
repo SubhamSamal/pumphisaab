@@ -1,7 +1,7 @@
 -- Slice 4a: business days, price confirm, opening and closing dips, day locking (D49).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(32);
 
 -- ── Setup (as the database owner) ─────────────────────────────────────────
 insert into auth.users (id, email) values
@@ -65,8 +65,9 @@ select is(public.open_day((select x from ids)), (select today_id from opened), '
 select throws_ok($$ select public.open_day((select x from ids), (select today + 1 from ids)) $$,
   'P0001', 'That day hasn''t started yet.', 'Nobody can open a day in the future');
 select lives_ok($$ select public.open_day((select x from ids), (select today - 1 from ids)) $$, 'A manager can start yesterday');
-select throws_ok($$ select public.open_day((select x from ids), (select today - 6 from ids)) $$,
-  '42501', null, 'A manager can''t start a day older than 2 days');
+select lives_ok($$ select public.open_day((select x from ids), (select today - 10 from ids)) $$, 'D101: a manager can start a day up to 10 days back');
+select throws_ok($$ select public.open_day((select x from ids), (select today - 11 from ids)) $$,
+  '42501', 'Only the owner can start a day older than 10 days.', 'but not older than 10 days');
 select is(public.open_day((select x from ids), (select today - 3 from ids)), (select old_day from ids),
   'A manager can open an older day that already exists');
 select throws_ok($$ insert into public.business_days (pump_id, business_date) values ((select x from ids), '2020-01-01') $$,

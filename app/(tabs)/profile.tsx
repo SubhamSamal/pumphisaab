@@ -51,6 +51,9 @@ export default function ProfileScreen() {
             <ListItem title="Logins" detail="Owner and managers" icon="user" onPress={() => router.push("/profile/logins")} />
           ) : null}
           <ListItem title="Staff" detail="Attendants for each shift" icon="user" onPress={() => router.push("/profile/staff")} />
+          {isOwner ? (
+            <ListItem title="Nozzles" detail="Which nozzles are in use" icon="gauge" onPress={() => router.push("/profile/nozzles")} />
+          ) : null}
         </View>
 
         <View className="gap-8">

@@ -48,6 +48,8 @@ import {
   StickyActionBar,
   SuggestList,
   SummaryGroup,
+  SelectField,
+  CheckRow,
   Text,
   TextField,
   Toast,
@@ -337,6 +339,12 @@ function GalleryContent() {
             <Divider />
             <KeyValueRow label="Received" value="₹4,01,100" big />
           </Card>
+          <SelectField label="Nozzle tested" value="2" options={[{ value: "1", label: "MS-3" }, { value: "2", label: "HSD-3" }]} onChange={() => {}} />
+          <View>
+            <CheckRow label="Ramesh" checked onPress={() => {}} />
+            <CheckRow label="Suresh" checked={false} onPress={() => {}} />
+            <CheckRow label="Mahesh (saving…)" checked busy onPress={() => {}} />
+          </View>
           <SummaryGroup tone="red" title="Fix these to submit" lines={[{ text: "Sales: tap Done on Shift C", onPress: () => {} }]} />
           <SummaryGroup tone="yellow" title="Minor: the owner will see these" lines={[{ text: "MS-3 sold nothing today.", onPress: () => {} }]} />
           <SummaryGroup tone="green" title="Checks passed" lines={[{ text: "Shift A money matched (within ₹100)" }]} />

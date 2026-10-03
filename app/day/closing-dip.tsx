@@ -24,6 +24,7 @@ import {
   useDaySetup,
   useSaveTankReading,
   useTankers,
+  useTankersFromYesterday,
   useTankReadings,
   type Day,
   type DaySetup,
@@ -51,10 +52,11 @@ export default function ClosingDipScreen() {
   const day = useDay(me.pump.id, date);
   const tanks = useTankReadings(day.data?.id);
   const tankers = useTankers(day.data?.id);
+  const fromYesterday = useTankersFromYesterday(me.pump.id, date);
   const save = useSaveState();
 
-  const failed = setup.error ?? day.error ?? tanks.error ?? tankers.error;
-  const ready = setup.data && day.data && tanks.data && tankers.data;
+  const failed = setup.error ?? day.error ?? tanks.error ?? tankers.error ?? fromYesterday.error;
+  const ready = setup.data && day.data && tanks.data && tankers.data && fromYesterday.data;
 
   return (
     <>
@@ -70,7 +72,7 @@ export default function ClosingDipScreen() {
           <ErrorState
             title="Couldn't load the dips"
             body="Check the internet and try again. Nothing you typed is lost."
-            onRetry={() => (setup.refetch(), day.refetch(), tanks.refetch(), tankers.refetch())}
+            onRetry={() => (setup.refetch(), day.refetch(), tanks.refetch(), tankers.refetch(), fromYesterday.refetch())}
           />
         </ScreenBody>
       ) : !ready ? (
@@ -86,6 +88,7 @@ export default function ClosingDipScreen() {
           readings={tanks.data.readings}
           yesterday={tanks.data.yesterday}
           receipts={tankers.data}
+          fromYesterday={fromYesterday.data}
           onDone={() => router.back()}
           onReview={() => router.replace({ pathname: "/day/review", params: { date } })}
         />
@@ -103,6 +106,7 @@ function ClosingDipForm({
   readings,
   yesterday,
   receipts,
+  fromYesterday,
   onDone,
   onReview,
 }: {
@@ -112,6 +116,7 @@ function ClosingDipForm({
   readings: TankReading[];
   yesterday: TankYesterday[];
   receipts: Receipt[];
+  fromYesterday: Receipt[];
   onDone: () => void;
   onReview: () => void;
 }) {
@@ -131,8 +136,8 @@ function ClosingDipForm({
     return out;
   }, [values]);
   const result: DayResult = useMemo(
-    () => evaluate(setup, day, tankDays(setup, readings, yesterday, typed), [], tankerInputs(receipts)),
-    [setup, day, readings, yesterday, typed, receipts],
+    () => evaluate(setup, day, tankDays(setup, readings, yesterday, typed), [], tankerInputs(receipts), [], [], tankerInputs(fromYesterday)),
+    [setup, day, readings, yesterday, typed, receipts, fromYesterday],
   );
 
   const tanks = activeTanks(setup);

@@ -6,8 +6,7 @@ import {
   BottomSheet,
   Button,
   Card,
-  Chip,
-  ChipGroup,
+  CheckRow,
   Divider,
   ErrorState,
   FieldError,
@@ -19,6 +18,7 @@ import {
   NumericInput,
   SaveIndicator,
   ScreenBody,
+  SelectField,
   ScreenHeader,
   Skeleton,
   StickyActionBar,
@@ -143,6 +143,8 @@ function ShiftForm({
   const locked = day.isLocked;
   const [openedAt] = useState(() => Date.now());
   const [problem, setProblem] = useState<string | null>(null);
+  const [tickNow, setTickNow] = useState<Record<string, boolean>>({});
+  const [savingTick, setSavingTick] = useState<Set<string>>(new Set());
   const [sheet, setSheet] = useState<SheetState>(null);
 
   // Closings as typed on screen (saved when the box is left).
@@ -269,27 +271,41 @@ function ShiftForm({
           {staffShown.length === 0 ? (
             <FieldHint>No staff yet. Add the attendants in Profile › Staff.</FieldHint>
           ) : (
-            <ChipGroup>
+            <View>
               {staffShown.map((s) => {
                 const ticked = people.find((p) => p.staffId === s.id);
+                // The tick changes at once; the save runs behind it (owner, 03 Oct: people tapped 2-3 times).
+                const shown = s.id in tickNow ? tickNow[s.id] : Boolean(ticked);
                 return (
-                  <Chip
+                  <CheckRow
                     key={s.id}
                     label={s.name}
-                    selected={Boolean(ticked)}
-                    onPress={
-                      locked
-                        ? undefined
-                        : () =>
-                            setAttendant.mutate(
-                              { shiftId: shift.id, staffId: s.id, on: !ticked, attendantId: ticked?.id },
-                              { onError: (e) => setProblem(e.message) },
-                            )
-                    }
+                    checked={shown}
+                    busy={savingTick.has(s.id)}
+                    disabled={locked}
+                    onPress={() => {
+                      setTickNow((t) => ({ ...t, [s.id]: !shown }));
+                      setSavingTick((b) => new Set(b).add(s.id));
+                      setAttendant.mutate(
+                        { shiftId: shift.id, staffId: s.id, on: !shown, attendantId: ticked?.id },
+                        {
+                          onError: (e) => {
+                            setTickNow((t) => ({ ...t, [s.id]: Boolean(ticked) }));
+                            setProblem(e.message);
+                          },
+                          onSettled: () =>
+                            setSavingTick((b) => {
+                              const n = new Set(b);
+                              n.delete(s.id);
+                              return n;
+                            }),
+                        },
+                      );
+                    }}
                   />
                 );
               })}
-            </ChipGroup>
+            </View>
           )}
         </View>
 
@@ -562,20 +578,14 @@ function TestingCard({
         };
         return (
           <View key={t.id} className="gap-8 border-t border-border pt-12">
-            <Text variant="label" tone="secondary">
-              Nozzle
-            </Text>
-            <ChipGroup>
-              {nozzles.map((n) => (
-                <Chip
-                  key={n.id}
-                  small
-                  label={n.label}
-                  selected={t.nozzleId === n.id}
-                  onPress={locked || t.nozzleId === n.id ? undefined : () => saveTest.mutate({ id: t.id, shiftId: shift.id, nozzleId: n.id, litres: t.litres })}
-                />
-              ))}
-            </ChipGroup>
+            <SelectField
+              label="Nozzle tested"
+              value={t.nozzleId}
+              title="Which nozzle was tested?"
+              options={nozzles.map((n) => ({ value: n.id, label: n.label }))}
+              disabled={locked}
+              onChange={(id) => id !== t.nozzleId && saveTest.mutate({ id: t.id, shiftId: shift.id, nozzleId: id, litres: t.litres })}
+            />
             <NumericInput
               label="Litres tested"
               value={typed}

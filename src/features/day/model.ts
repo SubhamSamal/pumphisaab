@@ -90,6 +90,7 @@ export function evaluate(
   tankers: TankerReceipt[] = [],
   customerPayments: CustomerPayment[] = [],
   expenses: Expense[] = [],
+  tankersFromYesterday: TankerReceipt[] = [],
 ): DayResult {
   const input: DayInput = {
     businessDate: day.businessDate,
@@ -98,6 +99,7 @@ export function evaluate(
     tanks: activeTanks(setup).map((t) => ({ id: t.id, label: t.label, product: t.product, chart: setup.charts[t.chartId] ?? [] })),
     tankDays: days,
     tankers,
+    tankersFromYesterday,
     shifts,
     expenses,
     customerPayments,
@@ -160,6 +162,7 @@ export function todaySections(
   receipts?: Receipt[],
   sales?: SalesBundle,
   expenses?: ExpenseRow[],
+  fromYesterday: Receipt[] = [],
 ): Section[] {
   const opening = dipSection("openingDip", "Opening dip", setup, readings, result, day.isLocked);
   const shiftCards = (["A", "B", "C"] as const).map((code) => {
@@ -170,7 +173,7 @@ export function todaySections(
   const salesCard = sales && shiftData ? salesSection(day, shiftData.shifts, result, sales.data) : comingSoon("sales", "Sales", day.isLocked);
   const expensesCard = expenses ? expensesSection(day, expenses, result) : comingSoon("expenses", "Expenses", day.isLocked);
   const closing = dipSection("closingDip", "Closing dip", setup, readings, result, day.isLocked);
-  const tanker = receipts ? tankerSection(day, receipts, result) : comingSoon("tanker", "Tanker", day.isLocked);
+  const tanker = receipts ? tankerSection(day, receipts, result, fromYesterday) : comingSoon("tanker", "Tanker", day.isLocked);
   return [opening, tanker, ...shiftCards, salesCard, expensesCard, closing];
 }
 
@@ -435,7 +438,14 @@ export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
       ...(l.dipBeforeCm ? { dipBeforeCm: l.dipBeforeCm } : {}),
       ...(l.dipAfterCm ? { dipAfterCm: l.dipAfterCm } : {}),
       ...(l.chambers.length
-        ? { chambers: l.chambers.map((c) => ({ litres: c.litres, dipAfterCm: c.dipAfterCm, ...(c.dipBeforeCm ? { dipBeforeCm: c.dipBeforeCm } : {}) })) }
+        ? {
+            chambers: l.chambers.map((c) => ({
+              litres: c.litres,
+              dipAfterCm: c.dipAfterCm,
+              ...(c.dipBeforeCm ? { dipBeforeCm: c.dipBeforeCm } : {}),
+              ...(c.nextDay ? { nextDay: true } : {}),
+            })),
+          }
         : {}),
     })),
   }));
@@ -445,9 +455,14 @@ export function tankerInputs(receipts: Receipt[]): TankerReceipt[] {
  * Always done (owner, 27 Sep: no "No tanker today" switch): no tanker added simply means none came.
  * The Review before Submit asks once when a day has no tanker (slice 4f). Amber count = S6 flags.
  */
-export function tankerSection(day: Day, receipts: Receipt[], result: DayResult): Section {
+export function tankerSection(day: Day, receipts: Receipt[], result: DayResult, fromYesterday: Receipt[] = []): Section {
   const flags = result.flags.filter((f) => f.code === "S6").length;
-  const subtitle = receipts.length > 0 ? `Done · ${receipts.map((r) => r.vehicleNo).join(", ")}` : "No tanker today";
+  // Yesterday's tanker that finished unloading today (D97).
+  const carried = fromYesterday.flatMap((r) => r.lines.flatMap((l) => l.chambers.filter((c) => c.nextDay)));
+  const carriedText = carried.length
+    ? `${receipts.length ? " · " : ""}${fmtLitres(carried.reduce((t, c) => t.plus(c.litres), new Decimal(0)))} from yesterday's ${fromYesterday.map((r) => r.vehicleNo).join(", ")}`
+    : "";
+  const subtitle = receipts.length > 0 ? `Done · ${receipts.map((r) => r.vehicleNo).join(", ")}${carriedText}` : carried.length ? `Done${carriedText.replace(/^/, " · ")}` : "No tanker today";
   return { key: "tanker", title: "Tanker", subtitle, status: day.isLocked ? "locked" : "done", errors: 0, flags, ready: true };
 }
 
