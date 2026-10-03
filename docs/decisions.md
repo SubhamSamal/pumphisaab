@@ -5,7 +5,19 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 28-29 Sep 2026 (4d-4g: owner checks, 4e/4f, preview app)
 
-**D96. The pilot's first day is 15 Sep 2026 (owner, 29 Sep 2026).** Managers type the notebook days from 15 Sep onwards in front of the owner (the live demo is the real test; the earlier test steps were skipped), so the clean-up runs now and sets the first day to 15 Sep. Cold start is covered and tested (`supabase/tests/12_cold_start.test.sql`): the first day's openings are typed with no approval; a day whose previous closing is missing takes a typed opening with no approval; when that closing is typed later it either agrees (becomes a normal copied opening) or waits for the owner (H2).
+## 03 Oct 2026 (owner's demo with the managers)
+
+**D101. The pilot's first day is 1 Oct 2026 (replaces D96's 15 Sep).** Fix file `supabase/fixes/2026-10-03-first-day-1-oct.sql` sets it and removes empty days before it. Managers can go back 10 days (rule `managerDaysBack`), and the 3-day lock after submit stays.
+
+**D100. Nozzles are switched on/off by the owner in Profile › Nozzles (owner MCQ).** A nozzle switched on shows on every shift from then; its first opening is typed (cold start).
+
+**D99. Card is split into Debit card and Credit card (owner MCQ).** The existing "Card" type is renamed Debit card (past amounts move with it); Credit card is added.
+
+**D98. An emergency sale while a tanker unloads gets no extra box (owner MCQ).** The meters record it, so the day's totals stay right; only that chamber's dip check shows yellow. Managers avoid it and tell the owner if it happens.
+
+**D97. A tanker can finish unloading the next day (owner MCQ).** One switch on the tanker: "Unloading finished next day", "from chamber N". Chambers from N count as received on the next business day; the rest, minus the challan's short, on the tanker's day. Tanker totals and the dip check stay with the whole tanker. Same maths in the engine and the database.
+
+**D96. (Replaced by D101.) The pilot's first day is 15 Sep 2026 (owner, 29 Sep 2026).** Managers type the notebook days from 15 Sep onwards in front of the owner (the live demo is the real test; the earlier test steps were skipped), so the clean-up runs now and sets the first day to 15 Sep. Cold start is covered and tested (`supabase/tests/12_cold_start.test.sql`): the first day's openings are typed with no approval; a day whose previous closing is missing takes a typed opening with no approval; when that closing is typed later it either agrees (becomes a normal copied opening) or waits for the owner (H2).
 
 **D95. 1-2 managers, all Android (owner MCQ, 29 Sep 2026):** the production app's install link goes on WhatsApp with a one-page manager guide.
 
