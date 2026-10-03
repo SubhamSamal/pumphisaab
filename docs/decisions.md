@@ -7,6 +7,14 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 03 Oct 2026 (owner's demo with the managers)
 
+**D106. Tanker in two steps (owner MCQ, 03 Oct 2026):** 1 Challan (tanker no., invoice amount, ordered, short), 2 Chambers. Price chips move to the totals; the invoice date shows as "today · Change".
+
+**D105. Shift sales in numbered parts with a money bar (owner MCQ):** 1 Cash · 2 Paytm, cards… · 3 Credit slips · 4 Customer payments, each ticked when done; a slim bar at the bottom always shows Received and Short/Matched.
+
+**D104. Today shows where to start (owner MCQ):** the first card not done gets a teal "Next" tag; done cards fold to one line.
+
+**D103. "Not settled" is a separate day box per payment type (owner MCQ, 03 Oct 2026; replaces D26's "ignored").** The shift box keeps the machine's total (what customers paid), so the shift match doesn't change. "Not settled yet ₹" per type per day on Sales › By type; the owner sees it on Review. PhonePe is added as an optional payment type.
+
 **D102. "Pick one" is a drop-down, "pick many" is a tick list (owner, 03 Oct 2026).** `SelectField` (a box with ▾, the list opens from the bottom) replaces chips for: testing nozzle, expense "where did the money come from", customer payment "how was it paid". "Who worked" is a `CheckRow` tick list; the tick shows at once and the row greys while it saves (no double taps). The 2-3 option switches (shift, fuel, ₹/litres) stay. Example text in empty boxes starts with "e.g." and uses the new very light `placeholder` colour; helper lines use the lighter `text-faint` (managers thought the example text was typed and pressed back to delete it). Credit slip: slip number before vehicle.
 
 **D101. The pilot's first day is 1 Oct 2026 (replaces D96's 15 Sep).** Fix file `supabase/fixes/2026-10-03-first-day-1-oct.sql` sets it and removes empty days before it. Managers can go back 10 days (rule `managerDaysBack`), and the 3-day lock after submit stays.
