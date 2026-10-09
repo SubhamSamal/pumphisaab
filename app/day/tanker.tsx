@@ -518,9 +518,12 @@ function TankerForm({
                   />
                   {f.nextFrom ? (
                     <SelectField
-                      label="Next day from chamber"
+                      label="Which chambers were unloaded the next day?"
                       value={String(f.nextFrom)}
-                      options={f.chambers.slice(1).map((_, k) => ({ value: String(k + 2), label: `Chamber ${k + 2}`, detail: k + 2 === f.chambers.length ? "Only the last chamber" : `Chambers ${k + 2} to ${f.chambers.length}` }))}
+                      options={f.chambers.slice(1).map((_, k) => ({
+                        value: String(k + 2),
+                        label: k + 2 === f.chambers.length ? `Only chamber ${k + 2}` : `Chambers ${k + 2} to ${f.chambers.length}`,
+                      }))}
                       onChange={(v) => setForm(t.id, { nextFrom: Number(v) })}
                       disabled={locked}
                     />

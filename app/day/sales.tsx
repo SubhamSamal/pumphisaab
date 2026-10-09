@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 import {
-  AutoValueRow,
   Banner,
   BottomSheet,
   Button,
@@ -14,7 +13,6 @@ import {
   FieldHint,
   KeyValueRow,
   ListItem,
-  NoteCountRow,
   NumericInput,
   SaveIndicator,
   ScreenBody,
@@ -149,13 +147,20 @@ function SalesForm({
   const cashType = salesSetup.types.find((t) => t.kind === "CASH");
   const otherTypes = salesSetup.types.filter((t) => t.kind === "OTHER");
   const rowOf = (typeId?: string) => data.payments.find((p) => p.shiftId === shift.id && p.typeId === typeId);
-  const countOf = (noteId: string) => data.counts.find((c) => c.shiftId === shift.id && c.noteId === noteId);
 
   // What's typed on screen (saved when each box is left).
-  const [counts, setCounts] = useState<Record<string, string>>(() =>
-    Object.fromEntries(salesSetup.notes.map((n) => [n.id, countOf(n.id)?.count ? String(countOf(n.id)?.count) : ""])),
-  );
-  const [coins, setCoins] = useState(rowOf(cashType?.id)?.coins ?? "");
+  // Cash is one total now (owner, 09 Oct: no note-by-note count). Old shifts typed by notes show their total.
+  const savedCash = (() => {
+    const row = rowOf(cashType?.id);
+    const notes = data.counts.filter((c) => c.shiftId === shift.id && c.count > 0);
+    if (!row && notes.length === 0) return "";
+    const total = notes
+      .reduce((t, c) => t.plus(new Decimal(salesSetup.notes.find((n) => n.id === c.noteId)?.value ?? "0").times(c.count)), new Decimal(0))
+      .plus(row?.coins ?? "0");
+    return total.toFixed(2).replace(/\.00$/, "");
+  })();
+  const [cash, setCash] = useState(savedCash);
+  const [changeOpening, setChangeOpening] = useState(Boolean(shift.openingCash));
   const [others, setOthers] = useState<Record<string, string>>(() => Object.fromEntries(otherTypes.map((t) => [t.id, rowOf(t.id)?.amount ?? ""])));
   const [opening, setOpeningText] = useState(shift.openingCash ?? "");
 
@@ -163,22 +168,20 @@ function SalesForm({
   const draft: SalesBundle = useMemo(() => {
     const payments = data.payments.filter((p) => p.shiftId !== shift.id);
     const own = data.payments.filter((p) => p.shiftId === shift.id);
-    const coinsVal = readTypedNumber(coins, 2);
-    const cashCounted = own.some((p) => p.typeId === cashType?.id) || Object.values(counts).some((c) => c !== "") || coinsVal.kind === "ok";
+    const cashVal = readTypedNumber(cash, 2);
+    const cashCounted = own.some((p) => p.typeId === cashType?.id) || cashVal.kind === "ok";
     if (cashType && cashCounted)
-      payments.push({ id: "draft-cash", shiftId: shift.id, typeId: cashType.id, amount: null, coins: coinsVal.kind === "ok" ? coinsVal.value : "0" });
+      payments.push({ id: "draft-cash", shiftId: shift.id, typeId: cashType.id, amount: null, coins: cashVal.kind === "ok" ? cashVal.value : "0" });
     for (const t of otherTypes) {
       const v = readTypedNumber(others[t.id] ?? "", 2);
       if (v.kind === "ok") payments.push({ id: `draft-${t.id}`, shiftId: shift.id, typeId: t.id, amount: v.value, coins: null });
     }
-    const countRows = [
-      ...data.counts.filter((c) => c.shiftId !== shift.id),
-      ...salesSetup.notes.filter((n) => counts[n.id]).map((n) => ({ id: `draft-${n.id}`, shiftId: shift.id, noteId: n.id, count: Number(counts[n.id]) })),
-    ];
+    // The typed total replaces any old note counts for this shift.
+    const countRows = data.counts.filter((c) => c.shiftId !== shift.id);
     const o = readTypedNumber(opening, 2);
     const money = data.money.map((m) => (m.shiftId === shift.id && o.kind === "ok" ? { ...m, openingCash: o.value } : m));
     return { setup: salesSetup, data: { ...data, payments, counts: countRows, money } };
-  }, [data, shift.id, coins, counts, others, opening, cashType, otherTypes, salesSetup]);
+  }, [data, shift.id, cash, others, opening, cashType, otherTypes, salesSetup]);
 
   const shiftsForEngine = shiftData.shifts.map((s) => (s.id === shift.id ? { ...s, openingCash: readTypedNumber(opening, 2).kind === "ok" ? opening : null } : s));
   const result = evaluate(
@@ -194,9 +197,6 @@ function SalesForm({
   const index = shiftData.shifts.findIndex((s) => s.id === shift.id);
   const before = index > 0 ? shiftData.shifts[index - 1] : undefined;
   const autoOpening = data.money.find((m) => m.shiftId === shift.id)?.openingCash ?? "0";
-  const cashTotal = salesSetup.notes
-    .reduce((sum, n) => sum.plus(new Decimal(n.value).times(counts[n.id] || "0")), new Decimal(0))
-    .plus(readTypedNumber(coins, 2).kind === "ok" ? coins : "0");
   const slips = data.slips.filter((x) => x.shiftId === shift.id);
   // This shift's dues payments, plus the day's bank-transfer ones (they belong to no shift, D47).
   const payments = data.customerPayments.filter((p) => p.shiftId === shift.id || p.shiftId === null);
@@ -212,19 +212,16 @@ function SalesForm({
     if (value === saved || (value && saved && new Decimal(value).equals(saved))) return;
     savePayment.mutate({ shiftId: shift.id, typeId, amount: value }, { onError, onSuccess: () => track("field_autosaved", { section: "sales" }) });
   };
-  const saveCoins = () => {
-    const v = readTypedNumber(coins, 2);
+  /** Saves the cash counted as one total (in the cash row), and clears old note counts for this shift. */
+  const saveCash = () => {
+    const v = readTypedNumber(cash, 2);
     if (v.kind === "bad" || !cashType) return;
     const value = v.kind === "ok" ? v.value : null;
-    const saved = rowOf(cashType.id)?.coins ?? null;
-    if (value === saved || (value && saved && new Decimal(value).equals(saved))) return;
-    savePayment.mutate({ shiftId: shift.id, typeId: cashType.id, coins: value }, { onError });
-  };
-  const saveNote = (noteId: string) => {
-    if (!cashType) return;
-    const typed = Number(counts[noteId] || "0");
-    if (typed === (countOf(noteId)?.count ?? 0) && (countOf(noteId) || typed === 0)) return;
-    saveCount.mutate({ shiftId: shift.id, noteId, count: typed, cashTypeId: cashType.id }, { onError });
+    if (value === savedCash || (value && savedCash && new Decimal(value).equals(savedCash))) return;
+    savePayment.mutate({ shiftId: shift.id, typeId: cashType.id, coins: value }, { onError, onSuccess: () => track("field_autosaved", { section: "sales" }) });
+    for (const c of data.counts.filter((x) => x.shiftId === shift.id && x.count > 0)) {
+      saveCount.mutate({ shiftId: shift.id, noteId: c.noteId, count: 0, cashTypeId: cashType.id }, { onError });
+    }
   };
   const saveOpening = () => {
     const v = readTypedNumber(opening, 2);
@@ -269,34 +266,38 @@ function SalesForm({
 
         <Card>
           <Text variant="heading">Cash</Text>
+          {/* Cash already in the drawer: filled from the last count; changed only if cash was taken out (D46). */}
+          {changeOpening ? (
+            <NumericInput
+              label="Cash in the drawer when the shift started"
+              value={opening}
+              onChangeText={setOpeningText}
+              onBlur={saveOpening}
+              unit="₹"
+              helper={`Leave empty to use ${before ? `Shift ${before.code}` : "last night"}'s count (${fmtRupees(autoOpening, "input")}).`}
+              disabled={locked}
+            />
+          ) : (
+            <View className="flex-row flex-wrap items-center justify-between gap-8">
+              <View className="min-w-0 flex-1">
+                <Text variant="label" weight="400" tone="secondary">
+                  Cash already in the drawer at the start
+                </Text>
+                <Text variant="body" weight="600">
+                  {`${fmtRupees(autoOpening, "input")} · from ${before ? `Shift ${before.code}` : "last night"}'s count`}
+                </Text>
+              </View>
+              {!locked ? <Button label="Change" size="M" variant="secondary" onPress={() => setChangeOpening(true)} /> : null}
+            </View>
+          )}
           <NumericInput
-            label="Cash in the drawer when the shift started"
-            value={opening}
-            onChangeText={setOpeningText}
-            onBlur={saveOpening}
+            label="Cash in the drawer now (notes + coins)"
+            value={cash}
+            onChangeText={setCash}
+            onBlur={saveCash}
             unit="₹"
-            placeholder={fmtRupees(autoOpening, "input").replace("₹", "")}
-            helper={opening ? undefined : `From ${before ? `Shift ${before.code}` : "last night's"} count`}
             disabled={locked}
           />
-          <Text variant="label" tone="secondary">
-            Notes counted in the drawer now
-          </Text>
-          <View>
-            {salesSetup.notes.map((n) => (
-              <NoteCountRow
-                key={n.id}
-                note={fmtRupees(n.value)}
-                count={counts[n.id] ?? ""}
-                onChangeCount={(v) => setCounts((c) => ({ ...c, [n.id]: v }))}
-                onBlur={() => saveNote(n.id)}
-                amount={fmtRupees(new Decimal(n.value).times(counts[n.id] || "0"))}
-                editable={!locked}
-              />
-            ))}
-          </View>
-          <NumericInput label="Coins" value={coins} onChangeText={setCoins} onBlur={saveCoins} unit="₹" disabled={locked} />
-          <AutoValueRow label="Cash counted" value={fmtRupees(cashTotal, "input")} />
         </Card>
 
         <Card>

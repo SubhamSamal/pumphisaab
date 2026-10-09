@@ -7,6 +7,12 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 03 Oct 2026 (owner's demo with the managers)
 
+## 09 Oct 2026 (owner's check of round 1)
+
+**D108. Company box: no names until a letter is typed (owner, 09 Oct; changes D82 for companies).** Two default names confused managers on the credit slip. Expense types keep the 2 most used. Split-tanker choices read "Chambers 2 to 3" / "Only chamber 3". Review's Difference pill always sits under the word.
+
+**D107. Cash is one total per shift, not a note count (owner, 09 Oct; replaces D20).** "Cash in the drawer now (notes + coins)" is one box (stored as the cash row's amount; old note counts for that shift are set to 0 when the total is saved, and shifts typed by notes show their total). "Cash already in the drawer at the start" shows as a line from the last count with **Change** (D46 unchanged).
+
 **D106. Tanker in two steps (owner MCQ, 03 Oct 2026):** 1 Challan (tanker no., invoice amount, ordered, short), 2 Chambers. Price chips move to the totals; the invoice date shows as "today · Change".
 
 **D105. Shift sales in numbered parts with a money bar (owner MCQ):** 1 Cash · 2 Paytm, cards… · 3 Credit slips · 4 Customer payments, each ticked when done; a slim bar at the bottom always shows Received and Short/Matched.
@@ -248,7 +254,7 @@ Source: `docs/data/notebook/Sept15-daily-report.pdf`, transcribed in `2026-09-15
 **D19. R1 (IOCL compliance) = |Stock Difference| beyond 4% of the day's sold as per tank + that fuel's evaporation allowance.** Allowances by yearly sales: HSD above 600 KL/year → 0.20%; MS below 600 KL/year → 0.75%. So R1 fires beyond 4.20% for HSD and 4.75% for MS. Stored as settings the owner can change later.
 Why: same base as S1, easy to explain.
 
-**D20. Cash is entered as a note count** (closes open question Q1). Notes × value + coins = cash total, per shift. Matches the PRD and removes hand-adding mistakes.
+**D20. (Replaced by D107.) Cash is entered as a note count** (closes open question Q1). Notes × value + coins = cash total, per shift. Matches the PRD and removes hand-adding mistakes.
 
 ## 26 Sep 2026 (Phase 1 decisions, owner answered the MCQ round)
 

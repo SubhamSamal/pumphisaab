@@ -164,8 +164,8 @@ function FuelStep({ review }: { review: ReviewModel }) {
           <KeyValueRow label="Sold as per tank (dip)" value={fmtLitres(f.soldAsPerTank)} />
           <KeyValueRow label="Sold as per meters" value={fmtLitres(f.soldAsPerMeters)} />
           <Divider />
-          {/* Wraps to its own line when long, never cut off (CLAUDE.md, D69). */}
-          <View className="flex-row flex-wrap items-center justify-between gap-8">
+          {/* The pill always sits under the word, so every fuel looks the same (owner, 09 Oct). */}
+          <View className="gap-8">
             <Text variant="body" weight="600">
               Difference
             </Text>

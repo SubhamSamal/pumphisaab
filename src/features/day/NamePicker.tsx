@@ -20,7 +20,10 @@ export function NamePicker({
   addError,
   error,
   disabled,
+  byDefault = 2,
 }: {
+  /** How many of the most used to show before anything is typed (0 = none). */
+  byDefault?: number;
   label: string;
   placeholder: string;
   /** "company" → `Add “ABCD” as a new company`. */
@@ -45,7 +48,7 @@ export function NamePicker({
     if (!value && last.value && norm(text) === norm(last.name)) setText("");
   }
   const picking = !disabled && (!chosen || norm(text) !== norm(chosen.name));
-  const matches = matchNamed(items, text);
+  const matches = matchNamed(items, text, { byDefault });
   const exact = items.some((c) => norm(c.name) === norm(text));
   const typed = text.trim().replace(/\s+/g, " ");
 
