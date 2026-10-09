@@ -1,16 +1,12 @@
 # Your checklist
 
 **Start at step 1 and go down.** Updated 09 Oct 2026.
-Done so far: the app is live with both managers since 1 Oct; round 1 of fixes is in the real app (Profile line "update 01a1206").
+Done so far: nightly backup is on (09 Oct); the app is live with both managers since 1 Oct; round 1 of fixes is in the real app (Profile line "update 01a1206").
 
 ---
 
-## 1. Backup (10 minutes) — please do this soon
-Until this is done, **real days have no backup** (the free Supabase plan doesn't keep one).
-- [ ] Supabase › your project › **Connect** (top of the page) › **Session pooler** › copy the address starting `postgresql://`. Put your database password in place of `[YOUR-PASSWORD]`. (Don't know it? **Project Settings › Database › Reset database password**; the app isn't affected.)
-- [ ] GitHub › **SubhamSamal/pumphisaab** › **Settings** › **Secrets and variables** › **Actions** › **New repository secret** › Name `SUPABASE_DB_URL`, Value: that address › **Add secret**.
-- [ ] **New repository secret** › Name `BACKUP_PASSPHRASE`, Value: a long phrase only you know (e.g. five random words) › **Add secret**. **Write the phrase on paper**; without it the backups can't be opened.
-- [ ] Tell me. I run the first backup and a restore test and send you the result. From then on it runs every night at 2 AM; GitHub emails you if a night fails.
+## 1. Backup — done 09 Oct ✅
+Runs every night at 2 AM; GitHub emails you if a night fails. The first restore test passed (11 days, 31 slips, 3 logins came back). Keep the passphrase paper safe.
 
 ## 2. Every day
 - Managers fill the day in **PumpHisaab**; the notebook continues for now.

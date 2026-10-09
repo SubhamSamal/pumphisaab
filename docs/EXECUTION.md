@@ -53,7 +53,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 - [x] Android phone check (our own development app, 27 Sep)
 - [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
 - [x] Cash: note count (D20), later one total per shift (D107, 09 Oct)
-- [ ] Backups: free nightly encrypted copy chosen (D93), workflows built 29 Sep; **waiting for the owner's 2 GitHub secrets**; Pro when data grows
+- [x] Backups: free nightly encrypted copy (D93), running since 09 Oct; first restore test passed 09 Oct; Pro when data grows
 - [x] Owner confirmed: drawer starting cash prefilled from the last count (D46); card/XtraPower/Paytm/cash dues are in shift totals, bank dues are not (D47)
 - Deferred: Sentry → Phase 4 (D40); PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
@@ -145,7 +145,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
   - [ ] UI audit 1 (`docs/plans/ui-audit-1.md`, D103-D106): Today "Next" tag, Sales numbered parts + money bar, two-step tanker, "not settled" per type per day, PhonePe, plainer words, bigger buttons
 - Flags table and soft checks raising flags (no reasons), edit-after-submit tracking, meter-change approval (H2), lock / unlock / unlock request, owner notes (D3), bell with alerts, change history
 - Android push notifications + "day not submitted" reminder
-- Backups: nightly encrypted copy built (D93); owner adds the secrets, Claude runs the first backup and the restore test
+- Backups: nightly encrypted copy running since 09 Oct (D93); restore test passed 09 Oct
 - **Exit:** every PRD flag fires in tests; owner gets a push within a minute
 
 ### Phase 6: Owner settings screens, dashboard, tracking (~5-6 days)

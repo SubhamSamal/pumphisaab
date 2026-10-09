@@ -22,13 +22,12 @@ Last updated: 09 Oct 2026. **This file is the one place for "where are we".** EX
 | 8 Pilot measure, notebooks retired | Not started (parallel run already running) |
 
 **Pending, in the order the owner wants (no building until a phase is planned and the owner says "go"):**
-1. **Nightly backup (owner action):** add GitHub secrets `SUPABASE_DB_URL` (session pooler address) and `BACKUP_PASSPHRASE`; then Claude runs `backup.yml` once and `restore-test.yml`. Until then there is **no backup of real data** (free Supabase plan, D93).
-2. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
+1. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
    - Staff-wise entry (owner's demo item #7).
    - Nozzle test "what the measure got" + per-nozzle checks (D110, `short-tracking.md`): the real petrol short of 01 Oct (−26.58 L, −6.89%, nozzle problems) is being tracked by hand until then.
    - UI audit 1 (`ui-audit-1.md`, D103-D106): Today "Next" tag, Sales in numbered parts + money bar, two-step tanker, "not settled" per type per day, PhonePe, plainer words, bigger buttons.
    - Flags stored and sent, bell, unlock request, owner notes, edit-after-submit alert; push notifications (needs **one reinstall** of the app by managers).
-3. **Phase 6:** settings screens (prices, limits incl. expense caps, tanks/chart, nozzles, payment and expense types, shift times, companies), Dashboard with the **fuel trend** (D109), PostHog.
+2. **Phase 6:** settings screens (prices, limits incl. expense caps, tanks/chart, nozzles, payment and expense types, shift times, companies), Dashboard with the **fuel trend** (D109), PostHog.
 4. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later).
 The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 
@@ -45,7 +44,7 @@ The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 | Thing | Where / what |
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main`, CI = App job + Database job |
-| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-14 pasted (ledger `schema_migrations_applied` = 14). First day in the app = 01 Oct 2026. Free plan, no backup yet (see §2) |
+| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-14 pasted (ledger `schema_migrations_applied` = 14). First day in the app = 01 Oct 2026. Free plan. **Nightly backup on** since 09 Oct (02:00 IST, encrypted, 30 days, GitHub Actions; first restore test passed 09 Oct: 11 days, 24 readings, 31 slips, 14 migrations, 3 logins). Re-run `restore-test.yml` monthly |
 | Edge Function | `create-user` (owner deployed) |
 | Logins | `subham` (owner) + 2 real manager logins (made by the owner 29 Sep-03 Oct). `manager.test` removed |
 | Expo / EAS | `@pumphisaab/pumphisaab`; EAS CLI logged in on the Mac as `pumphisaab`. Env vars in EAS for preview + production: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` (secret, owner's) |
