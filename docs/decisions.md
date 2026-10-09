@@ -9,6 +9,10 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 09 Oct 2026 (owner's check of round 1)
 
+**D110. Nozzle test records what the measure got (owner MCQ, 09 Oct 2026).** Testing gets "The 5 L measure got" beside the meter's litres; the app shows each nozzle's error (measure − meter, and %), flags it beyond ±0.5% (IOCL's 25 mL per 5 L, a pump setting), and keeps a per-nozzle history. Optional box. Plan: `docs/plans/short-tracking.md`.
+
+**D109. Daily fuel trend for the owner (owner MCQ, 09 Oct 2026).** Dashboard › Fuel trend: last 30 business days per fuel (tank vs meters, Difference L / % / ₹) and the month total, from `v_day_match`. Why: 1 Oct's petrol short (−26.58 L, −6.89%) is real (nozzle problems); the owner tracks it daily.
+
 **D108. Company box: no names until a letter is typed (owner, 09 Oct; changes D82 for companies).** Two default names confused managers on the credit slip. Expense types keep the 2 most used. Split-tanker choices read "Chambers 2 to 3" / "Only chamber 3". Review's Difference pill always sits under the word.
 
 **D107. Cash is one total per shift, not a note count (owner, 09 Oct; replaces D20).** "Cash in the drawer now (notes + coins)" is one box (stored as the cash row's amount; old note counts for that shift are set to 0 when the total is saved, and shifts typed by notes show their total). "Cash already in the drawer at the start" shows as a line from the last count with **Change** (D46 unchanged).
