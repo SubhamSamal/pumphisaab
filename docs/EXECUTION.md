@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status
 
-**Where we are lives in `docs/HANDOFF.md` §2 (one place, so it can't drift).** The checkboxes below are the long-term record per phase.
+**Where we are lives in `docs/HANDOFF.md` §2 (one place, so it can't drift).** In short (09 Oct 2026): Phases 0-4 done, the pilot's parallel run started 01 Oct, Phase 5 is next. The checkboxes below are the long-term record per phase.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -52,8 +52,8 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 ### Still open
 - [x] Android phone check (our own development app, 27 Sep)
 - [ ] More notebook days (1 of 7 done: 15 Sep 2026); each becomes a golden case
-- [x] Cash: note count (D20)
-- [ ] Backups: Supabase Pro vs nightly copy (before real pilot data, Phase 5)
+- [x] Cash: note count (D20), later one total per shift (D107, 09 Oct)
+- [ ] Backups: free nightly encrypted copy chosen (D93), workflows built 29 Sep; **waiting for the owner's 2 GitHub secrets**; Pro when data grows
 - [x] Owner confirmed: drawer starting cash prefilled from the last count (D46); card/XtraPower/Paytm/cash dues are in shift totals, bank dues are not (D47)
 - Deferred: Sentry → Phase 4 (D40); PostHog → Phase 6; Cloudflare + pumphisaab.com → Phase 7
 
@@ -112,7 +112,7 @@ Each phase runs: **Setup → Brainstorm → MCQ round (lock decisions) → Build
 - Own development build of the app (EAS) replacing Expo Go; EAS Update channels for instant fixes; Sentry crash tracking
 - **Exit:** owner and manager log in on their phones; RLS test proves Pump X can't see Pump Y; CI green including pgTAP
 
-### Phase 4: Daily entry, slice by slice (~10-12 days) — plan: `docs/plans/phase-4-daily-entry.md`
+### Phase 4: Daily entry, slice by slice (~10-12 days) — plan: `docs/plans/archive/phase-4-daily-entry.md`
 Each slice = its tables (migration) + SQL view part + screen + calc wiring + tests + tried on the owner's phone.
 - 4a Day lifecycle, price Confirm strip, opening stock and dip
 - 4b Shift meters (A/B/C) + testing, H1/H2/H8
@@ -127,23 +127,30 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - [x] 4b/4c owner check 27 Sep: fixes D61-D63 (owner approves in one step, green approved state; tanker: no "No tanker today", invoice amount required, price = selling − margin, mandatory chamber dips; compact number boxes). Migration 9
 - [x] Tanker fixes 2 (28 Sep): margin set by the owner with the price, shown as chips; dip before and after on every chamber; plain challan check (D64-D66). Migration 10
 - [x] Drafts for Save forms (D67), company type-ahead (D68), text never cut off (D69, test-guarded), 28 Sep
-- [x] 4e built 28-29 Sep: migration 11 (expenses, drawer expenses in v_shift_money, v_day_expenses, S9 v_expense_caps), Expenses list + Add expense (D72-D75). Owner paste + phone check pending
-- [x] 4f built 29 Sep: migration 12 (v_day_match, v_shift_match, day_sections, day_is_matched, submit_day, first-day fix D81), Closing dip, Review (3 steps), Submit, After submit, Today bar, offline outbox (D70, D78), pre-pilot clean-up script (D80). Golden loader now checks fuel, money and matched in SQL for every case incl. 15 Sep. Owner paste + phone check pending
-- [ ] 4g: preview APK, Sentry, first EAS Update test (with the owner)
+- [x] 4e built 28-29 Sep: migration 11 (expenses, drawer expenses in v_shift_money, v_day_expenses, S9 v_expense_caps), Expenses list + Add expense (D72-D75). Checked by the owner 29 Sep
+- [x] 4f built 29 Sep: migration 12 (v_day_match, v_shift_match, day_sections, day_is_matched, submit_day, first-day fix D81), Closing dip, Review (3 steps), Submit, After submit, Today bar, offline outbox (D70, D78), pre-pilot clean-up script (D80). Golden loader now checks fuel, money and matched in SQL for every case incl. 15 Sep. Checked by the owner 29 Sep; fixes D82-D85 (2-most-used pickers, Review as the last card, red/yellow/green Summary), migration 13
+- [x] 4g done 29 Sep: preview APK (`com.pumphisaab.app.preview`), Sentry (EU, org pumphisaab, project react-native), icon/splash from the logo, first over-the-air update received (D86-D91)
+- [x] Go-live 29 Sep-03 Oct (D92-D96, D101): clean-up, production APK, manager logins, demo with the managers; **real days from 01 Oct 2026 beside the notebooks**. One-off fix: first day = 1 Oct
+- [x] Pilot fixes round 1 (03-09 Oct, D97-D108, migration 14), shipped over the air to production 09 Oct: tanker finishing next day, drop-downs + tick list, instant ticks, cash one total, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back, no default company names
+- Exit check: replaced by live use (managers typing real days since 01 Oct; the formal 15 Sep stopwatch test was skipped by the owner)
 - Day locking moved in from Phase 5 (D49): submitted days auto-lock after 3 business days; owner Lock/Unlock. Sentry + first preview build at the end (D52)
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook
 
-### Phase 5: Notebook comparison starts + owner loop (~6-7 days, comparison runs 30+ days alongside)
-- **Parallel run begins:** app and notebooks side by side every day; differences investigated each evening
+### Phase 5: Notebook comparison + owner loop (~6-7 days, comparison runs 30+ days alongside) — NEXT
+- **Parallel run: started 01 Oct 2026** (managers in the app, notebooks continue; owner compares each evening)
+- Pilot backlog to fold into the Phase 5 plan (owner, 09 Oct: build in the upcoming phases, not before):
+  - [ ] Staff-wise entry (owner's demo #7)
+  - [ ] Nozzle test "what the measure got" + per-nozzle checks (D110, `docs/plans/short-tracking.md`): 1 Oct petrol short −26.58 L (−6.89%) is real, nozzle problems
+  - [ ] UI audit 1 (`docs/plans/ui-audit-1.md`, D103-D106): Today "Next" tag, Sales numbered parts + money bar, two-step tanker, "not settled" per type per day, PhonePe, plainer words, bigger buttons
 - Flags table and soft checks raising flags (no reasons), edit-after-submit tracking, meter-change approval (H2), lock / unlock / unlock request, owner notes (D3), bell with alerts, change history
 - Android push notifications + "day not submitted" reminder
-- Backups decided and in place before real pilot data (decision pending: Pro plan or nightly copy)
+- Backups: nightly encrypted copy built (D93); owner adds the secrets, Claude runs the first backup and the restore test
 - **Exit:** every PRD flag fires in tests; owner gets a push within a minute
 
 ### Phase 6: Owner settings screens, dashboard, tracking (~5-6 days)
 - Profile > Fuel prices, Logins, When to flag first; then tanks, dip chart upload with preview/validation, nozzles, staff, credit companies, payment types, expense types, shift timings (effective next business day)
-- Dashboard: today summary, 30-day matched calendar (North Star), open flags
+- Dashboard: today summary, 30-day matched calendar (North Star), open flags, **fuel trend** (D109: 30 days per fuel, Difference L / % / ₹, month total)
 - PostHog events from the PRD
 - **Exit:** a second test pump can be fully set up from the app alone; North Star visible; events in PostHog
 

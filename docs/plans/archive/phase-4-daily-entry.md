@@ -1,6 +1,6 @@
 # Phase 4 plan: Daily entry, slice by slice
 
-Status: **4a-4f built (29 Sep 2026); 4a-4d checked by the owner; 4e/4f owner check and 4g (preview build, Sentry, OTA) next.** Plan written 27 Sep; MCQs D45-D52 · Estimate 10-12 working days (+ about 15 minutes of owner steps per slice)
+Status: **done: 4a-4g built and checked; live since 01 Oct 2026** Plan written 27 Sep; MCQs D45-D52 · Estimate 10-12 working days (+ about 15 minutes of owner steps per slice)
 
 ## Goal in one line
 At the end of this phase, a manager fills a **whole real day on the phone** (price, dips, tanker, 3 shifts of meters and testing, all money, credit slips, expenses, closing dip), sees **sold as per tank vs sold as per meters vs money received** match live, and **submits** it. A real notebook day typed into the app gives the same totals as the notebook, in under 20 minutes.
@@ -53,7 +53,7 @@ Not in this phase: stored flags, the bell, push, manager "Request unlock", owner
 - SQL: `v_shift_match` (Should have, Received and its parts, Difference).
 
 ### 4e. Expenses
-> **Full detail and owner answers (D70-D73): `docs/plans/phase-4ef-expenses-review-submit.md`** (28 Sep), which replaces the 4e and 4f sections below where they differ.
+> **Full detail and owner answers (D70-D73): `docs/plans/archive/phase-4ef-expenses-review-submit.md`** (28 Sep), which replaces the 4e and 4f sections below where they differ.
 
 - **Table:** `expenses` (day, type, description if Other, ₹, paid from: Shift A/B/C drawer, Owner, Bank).
 - **Screens** (canvas F7): list with "From Shift B cash" on each row, totals (from shift cash / by owner or bank), Add expense (type chips, amount, paid from with the one-line explanation), "No expenses today". S9 over-cap shown amber.

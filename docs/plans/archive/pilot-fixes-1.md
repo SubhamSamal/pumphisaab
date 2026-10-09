@@ -1,6 +1,6 @@
 # Pilot fixes, round 1 (owner's demo feedback, 03 Oct 2026)
 
-Status: **built 03 Oct 2026 (D97-D102); waiting for the owner to paste the first-day fix and migration 14, then over the air: preview → production**
+Status: **shipped to production over the air 09 Oct 2026 (update 01a1206), with the owner's round-1 check (D107, D108)**
 Delivery: **all over the air** (no reinstall): app changes go to PumpHisaab Preview first, the owner checks, then to PumpHisaab. Database changes come as one migration (14) the owner pastes before the update.
 
 ## Done right away (before this plan)

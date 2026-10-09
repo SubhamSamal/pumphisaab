@@ -1,7 +1,7 @@
 # Phase 4g plan: preview app, crash reports, over-the-air update
 
-Status: **plan written 29 Sep 2026; MCQs answered (D86-D89); waiting for the owner's "go" and the Sentry DSN**
-Parent plan: `docs/plans/phase-4-daily-entry.md` ("Also in this phase"), decisions D43, D44, D52.
+Status: **done 29 Sep 2026**
+Parent plan: `docs/plans/archive/phase-4-daily-entry.md` ("Also in this phase"), decisions D43, D44, D52.
 
 ## Goal in one line
 A real, installable **PumpHisaab app** on your Android phone that works without the Mac, tells us when it crashes (Sentry), and gets fixes **over the air** (no reinstall), proven with one small test update.

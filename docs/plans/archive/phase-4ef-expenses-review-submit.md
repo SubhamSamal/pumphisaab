@@ -1,7 +1,7 @@
 # Phase 4e + 4f plan: Expenses, Closing dip, Review, Submit, offline
 
-Status: **built overnight 28→29 Sep 2026 (D74-D81); owner check next (`phase-4-owner-steps.md`, last section).** MCQs D70-D73 · Built overnight 28→29 Sep, checked by the owner on 29 Sep.
-Parent plan: `docs/plans/phase-4-daily-entry.md` (4e and 4f sections). This file replaces those two sections with the full detail.
+Status: **done: built 28-29 Sep, checked by the owner 29 Sep** MCQs D70-D73 · Built overnight 28→29 Sep, checked by the owner on 29 Sep.
+Parent plan: `docs/plans/archive/phase-4-daily-entry.md` (4e and 4f sections). This file replaces those two sections with the full detail.
 
 ## Goal in one line
 After this, a manager can finish a **whole day**: expenses, closing dip, a 3-step Review (fuel, money, flags) and **Submit**. The database re-checks everything and records whether the day matched. Typing survives no internet, and a real notebook day gives the notebook's totals.
@@ -90,7 +90,7 @@ After this, a manager can finish a **whole day**: expenses, closing dip, a 3-ste
 - Also chosen without asking (tell me to change): **Paid from** defaults to the shift running now; "Cash advance to credit customer" asks for the company (optional); after-submit edits are allowed and the bar says **Submit again**.
 
 ## Docs I'll update after the build
-`docs/decisions.md` (D70 onwards), `docs/learnings.md`, `docs/HANDOFF.md` (where we stand, what to do first), `docs/EXECUTION.md` (4e/4f done, 4g next), `docs/plans/phase-4-daily-entry.md` (status), `docs/plans/phase-4-owner-steps.md` (your steps for tomorrow), `CLAUDE.md` if a rule changes, and the gallery for every new component (type chips row, review step header, outbox indicator).
+`docs/decisions.md` (D70 onwards), `docs/learnings.md`, `docs/HANDOFF.md` (where we stand, what to do first), `docs/EXECUTION.md` (4e/4f done, 4g next), `docs/plans/archive/phase-4-daily-entry.md` (status), `docs/plans/archive/phase-4-owner-steps.md` (your steps for tomorrow), `CLAUDE.md` if a rule changes, and the gallery for every new component (type chips row, review step header, outbox indicator).
 
 ## Your steps tomorrow (full click-by-click list will be in phase-4-owner-steps.md)
 1. Paste **migration 11**, then **migration 12** (both only add things), run one check query each (expected: 11 and 12 migrations).

@@ -1,6 +1,6 @@
 # Tracking a daily short (owner, 09 Oct 2026)
 
-Status: **plan written 09 Oct 2026; owner picked D109 and D110; waiting for "go"** (can ship together with UI audit 1).
+Status: **planned, not built: owner (09 Oct) moved it into the upcoming phases (nozzle checks → Phase 5, fuel trend → Phase 6 dashboard)**.
 
 ## Why
 1 Oct: petrol sold as per tank 385.89 L vs meters 359.31 L = 26.58 L short (6.89%). Not a typo: the owner found nozzle problems. More fuel leaving the tank than the meters count points to a meter that under-counts, a leak, or fuel drawn without the meter. The owner needs to watch it every day and find which nozzle.

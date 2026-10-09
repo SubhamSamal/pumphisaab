@@ -1,6 +1,6 @@
 # UI audit 1: the app through a new manager's eyes (03 Oct 2026)
 
-Status: **written 03 Oct 2026; owner answers D103-D106; waiting for "go"**. Builds on pilot fixes round 1 (`pilot-fixes-1.md`), which goes out first.
+Status: **planned, not built: owner (09 Oct) moved it into the upcoming phases (Phase 5 plan)**. Builds on pilot fixes round 1 (`pilot-fixes-1.md`), which goes out first.
 Delivery: all over the air (Preview first, then the managers' app), plus migration 15 for PhonePe and "not settled".
 
 ## Who I walked through it as

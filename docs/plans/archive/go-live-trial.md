@@ -2,7 +2,7 @@
 
 > The owner's tick-box version of this plan: `docs/plans/START-HERE-owner-checklist.md`.
 
-Status: **plan written 29 Sep 2026; owner answers D92-D95; waiting for "go"**
+Status: **done: live with 2 managers since 01 Oct 2026 (backup secrets still pending from the owner)**
 Replaces the order in EXECUTION.md: Phase 5's parallel run starts now, before the rest of Phase 5 and Phase 6 are built. New work reaches phones over the air.
 
 ## Goal
@@ -16,7 +16,7 @@ From the day after clean-up, the managers type every day into the **PumpHisaab**
 
 ## Order
 ### A. End-to-end test (owner, ~1 hour) — the Phase 4 exit check
-Migration 13 pasted (ledger = 13); 27 Sep submitted; the 15 Sep notebook numbers typed into 28 Sep with a stopwatch (steps and expected totals: `docs/plans/phase-4-owner-steps.md`, Step 4). Anything wrong is fixed over the air before managers start.
+Migration 13 pasted (ledger = 13); 27 Sep submitted; the 15 Sep notebook numbers typed into 28 Sep with a stopwatch (steps and expected totals: `docs/plans/archive/phase-4-owner-steps.md`, Step 4). Anything wrong is fixed over the air before managers start.
 
 ### B. Nightly backup (Claude builds, owner adds 2 secrets)
 - A GitHub Actions job runs every night at 02:00 IST (and on demand): it copies the whole database (the Supabase roles, the tables' structure and all data, including logins) with the Supabase CLI.

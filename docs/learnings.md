@@ -100,8 +100,8 @@ Plus some Excel sheets. Mismatches used to be spotted about 10 days late, with n
 | 2 | "Op. Stock" is IOCL's book stock, drifted by thousands of litres | S3 no longer compares book vs dip (it would fire daily); it flags when the **gap changes** from yesterday | D22 |
 | 3 | Tankers can arrive short (28 L on 15 Sep) and the notebook still added the full invoice litres | App uses invoice − short. 15 Sep diesel difference is −47 L, not −75 L | D23 |
 | 4 | The notebook works as a running cash book; cash in hand is a leftover, but it is also counted | App compares **counted** cash; opening cash in the drawer is subtracted | D24 |
-| 5 | Payment channels are Cash, Paytm, Card, XtraPower, Bank transfer, Credit | Payment types changed (PhonePe → Paytm, Bank kept) | D25 |
-| 6 | Card/UPI settlement has adjustments and pending amounts | Ignored in v1; manager types each machine's shift total | D26 |
+| 5 | Payment channels are Cash, Paytm, Card, XtraPower, Bank transfer, Credit; the pump also takes PhonePe, and debit and credit cards are separate | Card split into Debit card + Credit card (09 Oct); PhonePe planned (optional) | D25, D99, D103 |
+| 6 | Card/UPI settlement has adjustments and pending amounts | Shift box = the machine's total (unchanged); a separate "not settled" day box per type is planned | D26 → D103 |
 | 7 | Most credit slips are **round rupee fills** (₹14,000), litres worked out and **rounded up**; a few are litre fills (420 L, 1,600 L) | Slip can be typed in ₹ or litres; litres from ₹ round up | D27 |
 | 8 | Credit customers sometimes take **cash** from the pump (S.V.T. ₹11,000) | Expense type "Cash advance to credit customer" | D28 |
 | 9 | Big customers pay **old dues or advances** (₹15.65 lakh on 15 Sep); 2 loyal partners pay in advance for a ₹1/L discount given later on their bill | "Payment from customer" entry, kept out of fuel sales; slips stay at full price | D29 |
@@ -114,6 +114,10 @@ Plus some Excel sheets. Mismatches used to be spotted about 10 days late, with n
 | 16 | XtraPower is IOCL's fleet card and behaves like a credit card at the machine: dues paid with it show up in the shift's XtraPower total. Bank transfers for old dues never touch a shift | Dues by card/XtraPower/Paytm/cash are taken off the shift; bank dues only recorded (27 Sep) | D47 |
 | 17 | The drawer is not emptied at each shift change: the next shift starts with what was counted, unless the owner takes cash out | Starting cash prefilled from the previous count, editable (27 Sep) | D46 |
 | 18 | The owner wants old days to close themselves: submitted days lock after 3 business days, but an unsubmitted day must stay fixable | Auto-lock submitted days only; warn about yesterday and the day before (27 Sep) | D49 |
+| 19 | A tanker's unloading can pause overnight: some chambers on Day 1 (Shift B/C), the rest on Day 2 (Shift A). Counting the whole tanker on Day 1 shows Day 1 short and Day 2 excess | "Unloading finished next day, from chamber N" on the tanker; each day receives what went into its tank (03 Oct) | D97 |
+| 20 | Sales can happen between chambers (to make room) and, rarely, during unloading (an emergency) | Per-chamber dips already handle between-chamber sales; an emergency sale shows only as a yellow dip check | D65, D98 |
+| 21 | Managers count cash as one total, not note by note | Cash is one box per shift (09 Oct) | D107 |
+| 22 | **The app found a real loss in its first week:** 01 Oct petrol sold as per tank 385.89 L vs meters 359.31 L = **−26.58 L (−6.89%)**, beyond IOCL's limit; the owner traced it to nozzle problems. More fuel leaving the tank than the meters count = a meter under-counting, a leak, or fuel drawn without the meter | Track daily: fuel trend (D109) and nozzle measure checks (D110) planned for the next phases; tracked by hand until then | D109, D110 |
 
 ## 4. Numbers from the real day (15 Sep 2026)
 - Petrol: tank 229.54 L vs meters 224.80 L → **−4.74 L (−2.07%)**
@@ -123,6 +127,15 @@ Plus some Excel sheets. Mismatches used to be spotted about 10 days late, with n
 - Our digitised dip chart matched the notebook's four dip readings to within 1 litre, so the chart is right.
 
 Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison: `docs/plans/archive/phase-2-report.md`.
+
+## 4b. What the managers' first demo taught us (03 Oct 2026)
+- **Chips read as "pick many".** A manager tapped several nozzle chips for one test. Pick-one is now a drop-down (`SelectField`), pick-many a tick list (`CheckRow`).
+- **Grey example text reads as typed text.** Managers pressed back to "delete" placeholders like "OD05AB1234". Placeholders are now very light and start with "e.g."; helper lines are lighter too.
+- **Slow saves cause double taps.** The tick for "who worked" waited for the server; managers tapped 2-3 times. Ticks now change at once and the row greys while saving.
+- **Long pages lose people** (Sales, Tanker). The UI audit plan (`docs/plans/ui-audit-1.md`) splits them into numbered parts / steps.
+- **Two default names in the company box confused them**: it now starts empty until a letter is typed.
+- **They start from a real past date**: the first day in the app must match where the managers start (1 Oct), and managers need more than 2 days back (now 10).
+- **The best demo is real work**: managers typing real past records in front of the owner found more than any test day did.
 
 ## 5. Product learnings (from the design walkthrough and PRD review)
 - **No reasons, ever.** Asking a manager "why" slows them and reads as blame. Flags go to the owner, who calls (D3, hard rule 7).
@@ -194,6 +207,8 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Accounts:** GitHub `SubhamSamal/pumphisaab` (public), Expo/EAS `@pumphisaab/pumphisaab` (personal account `pumphisaab`), Supabase `pumphisaab` (Mumbai).
 
 ## 7. How we work (process learnings)
+- **Since 01 Oct the app is live with managers: every change goes Preview → owner checks → production, over the air** (`APP_VARIANT` must be set on `eas update`, or the update carries the wrong app name/variant). A database change is a migration the owner pastes **before** the update that needs it. Only new phone-side code (push notifications, a new native library) needs a new APK and a reinstall.
+- **The owner decides what's built when** (09 Oct): ideas from the pilot go into the next phase's plan, not built on the spot.
 - **Keep the docs cheap to use** (29 Sep audit): HANDOFF.md is the only status page; decisions and learnings are searched, not read top to bottom; finished plans and owner steps go to `docs/plans/archive/`; a replaced decision is marked "(Replaced by Dxx)".
 - **Give the owner all steps at once** (numbered, click by click, what to send back); one step at a time felt slow. Plans for each phase live in `docs/plans/`, and `docs/HANDOFF.md` is the start page for a new session.
 - **Every phase:** plan → owner MCQs → owner says "go" → build → check → plain-language summary. Nothing is built before "go".

@@ -8,7 +8,7 @@ PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps.
 
 - **Behaviour source of truth:** `docs/PRD-PumpHisaab-v1.1.md`
 - **Visual source of truth:** Claude Design canvas + `docs/design-tokens.json`
-- **Pilot pump:** Shree Lokanath Filling Station (IOCL). 1 MS + 1 HSD tank (20 KL, same chart, max 21,628.93 L), nozzles HSD-1..4 and MS-1..4 (1 and 2 not in use, D30), shifts A 06-14, B 14-22, C 22-06, business day starts 06:00 IST.
+- **Pilot pump:** Shree Lokanath Filling Station (IOCL). 1 MS + 1 HSD tank (20 KL, same chart, max 21,628.93 L), nozzles HSD-1..4 and MS-1..4 (1 and 2 not in use, D30; the owner switches nozzles in Profile › Nozzles), shifts A 06-14, B 14-22, C 22-06, business day starts 06:00 IST. **Live since 01 Oct 2026:** two managers enter real days in the production app, beside the notebooks.
 
 ## The owner of this repo does not write code
 - Explain what you changed in plain language, in short bullets, after every task.
@@ -62,6 +62,13 @@ tools/                  Developer-only helpers, not part of the app (tools/db-lo
 - **Text is never cut off on any side** (owner's rule, 28 Sep): typed numbers, labels and values show whole on Android and iPhone, at every length (a single "0" too). Every `TextInput` uses `typingText` from `src/components/ui/Field.tsx`; `tests/text-clipping.test.ts` enforces it. Check new screens on the phone with short and long values.
 - Analytics events from the PRD are fired where relevant.
 - A short plain-language summary: what changed, how to see it, anything the owner must do.
+
+## Changing a live app (since 01 Oct 2026)
+- Managers use the production app every day. **Never break it:** every change goes to **PumpHisaab Preview** first (`eas update --channel preview`), the owner checks it, then to **production** (`--channel production`). Always set `APP_VARIANT` on `eas update`.
+- A change that needs the database ships as a migration the owner pastes **before** the update goes out.
+- A new phone-side library (push, a native module) needs a new APK build and a reinstall: say so in the plan.
+- Don't build ideas from the pilot on the spot: they go into the next phase's plan (owner, 09 Oct).
+- One-off data fixes (not schema) go in `supabase/fixes/`, with a DATA SAFETY header, tested locally first.
 
 ## Working style
 - Small steps. One feature slice at a time, committed with a clear message.

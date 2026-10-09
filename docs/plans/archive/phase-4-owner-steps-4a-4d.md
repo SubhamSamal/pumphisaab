@@ -1,6 +1,6 @@
 # Phase 4 owner steps, 4a-4d (done, kept for history)
 
-Moved out of `docs/plans/phase-4-owner-steps.md` on 29 Sep 2026 so the live file only holds steps still to do.
+Moved out of `docs/plans/archive/phase-4-owner-steps.md` on 29 Sep 2026 so the live file only holds steps still to do.
 
 ## Slice 4a: day opens, price Confirm, opening dip (27 Sep 2026)
 
