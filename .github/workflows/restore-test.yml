@@ -46,5 +46,7 @@ jobs:
           DB=postgresql://postgres:postgres@127.0.0.1:54322/postgres
           psql "$DB" -v ON_ERROR_STOP=0 -q -f backup/roles.sql
           psql "$DB" -v ON_ERROR_STOP=1 -q -f backup/schema.sql
-          psql "$DB" -v ON_ERROR_STOP=1 -q -c 'SET session_replication_role = replica' -f backup/data.sql
+          # Data as the throwaway's admin: Supabase's own storage tables refuse the postgres user.
+          ADMIN=postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
+          psql "$ADMIN" -v ON_ERROR_STOP=1 -q -c 'SET session_replication_role = replica' -f backup/data.sql
           psql "$DB" -c "select (select count(*) from public.business_days) as days, (select count(*) from public.nozzle_readings) as readings, (select count(*) from public.credit_sales) as slips, (select count(*) from public.schema_migrations_applied) as migrations, (select count(*) from auth.users) as logins"
