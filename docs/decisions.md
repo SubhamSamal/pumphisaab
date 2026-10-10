@@ -9,6 +9,8 @@ Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is hist
 
 ## 09 Oct 2026 (owner's check of round 1)
 
+**D111. PhonePe and "Cash deposited in bank" boxes (owner MCQ, 10 Oct 2026).** Two new ways of getting paid in each shift's Sales: PhonePe (after Paytm) and Cash deposited in bank (after Bank transfer; drawer cash taken to HDFC during the shift, counted as money the shift handed over). Both are ordinary OTHER types, so no formula changes; "Cash deposited in bank" is left out of "How was it paid?" for customer payments. Migration 15. Came up while filling 2-5 Oct from the notebooks (PhonePe ₹8,000 on 2 Oct; deposits ₹50,000 on 3 Oct and ₹40,000 on 5 Oct). Dip chart checked the same day: the app's chart matches the IOCL sheet; notebooks drop the decimals (≤1 L) and one 3 Oct lookup used 149.6 cm's litres for 149.2 cm (owner: keep the app exact).
+
 **D110. Nozzle test records what the measure got (owner MCQ, 09 Oct 2026).** Testing gets "The 5 L measure got" beside the meter's litres; the app shows each nozzle's error (measure − meter, and %), flags it beyond ±0.5% (IOCL's 25 mL per 5 L, a pump setting), and keeps a per-nozzle history. Optional box. Plan: `docs/plans/short-tracking.md`.
 
 **D109. Daily fuel trend for the owner (owner MCQ, 09 Oct 2026).** Dashboard › Fuel trend: last 30 business days per fuel (tank vs meters, Difference L / % / ₹) and the month total, from `v_day_match`. Why: 1 Oct's petrol short (−26.58 L, −6.89%) is real (nozzle problems); the owner tracks it daily.

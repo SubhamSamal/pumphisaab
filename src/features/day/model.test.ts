@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES, type DayResult } from "@/calc";
 import { Decimal } from "@/lib/decimal";
-import { reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import { customerPayMethods, reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
 import type { Day, DaySetup, ExpenseRow, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
@@ -567,5 +567,15 @@ describe("tanker finished the next day (D97)", () => {
     const result = evaluate(setup, day(), []);
     expect(tankerSection(day(), [], result, [receipt(true)]).subtitle).toBe("Done · 2,000 L from yesterday's OD02CD9087");
     expect(tankerSection(day(), [], result, []).subtitle).toBe("No tanker today");
+  });
+});
+
+describe("customerPayMethods (D111)", () => {
+  it("leaves out Credit and the drawer's bank deposit", () => {
+    const types = ["Cash:CASH", "Paytm:OTHER", "PhonePe:OTHER", "Bank transfer:OTHER", "Cash deposited in bank:OTHER", "Credit:CREDIT"].map((x) => {
+      const [name, kind] = x.split(":");
+      return { name: name!, kind: kind! };
+    });
+    expect(customerPayMethods(types).map((t) => t.name)).toEqual(["Cash", "Paytm", "PhonePe", "Bank transfer"]);
   });
 });

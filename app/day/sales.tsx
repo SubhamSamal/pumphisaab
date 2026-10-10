@@ -24,7 +24,7 @@ import {
 } from "@/components/ui";
 import { explainReceived, type Expense } from "@/calc";
 import { CustomerPicker } from "@/features/day/CustomerPicker";
-import { customerPaymentInputs, evaluate, expenseInputs, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
+import { customerPaymentInputs, customerPayMethods, evaluate, expenseInputs, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
 import {
   useDay,
   useDaySetup,
@@ -415,7 +415,7 @@ function CustomerPaymentSheet({
 }) {
   const save = useSaveCustomerPayment(pumpId, dayId);
   const remove = useDeleteCustomerPayment(dayId);
-  const methods = salesSetup.types.filter((t) => t.kind !== "CREDIT");
+  const methods = customerPayMethods(salesSetup.types);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [typeId, setTypeId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");

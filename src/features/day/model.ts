@@ -273,6 +273,14 @@ export function shiftMoneyInput(shift: Shift, { setup, data }: SalesBundle): Pic
   };
 }
 
+/** Drawer cash taken to the bank (D111): a shift box only, never a way a customer pays. */
+export const CASH_TO_BANK = "Cash deposited in bank";
+
+/** Ways a customer can pay old dues: every type except Credit and the drawer's bank deposit. */
+export function customerPayMethods<T extends { name: string; kind: string }>(types: T[]): T[] {
+  return types.filter((t) => t.kind !== "CREDIT" && t.name !== CASH_TO_BANK);
+}
+
 /** Payments from customers as the engine wants them; a bank transfer carries no shift (D47). */
 export function customerPaymentInputs(shifts: Shift[], { setup, data }: SalesBundle): CustomerPayment[] {
   return data.customerPayments.map((p) => {
