@@ -144,6 +144,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Mistakes found:** 3 Oct HSD closing 149.2 cm written as 16,483 L (that's 149.6 cm; 47 L); 1 Oct C diesel value ₹1.02 off; 3 Oct C total ₹0.69 off; 5 Oct A petrol 101.75 L for 101.81 L (₹6.60); 5 Oct C ₹10 unexplained.
 - **Diesel short on tanker days** (1, 2, 5 Oct −65 to −107 L before the challan short): the 1 Oct tanker's 103 L short on the challan explained it. Worth watching per tanker.
 - **How the owner filled 1 Oct:** 5 L test on each in-use nozzle in Shift A; cash counted to the rupee; cash at start = the notebook's figure; Maa Bhawani as "MBRPL"; one expense type per kind (TEA, Fooding Rudra, advances by name); unknown slip numbers as 0000/1111/2222.
+- **Tanker short:** the unloading register's "Difference" is worked out until the last chamber is in, net of that period's sales, so it holds the day's own loss too. For a tanker finishing next day (05 Oct) the owner chose the shorts of the chambers unloaded that day (78 L), not the register's 159 L, so the day doesn't show a false excess.
 - **Method:** a one-off file in `supabase/fixes/` built from a transcription, totals checked in Python and then on a local copy rebuilt from the owner's 1 Oct data (read-only export query), refusing to run twice. Tankers left for the owner to type from the challans.
 
 ## 5. Product learnings (from the design walkthrough and PRD review)

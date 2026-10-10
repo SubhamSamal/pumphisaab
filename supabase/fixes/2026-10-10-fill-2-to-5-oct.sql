@@ -13,9 +13,10 @@
 --   • payments by bank transfer (Bijay ₹6,50,000 and S.V.T. ₹1,50,000 on 03 Oct) with no shift.
 --   • New companies: MGM Minerals, Subrat Kumar Samal. New expense types: MS for errands,
 --     Bill printing, Commission, Repairs, Cleaning.
--- Not included: the tankers of 03 Oct (HSD 14,000 L) and 05 Oct (HSD 16,000 of 20,000 L): the
--- owner types them in the app from the challans. The days stay DRAFT: the owner checks Review and
--- taps Submit for each day.
+--   • Tankers: 03 Oct WB29D9510 HSD 14,000 L (dip 50.2 → 162.2 cm, short 41 L, from the unloading
+--     register) and 05 Oct OD02AV2691 HSD 20,000 L in 5 chambers of 4,000 L (chamber 5 unloaded on
+--     06 Oct, 121.4 → 153.2 cm; short 78 L, chambers 1-4). Price 99.14 and margin 2.60 as on 01 Oct.
+-- The days stay DRAFT: the owner checks Review and taps Submit for each day.
 --
 -- How: paste in Supabase › SQL editor › Run. The last table shows each day's result.
 
@@ -413,6 +414,15 @@ begin
   insert into public.expenses (pump_id, day_id, category_id, description, amount, paid_from, created_by)
   values (v_pump, v_day, (select id from public.expense_categories where pump_id = v_pump and lower(name) = lower('Staff food') order by created_at limit 1), 'Jitu, Linga, Rudra', 300.00, 'SHIFT_C', v_owner);
   update public.shifts set opening_cash = 27644.20, sales_done_at = now() where id = v_shift;
+  -- Tanker WB29D9510, invoice 7011575177
+  insert into public.tanker_receipts (id, pump_id, day_id, vehicle_no, invoice_no, invoice_date, created_by)
+  values (gen_random_uuid(), v_pump, v_day, 'WB29D9510', '7011575177', date '2026-10-03', v_owner);
+  insert into public.receipt_lines (pump_id, day_id, receipt_id, product, tank_id, ordered_l, short_l, price_per_l, margin_per_l, dip_before_cm, dip_after_cm, created_by)
+  values (v_pump, v_day, (select id from public.tanker_receipts where day_id = v_day and invoice_no = '7011575177'), 'HSD',
+    (select id from public.tanks where pump_id = v_pump and label = 'HSD-1'), 14000, 41, 99.14, 2.60, 50.2, 162.2, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011575177'),
+    1, 14000, 162.2, null, false, v_owner);
   insert into public.customer_payments (pump_id, day_id, shift_id, customer_id, payment_type_id, amount, created_by)
   values (v_pump, v_day, null, (select id from public.credit_customers where pump_id = v_pump and lower(name) = lower('Bijay Kumar Sahoo') order by created_at limit 1), (select id from public.payment_types where pump_id = v_pump and name = 'Bank transfer'), 650000.00, v_owner);
   insert into public.customer_payments (pump_id, day_id, shift_id, customer_id, payment_type_id, amount, created_by)
@@ -793,6 +803,27 @@ begin
   insert into public.expenses (pump_id, day_id, category_id, description, amount, paid_from, created_by)
   values (v_pump, v_day, (select id from public.expense_categories where pump_id = v_pump and lower(name) = lower('Staff food') order by created_at limit 1), 'Rudra, Kasinath', 200.00, 'SHIFT_C', v_owner);
   update public.shifts set opening_cash = 14072.52, sales_done_at = now() where id = v_shift;
+  -- Tanker OD02AV2691, invoice 7011633087
+  insert into public.tanker_receipts (id, pump_id, day_id, vehicle_no, invoice_no, invoice_date, created_by)
+  values (gen_random_uuid(), v_pump, v_day, 'OD02AV2691', '7011633087', date '2026-10-05', v_owner);
+  insert into public.receipt_lines (pump_id, day_id, receipt_id, product, tank_id, ordered_l, short_l, price_per_l, margin_per_l, dip_before_cm, dip_after_cm, created_by)
+  values (v_pump, v_day, (select id from public.tanker_receipts where day_id = v_day and invoice_no = '7011633087'), 'HSD',
+    (select id from public.tanks where pump_id = v_pump and label = 'HSD-1'), 20000, 78, 99.14, 2.60, 31.2, 153.2, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011633087'),
+    1, 4000, 67.2, null, false, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011633087'),
+    2, 4000, 98.4, null, false, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011633087'),
+    3, 4000, 129.6, null, false, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011633087'),
+    4, 4000, 162.2, null, false, v_owner);
+  insert into public.receipt_chambers (pump_id, day_id, receipt_line_id, chamber_no, litres, dip_after_cm, dip_before_cm, next_day, created_by)
+  values (v_pump, v_day, (select l.id from public.receipt_lines l join public.tanker_receipts r on r.id = l.receipt_id where r.day_id = v_day and r.invoice_no = '7011633087'),
+    5, 4000, 153.2, 121.4, true, v_owner);
   if (select sum(rupees) from public.credit_sales where day_id = v_day) <> 551595.59 then
     raise exception '2026-10-05: credit slips don''t add up to the notebook''s ₹551595.59. Nothing was changed.';
   end if;
