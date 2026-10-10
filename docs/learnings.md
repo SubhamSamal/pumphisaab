@@ -137,6 +137,15 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **They start from a real past date**: the first day in the app must match where the managers start (1 Oct), and managers need more than 2 days back (now 10).
 - **The best demo is real work**: managers typing real past records in front of the owner found more than any test day did.
 
+## 4c. Back-filling 2-5 Oct from the two notebooks (10 Oct 2026)
+- **Two notebooks:** the *summary book* (manager, at Shift A for the previous day: dips, stock, tanker, every credit slip with slip no./vehicle/litres, payments received, POS totals, expenses, cash in hand) and the *shift book* (each shift's boy: meter closings, sales value, cash received, every payment/slip/expense taken out, balance, shift dips). The shift book is the per-shift truth; the summary gives slip details. Their day totals (Paytm, XtraPower, cards, slips) agree.
+- **Slips per shift:** the shift book gives only company totals per shift (e.g. Maa Bhawani ₹49,500 in B). Putting slips into shifts **in slip-number order** matched every shift's total exactly.
+- **Notebook habits:** dip litres are the chart value with decimals dropped (app keeps them, ≤1 L apart); "settled + not settled Paytm" together = the shift's Paytm total; customer payments by bank are added and taken out in the same shift (app: no shift); C-shift "Bal" is a sum, not a count; the summary's cash in hand carries a ₹1,686 offset from 1 Oct (gas stove/cylinder notes), so use the shift book's cash.
+- **Mistakes found:** 3 Oct HSD closing 149.2 cm written as 16,483 L (that's 149.6 cm; 47 L); 1 Oct C diesel value ₹1.02 off; 3 Oct C total ₹0.69 off; 5 Oct A petrol 101.75 L for 101.81 L (₹6.60); 5 Oct C ₹10 unexplained.
+- **Diesel short on tanker days** (1, 2, 5 Oct −65 to −107 L before the challan short): the 1 Oct tanker's 103 L short on the challan explained it. Worth watching per tanker.
+- **How the owner filled 1 Oct:** 5 L test on each in-use nozzle in Shift A; cash counted to the rupee; cash at start = the notebook's figure; Maa Bhawani as "MBRPL"; one expense type per kind (TEA, Fooding Rudra, advances by name); unknown slip numbers as 0000/1111/2222.
+- **Method:** a one-off file in `supabase/fixes/` built from a transcription, totals checked in Python and then on a local copy rebuilt from the owner's 1 Oct data (read-only export query), refusing to run twice. Tankers left for the owner to type from the challans.
+
 ## 5. Product learnings (from the design walkthrough and PRD review)
 - **No reasons, ever.** Asking a manager "why" slows them and reads as blame. Flags go to the owner, who calls (D3, hard rule 7).
 - **Pump words, not accounting words:** Should have / Received, Sold as per tank / Sold as per meters, Difference, Flag.
