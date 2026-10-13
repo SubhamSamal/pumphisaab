@@ -10,7 +10,7 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 
 ## 1b. Days 1-5 Oct (from the notebooks)
 - [x] Review for 01-05 Oct checked against the notebooks (13 Oct), incl. 05 Oct C cash and the 05 Oct tanker price.
-- [ ] Tap **Submit** on 01, 02, 03, 04, 05 Oct, in that order (skip any already submitted).
+- [x] 01-05 Oct submitted in order (13 Oct). Managers carry on from 06 Oct.
 - [x] Preview check passed: "Cash deposited in bank" is gone from customer payments. Sent to the managers' app 13 Oct (update 01a1347).
 - [ ] Each manager: close and reopen PumpHisaab twice; Profile should show "update 01a1347".
 - [ ] Send Claude the formula for "Sold as per sales amount" (with one worked day) if you want it in the next phase.

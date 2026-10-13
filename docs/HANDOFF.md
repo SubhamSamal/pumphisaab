@@ -15,14 +15,14 @@ Last updated: 13 Oct 2026. **This file is the one place for "where are we".** EX
 | Phase | Status |
 |---|---|
 | 0 Setup · 1 App shell · 2 Engine · 3 Foundations | Done 25-27 Sep |
-| **4 Daily entry + go-live** | **Done.** 4a-4g built and checked; production app `com.pumphisaab.app` with the owner and 2 managers; **real days typed in the app since 01 Oct 2026**, beside the notebooks (the parallel run has started). Pilot fixes round 1 + the owner's check shipped over the air 09 Oct (production update 01a1206; 13 Oct update 01a13478 = 99c1448): split tanker over two days, drop-downs + tick list, instant ticks, cash as one total, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back, no default company names (D97-D108). Migrations 1-15 pasted. **10 Oct:** migration 15 (PhonePe + Cash deposited in bank boxes, D111); 2-5 Oct back-filled from the notebooks by `supabase/fixes/2026-10-10-fill-2-to-5-oct.sql` (owner pasted; days still DRAFT for the owner to check and submit). |
+| **4 Daily entry + go-live** | **Done.** 4a-4g built and checked; production app `com.pumphisaab.app` with the owner and 2 managers; **real days typed in the app since 01 Oct 2026**, beside the notebooks (the parallel run has started). Pilot fixes round 1 + the owner's check shipped over the air 09 Oct (production update 01a1206; 13 Oct update 01a13478 = 99c1448): split tanker over two days, drop-downs + tick list, instant ticks, cash as one total, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back, no default company names (D97-D108). Migrations 1-15 pasted. **10 Oct:** migration 15 (PhonePe + Cash deposited in bank boxes, D111); 2-5 Oct back-filled from the notebooks by `supabase/fixes/2026-10-10-fill-2-to-5-oct.sql` (owner pasted; owner checked and submitted 01-05 Oct on 13 Oct). |
 | 5 Owner loop (flags, bell, push, unlock request, owner notes, edit-after-submit) + pilot backlog | Not started — next |
 | 6 Settings screens, dashboard (incl. fuel trend), PostHog | Not started |
 | 7 Hardening, web on pumphisaab.com | Not started |
 | 8 Pilot measure, notebooks retired | Not started (parallel run already running) |
 
 **Pending, in the order the owner wants (no building until a phase is planned and the owner says "go"):**
-1. **Owner, now:** 01-05 Oct checked against the notebooks (13 Oct); submit them in order if not yet done, then the managers carry on from 06 Oct.
+1. **Done 13 Oct:** 01-05 Oct checked against the notebooks and submitted by the owner; managers carry on from 06 Oct.
 2. **Done 13 Oct:** 99c1448 (customer payments can't pick "Cash deposited in bank") passed the owner's Preview check and went to **production** (update 01a13478, Profile shows "update 01a1347"). Production now matches `main` app code.
 3. **Asked 10 Oct, waiting for the owner's formula:** a third line on Review › Fuel, "Sold as per sales amount" per fuel. Money is per shift for both fuels, so the owner must say how money splits by fuel (the summary book's "cash sale litres" = meters − credit litres, which wouldn't catch a meter fault). Goes into the Phase 5 plan unless the owner wants it sooner.
 4. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
