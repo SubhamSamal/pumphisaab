@@ -1,11 +1,11 @@
 # Start here (new Claude Code session)
 
-Last updated: 09 Oct 2026. **This file is the one place for "where are we".** EXECUTION.md has the phase plan; the plan files have the detail.
+Last updated: 13 Oct 2026. **This file is the one place for "where are we".** EXECUTION.md has the phase plan; the plan files have the detail.
 
 ## 1. What to read (and what not to)
 **Always:** `CLAUDE.md` (hard rules), then this file. That's enough to start.
 **Only when the task needs it** (search, don't read whole files):
-- `docs/decisions.md`: D1-D110, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
+- `docs/decisions.md`: D1-D111, newest first. Grep by D-number or word. A decision marked "(Replaced by Dxx)" is history. Decisions override the PRD.
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.
@@ -15,20 +15,23 @@ Last updated: 09 Oct 2026. **This file is the one place for "where are we".** EX
 | Phase | Status |
 |---|---|
 | 0 Setup · 1 App shell · 2 Engine · 3 Foundations | Done 25-27 Sep |
-| **4 Daily entry + go-live** | **Done.** 4a-4g built and checked; production app `com.pumphisaab.app` with the owner and 2 managers; **real days typed in the app since 01 Oct 2026**, beside the notebooks (the parallel run has started). Pilot fixes round 1 + the owner's check shipped over the air 09 Oct (production update 01a1206): split tanker over two days, drop-downs + tick list, instant ticks, cash as one total, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back, no default company names (D97-D108). Migrations 1-14 pasted. |
+| **4 Daily entry + go-live** | **Done.** 4a-4g built and checked; production app `com.pumphisaab.app` with the owner and 2 managers; **real days typed in the app since 01 Oct 2026**, beside the notebooks (the parallel run has started). Pilot fixes round 1 + the owner's check shipped over the air 09 Oct (production update 01a1206): split tanker over two days, drop-downs + tick list, instant ticks, cash as one total, Debit/Credit card, lighter hints, slip before vehicle, Profile › Nozzles, managers 10 days back, no default company names (D97-D108). Migrations 1-15 pasted. **10 Oct:** migration 15 (PhonePe + Cash deposited in bank boxes, D111); 2-5 Oct back-filled from the notebooks by `supabase/fixes/2026-10-10-fill-2-to-5-oct.sql` (owner pasted; days still DRAFT for the owner to check and submit). |
 | 5 Owner loop (flags, bell, push, unlock request, owner notes, edit-after-submit) + pilot backlog | Not started — next |
 | 6 Settings screens, dashboard (incl. fuel trend), PostHog | Not started |
 | 7 Hardening, web on pumphisaab.com | Not started |
 | 8 Pilot measure, notebooks retired | Not started (parallel run already running) |
 
 **Pending, in the order the owner wants (no building until a phase is planned and the owner says "go"):**
-1. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
+1. **Owner, now:** check Review for 01-05 Oct against the notebooks and submit them in order (5 Oct C cash ₹14,135 vs ₹14,144.72 and the 5 Oct tanker price ₹99.14 to confirm); then the managers carry on from 06 Oct.
+2. **Production update waiting for the owner's OK:** commit 99c1448 (customer payments can't pick "Cash deposited in bank") is on **Preview only**. When the owner confirms, run the production `eas update` (section 5).
+3. **Asked 10 Oct, waiting for the owner's formula:** a third line on Review › Fuel, "Sold as per sales amount" per fuel. Money is per shift for both fuels, so the owner must say how money splits by fuel (the summary book's "cash sale litres" = meters − credit litres, which wouldn't catch a meter fault). Goes into the Phase 5 plan unless the owner wants it sooner.
+4. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
    - Staff-wise entry (owner's demo item #7).
    - Nozzle test "what the measure got" + per-nozzle checks (D110, `short-tracking.md`): the real petrol short of 01 Oct (−26.58 L, −6.89%, nozzle problems) is being tracked by hand until then.
-   - UI audit 1 (`ui-audit-1.md`, D103-D106): Today "Next" tag, Sales in numbered parts + money bar, two-step tanker, "not settled" per type per day, PhonePe, plainer words, bigger buttons.
+   - UI audit 1 (`ui-audit-1.md`, D103-D106): Today "Next" tag, Sales in numbered parts + money bar, two-step tanker, "not settled" per type per day, plainer words, bigger buttons. (PhonePe already done in migration 15.)
    - Flags stored and sent, bell, unlock request, owner notes, edit-after-submit alert; push notifications (needs **one reinstall** of the app by managers).
-2. **Phase 6:** settings screens (prices, limits incl. expense caps, tanks/chart, nozzles, payment and expense types, shift times, companies), Dashboard with the **fuel trend** (D109), PostHog.
-4. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later).
+5. **Phase 6:** settings screens (prices, limits incl. expense caps, tanks/chart, nozzles, payment and expense types, shift times, companies), Dashboard with the **fuel trend** (D109), PostHog.
+6. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later). Re-run `restore-test.yml` monthly (next ~09 Nov).
 The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 
 ## 3. Map of the code
@@ -36,7 +39,7 @@ The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 - **Design system** `src/components/ui/` (all in `/gallery`; pick-one = `SelectField`, pick-many = `CheckRow`, never chips for choices, D102). Theme from tokens (`npm run theme`). Every `TextInput` uses `typingText` (D69); rows with a value beside a label wrap (learnings).
 - **Engine** `src/calc/` (pure, decimal.js): limits in `rules.ts`, checks in `checks.ts`, `evaluateDay()` in `day.ts`.
 - **Day feature** `src/features/day/`: `queries.ts` (all Supabase reads/saves), `model.ts` (pure, tested: sections, review summary), `useWholeDay.ts`, `NamePicker`/`CustomerPicker` (2 most used, D82), drafts (`useDraft.ts` + `src/lib/drafts.ts`, D67), offline outbox (`Outbox.tsx`, `outboxOverlay.ts`, `src/lib/outbox.ts`, D70/D78).
-- **Database** `supabase/migrations/` (15 files), tests `supabase/tests/00-11` (pgTAP), `supabase/cleanup/remove-test-days.sql` (DELETES data; used once, 29 Sep), one-off data fixes in `supabase/fixes/` (2026-10-03 first day = 1 Oct). Nightly backup `.github/workflows/backup.yml` + `restore-test.yml` (idle until the owner's secrets). Views: `v_shift_money`, `v_shift_match`, `v_day_match`; `submit_day()`.
+- **Database** `supabase/migrations/` (15 files), tests `supabase/tests/00-11` (pgTAP), `supabase/cleanup/remove-test-days.sql` (DELETES data; used once, 29 Sep), one-off data fixes in `supabase/fixes/` (2026-10-03 first day = 1 Oct; 2026-10-10 read query + fill of 2-5 Oct). Nightly backup `.github/workflows/backup.yml` + `restore-test.yml` (running since 09 Oct; restore test loads data as `supabase_admin`). Views: `v_shift_money`, `v_shift_match`, `v_day_match`; `submit_day()`.
 - **Golden cases** `tests/golden/cases/*.json` (from `tests/golden/generate.py`); `npm run golden:sql` regenerates `supabase/tests/03_golden.test.sql` (a test fails if it's stale).
 - **Build config** `app.config.ts` (APP_VARIANT: development / preview / production, D91), `eas.json`, icons from `scripts/make-icons.py`, Sentry in `src/lib/crashReports.ts` (D90).
 
@@ -44,7 +47,7 @@ The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 | Thing | Where / what |
 |---|---|
 | GitHub | https://github.com/SubhamSamal/pumphisaab (public), branch `main`, CI = App job + Database job |
-| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-14 pasted (ledger `schema_migrations_applied` = 14); **migration 15 (PhonePe, Cash deposited in bank) written 10 Oct, waiting for the owner to paste**. 2-5 Oct being filled from the notebooks by a one-off file in `supabase/fixes/`. First day in the app = 01 Oct 2026. Free plan. **Nightly backup on** since 09 Oct (02:00 IST, encrypted, 30 days, GitHub Actions; first restore test passed 09 Oct: 11 days, 24 readings, 31 slips, 14 migrations, 3 logins). Re-run `restore-test.yml` monthly |
+| Supabase | project `pumphisaab`, `https://iyvrnvknxiyfbkqwidec.supabase.co`, Mumbai. Migrations 1-15 pasted (ledger `schema_migrations_applied` = 15). 01-05 Oct filled (01 Oct by the owner, 02-05 Oct by the fill file). First day in the app = 01 Oct 2026. Free plan. **Nightly backup on** since 09 Oct (02:00 IST, encrypted, 30 days, GitHub Actions; first restore test passed 09 Oct: 11 days, 24 readings, 31 slips, 14 migrations, 3 logins). Re-run `restore-test.yml` monthly |
 | Edge Function | `create-user` (owner deployed) |
 | Logins | `subham` (owner) + 2 real manager logins (made by the owner 29 Sep-03 Oct). `manager.test` removed |
 | Expo / EAS | `@pumphisaab/pumphisaab`; EAS CLI logged in on the Mac as `pumphisaab`. Env vars in EAS for preview + production: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` (secret, owner's) |

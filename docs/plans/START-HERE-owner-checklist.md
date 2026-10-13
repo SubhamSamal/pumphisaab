@@ -1,12 +1,19 @@
 # Your checklist
 
-**Start at step 1 and go down.** Updated 09 Oct 2026.
+**Start at step 1 and go down.** Updated 13 Oct 2026.
 Done so far: nightly backup is on (09 Oct); the app is live with both managers since 1 Oct; round 1 of fixes is in the real app (Profile line "update 01a1206").
 
 ---
 
 ## 1. Backup — done 09 Oct ✅
 Runs every night at 2 AM; GitHub emails you if a night fails. The first restore test passed (11 days, 31 slips, 3 logins came back). Keep the passphrase paper safe.
+
+## 1b. Days 1-5 Oct (from the notebooks)
+- [ ] Open Review for 01, 02, 03, 04, 05 Oct in turn, compare with the notebook, tap **Submit** (in that order).
+- [ ] 05 Oct C cash: ₹14,135 entered; if the drawer had ₹14,144.72, change it on that shift's Sales first.
+- [ ] 05 Oct tanker price ₹99.14/L: check against the invoice.
+- [ ] Preview: in "Add payment from customer", "Cash deposited in bank" should not be in the list → tell Claude, who sends it to the managers.
+- [ ] Send Claude the formula for "Sold as per sales amount" (with one worked day) if you want it in the next phase.
 
 ## 2. Every day
 - Managers fill the day in **PumpHisaab**; the notebook continues for now.

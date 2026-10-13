@@ -6,7 +6,7 @@ This file is context for Claude Code. Read it after CLAUDE.md and the PRD. It ha
 
 ## Status
 
-**Where we are lives in `docs/HANDOFF.md` §2 (one place, so it can't drift).** In short (09 Oct 2026): Phases 0-4 done, the pilot's parallel run started 01 Oct, Phase 5 is next. The checkboxes below are the long-term record per phase.
+**Where we are lives in `docs/HANDOFF.md` §2 (one place, so it can't drift).** In short (13 Oct 2026): Phases 0-4 done, the pilot's parallel run started 01 Oct, 02-05 Oct back-filled from the notebooks (10 Oct), migration 15 (PhonePe, bank deposit) live, Phase 5 is next. The checkboxes below are the long-term record per phase.
 
 ### Phase 0: accounts, docs, repo (done 25 Sep 2026)
 - [x] Brand: PumpHisaab, "Sara hisaab ek jagah", domain pumphisaab.com bought
@@ -142,7 +142,8 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - Pilot backlog to fold into the Phase 5 plan (owner, 09 Oct: build in the upcoming phases, not before):
   - [ ] Staff-wise entry (owner's demo #7)
   - [ ] Nozzle test "what the measure got" + per-nozzle checks (D110, `docs/plans/short-tracking.md`): 1 Oct petrol short −26.58 L (−6.89%) is real, nozzle problems
-  - [ ] UI audit 1 (`docs/plans/ui-audit-1.md`, D103-D106): Today "Next" tag, Sales numbered parts + money bar, two-step tanker, "not settled" per type per day, PhonePe, plainer words, bigger buttons
+  - [ ] "Sold as per sales amount" per fuel on Review (owner, 10 Oct; waiting for the owner's formula)
+  - [ ] UI audit 1 (`docs/plans/ui-audit-1.md`, D103-D106): Today "Next" tag, Sales numbered parts + money bar, two-step tanker, "not settled" per type per day, plainer words (PhonePe done 10 Oct, D111), bigger buttons
 - Flags table and soft checks raising flags (no reasons), edit-after-submit tracking, meter-change approval (H2), lock / unlock / unlock request, owner notes (D3), bell with alerts, change history
 - Android push notifications + "day not submitted" reminder
 - Backups: nightly encrypted copy running since 09 Oct (D93); restore test passed 09 Oct
