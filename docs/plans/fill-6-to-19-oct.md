@@ -1,6 +1,6 @@
 # Filling 06-19 Oct from the notebooks (plan, 20 Oct 2026)
 
-Status: **plan; waiting for the owner's answers, the missing pages and "go".** Same method as 2-5 Oct (`supabase/fixes/2026-10-10-fill-2-to-5-oct.sql`, learnings §4c): one one-off file in `supabase/fixes/`, tested on a local copy of the live data, which refuses to run twice or on top of anything already typed. Days stay DRAFT; the owner checks Review and submits them in order.
+Status: **paused (owner, 20 Oct, Dussehra): the owner will send all the missing photos; then the answers and "go".** Same method as 2-5 Oct (`supabase/fixes/2026-10-10-fill-2-to-5-oct.sql`, learnings §4c): one one-off file in `supabase/fixes/`, tested on a local copy of the live data, which refuses to run twice or on top of anything already typed. Days stay DRAFT; the owner checks Review and submits them in order.
 
 ## 1. What the owner sent (20 Oct)
 6 PDFs (42 pages) + 6 photos. Read page by page; duplicates ignored (`10-17 06.17` p7 = p8; 2-page spreads that repeat the next page).

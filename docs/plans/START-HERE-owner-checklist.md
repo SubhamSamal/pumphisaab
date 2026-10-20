@@ -15,7 +15,7 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 - [ ] Each manager: close and reopen PumpHisaab twice; Profile should show "update 01a1347".
 - [ ] Send Claude the formula for "Sold as per sales amount" (with one worked day) if you want it in the next phase.
 
-## 1c. Days 6-19 Oct (from the notebooks) — plan: `docs/plans/fill-6-to-19-oct.md`
+## 1c. Days 6-19 Oct (from the notebooks) — PAUSED until you send the photos — plan: `docs/plans/fill-6-to-19-oct.md`
 **Now (before "go"):**
 - [ ] Answer Claude's 7 questions (Q1-Q7), e.g. "1A 2A 3A 4A (nozzles …) 5A 6A 7A".
 - [ ] Send photos of the missing pages (one photo per page, flat and in daylight):
