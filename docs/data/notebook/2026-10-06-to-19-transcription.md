@@ -155,7 +155,7 @@ date fuel opdip opstock rcvd total sale clstock cldip cldipstock diff
 - MS: N1 0 ; N2 23983.32->24007.24 =23.92 ; N3 133572.01->133651.35 =79.34 ; N4 31146.64->31194.49 =47.85 ; 151.11 test 15 => 136.11 => 14981.62
 - HSD: N1 471709.71->471714.71 =5.00 ; N2 594765.15 (0) ; N3 655142.12->658243.80 =3101.68 ; N4 1065737.99->1066467.88 =729.89 ; 3836.57 test 15 => 3821.57 => 388806.53
 - In: C cash 39211.36 => 442999.51
-- Out (upto 12:49PM): Paytm 12833; credit card 23000; XtraPower 30348; Tea 40; Tanker boys 500; Raghunath Gas petrol pending 550; OD19U1828 MGM diesel pending 223828; OD04K4782 CJ Darcl (own) pending 20000; RJ02GC9008 CJ Darcl pending 31000; OD19AB4022 Tata Steel Utility pending 50870; OD04K4715 Lingaraj pending 2000; OD04L5551 Lingaraj pending 2000 ; Bal written 44030.51 (lines give 46030.51)
+- Out (upto 12:49PM): Paytm 12833; credit card 25000 (owner, 20 Oct; I misread 23000); XtraPower 30348; Tea 40; Tanker boys 500; Raghunath Gas petrol pending 550; OD19U1828 MGM diesel pending 223828; OD04K4782 CJ Darcl (own) pending 20000; RJ02GC9008 CJ Darcl pending 31000; OD19AB4022 Tata Steel Utility pending 50870; OD04K4715 Lingaraj pending 2000; OD04L5551 Lingaraj pending 2000 ; Bal 44030.51 (checks)
 ### 16 Oct B (Guru Charan Sahoo, Gobardhan Dalei) p259 — closing dips MS 50(49.8?)=3946, HSD 115.6=12202
 - MS: N2 24007.24->24009.14 =1.90 ; N3 133651.35->133725.55 =74.20 ; N4 31194.49->31206.48 =11.99 ; 88.09 => 9696.06
 - HSD: N1 471714.71->471887.70 =172.99 ; N3 658243.80->660806.36 =2562.56 ; N4 1066467.88->1068788.81 =2320.93 ; 5056.48 => 514446.27

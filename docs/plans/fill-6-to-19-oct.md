@@ -42,7 +42,7 @@ Also: the Lingaraj Behera ledger page (slips and payments 06-17 Oct, a good cros
 - **11 Oct lubes ₹300 (SAT 900 ml) and gas stove/cylinder ₹3,120; 16 Oct B "Raghunath Gas 4T 900 ml ₹300".** The app has no place for non-fuel sales.
 - **Salaries (10 Oct ₹74,092) with advances taken back as "payment received … salary adj"** (Bhagirathi ₹3,500, Gobardhan ₹60, Tuna ₹3,565, Jitendra ₹2,000, Rudra ₹2,500, Lingaraj ₹1,000; Maheswar ₹900 on 09 Oct).
 - **Slip number 5326 written twice on 07 Oct** (OD35J0572 and OD35K0866); the second is probably 5325.
-- **Notebook sums that don't add up:** 16 Oct A balance written ₹44,030.51 but the lines give ₹46,030.51 (₹2,000); 16 Oct B ₹40 apart; 19 Oct B ₹5 apart; 11 Oct expenses written ₹16,659 but the lines add to ₹17,059.
+- **Notebook sums that don't add up:** (16 Oct A is fine: card was ₹25,000, owner 20 Oct) 16 Oct B ₹40 apart; 19 Oct B ₹5 apart; 11 Oct expenses written ₹16,659 but the lines add to ₹17,059.
 
 ## 5. How notebook items go into the app (same rules as 2-5 Oct, no question needed)
 - Dips: the cm from the book; the app works out litres from the chart (the book drops decimals).
