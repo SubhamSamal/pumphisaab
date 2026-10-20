@@ -137,7 +137,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - Saves are idempotent (safe to retry); business date comes from server time; scripted end-to-end test of a full day
 - **Exit:** a full real day from the notebook entered in under 20 minutes and totals match the notebook
 
-### Phase 5: Notebook comparison + owner loop (~6-7 days, comparison runs 30+ days alongside) — NEXT
+### Phase 5: Notebook comparison + owner loop — NEXT. Split (D112): **5a** daily fixes, prices, fuel trend, nozzle checks, who-on-nozzle, UI audit 1 (`docs/plans/phase-5a.md`, over the air); **5b** the owner loop + push below (one reinstall)
 - **Parallel run: started 01 Oct 2026** (managers in the app, notebooks continue; owner compares each evening)
 - Pilot backlog to fold into the Phase 5 plan (owner, 09 Oct: build in the upcoming phases, not before):
   - [ ] Staff-wise entry (owner's demo #7)
@@ -150,10 +150,10 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - **Exit:** every PRD flag fires in tests; owner gets a push within a minute
 
 ### Phase 6: Owner settings screens, dashboard, tracking (~5-6 days)
-- Profile > Fuel prices, Logins, When to flag first; then tanks, dip chart upload with preview/validation, nozzles, staff, credit companies, payment types, expense types, shift timings (effective next business day)
+- Profile > When to flag (limits, incl. expense caps), credit companies, payment types, expense types, shift timings (effective next business day). Fuel prices moved to 5a (D113); tanks and dip chart upload moved to v2 (D114)
 - Dashboard: today summary, 30-day matched calendar (North Star), open flags, **fuel trend** (D109: 30 days per fuel, Difference L / % / ₹, month total)
 - PostHog events from the PRD
-- **Exit:** a second test pump can be fully set up from the app alone; North Star visible; events in PostHog
+- **Exit:** the owner changes every setting the pilot pump needs from the app; North Star visible; events in PostHog
 
 ### Phase 7: Hardening and go-live (~1-2 weeks, overlapping the end of the parallel run)
 - Cheap Android phone, sunlight, slow network; edge cases (midnight shift, meter reset, missed day, price change on the boundary date, tanker mid-shift)
@@ -162,7 +162,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 
 ### Phase 8: Pilot and measure (30+ days, then v2 planning)
 - Notebooks retired, tolerances tuned on real data, baseline leakage measured
-- v2 backlog: credit ledger and recovery, full owner dashboards, SaaS onboarding and billing, iOS, phone OTP login
+- v2 backlog: set up a new pump from the app (tanks, dip chart upload; D114), credit ledger and recovery, full owner dashboards, SaaS onboarding and billing, iOS, phone OTP login
 
 ## Phase 0 exit criteria
 Phase 0 is done when every "Still open" item above (except the deferred ones, the cash question and the notebook photos) is checked off, the repo contains `CLAUDE.md`, `docs/PRD-PumpHisaab-v1.1.md`, `docs/EXECUTION.md` (this file), `docs/data/DipChart_20KL_MS1_HSD1.xlsx`, and `docs/design-tokens.json`, and the Expo app runs on the owner's Android phone via Expo Go with no errors.

@@ -35,7 +35,7 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 - Anything different or confusing: send me a screenshot. It goes into the next phase's plan unless it stops the managers working.
 
 ## 3. When you're ready for the next phase
-- Tell me "plan Phase 5". I'll write the plan with your pilot list folded in (staff-wise entry, nozzle measure checks, the UI audit, PhonePe, "not settled", flags, alerts and push), ask the MCQs, and wait for your "go".
+- Phase 5a plan is ready (`docs/plans/phase-5a.md`): answer Q1-Q6, then say "go".
 - Ask the managers which they read best: English, Odia or Hindi (for later).
 
 ## Reminders

@@ -3,6 +3,12 @@
 Newest first. Date, decision, why. A decision marked "(Replaced by Dxx)" is history: follow the newer one.
 **Don't read this file top to bottom:** search it for the D-number or the word you need (`grep -n "D47" docs/decisions.md`). HANDOFF.md says which decisions matter for the current work.
 
+## 20 Oct 2026 (Phase 5 planning)
+**D112. Phase 5 is split into 5a and 5b (owner MCQ, 20 Oct 2026).** 5a = daily fixes from the pilot, all over the air, no reinstall (plan: `docs/plans/phase-5a.md`). 5b = owner loop (flags, bell, unlock request, owner notes, edit-after-submit, change history) + push notifications (one reinstall, Firebase setup). Why: managers get the easier screens in about a week instead of waiting for push.
+**D113. Profile › Fuel prices and Dashboard › Fuel trend move into 5a (owner MCQ, 20 Oct 2026).** Why: a new IOCL price could only be added by pasting SQL until Phase 6; the owner is tracking the petrol short by hand. The database already lets only the owner write prices (no migration).
+**D114. "Set up a second pump from the app" (tanks, dip chart upload) moves from Phase 6 to v2 (owner MCQ, 20 Oct 2026).** Why: the pilot pump doesn't need it; it belongs with selling the app to other pumps. Phase 6 keeps settings this pump uses + the Dashboard + PostHog.
+**D115. Staff-wise entry = who sold on which nozzle (owner MCQ, 20 Oct 2026).** Each shift, each in-use nozzle gets the attendant who worked it, so a short or a nozzle that's off can be traced to a person. Details in `phase-5a.md` Q1-Q2.
+
 ## 28-29 Sep 2026 (4d-4g: owner checks, 4e/4f, preview app)
 
 ## 03 Oct 2026 (owner's demo with the managers)

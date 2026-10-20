@@ -1,6 +1,6 @@
 # Start here (new Claude Code session)
 
-Last updated: 13 Oct 2026. **This file is the one place for "where are we".** EXECUTION.md has the phase plan; the plan files have the detail.
+Last updated: 20 Oct 2026. **This file is the one place for "where are we".** EXECUTION.md has the phase plan; the plan files have the detail.
 
 ## 1. What to read (and what not to)
 **Always:** `CLAUDE.md` (hard rules), then this file. That's enough to start.
@@ -25,12 +25,9 @@ Last updated: 13 Oct 2026. **This file is the one place for "where are we".** EX
 1. **Done 13 Oct:** 01-05 Oct checked against the notebooks and submitted by the owner; managers carry on from 06 Oct.
 2. **Done 13 Oct:** 99c1448 (customer payments can't pick "Cash deposited in bank") passed the owner's Preview check and went to **production** (update 01a13478, Profile shows "update 01a1347"). Production now matches `main` app code.
 3. **Asked 10 Oct, waiting for the owner's formula:** a third line on Review › Fuel, "Sold as per sales amount" per fuel. Money is per shift for both fuels, so the owner must say how money splits by fuel (the summary book's "cash sale litres" = meters − credit litres, which wouldn't catch a meter fault). Goes into the Phase 5 plan unless the owner wants it sooner.
-4. **Phase 5 plan** (plan → MCQs → "go"), with the pilot backlog folded in:
-   - Staff-wise entry (owner's demo item #7).
-   - Nozzle test "what the measure got" + per-nozzle checks (D110, `short-tracking.md`): the real petrol short of 01 Oct (−26.58 L, −6.89%, nozzle problems) is being tracked by hand until then.
-   - UI audit 1 (`ui-audit-1.md`, D103-D106): Today "Next" tag, Sales in numbered parts + money bar, two-step tanker, "not settled" per type per day, plainer words, bigger buttons. (PhonePe already done in migration 15.)
-   - Flags stored and sent, bell, unlock request, owner notes, edit-after-submit alert; push notifications (needs **one reinstall** of the app by managers).
-5. **Phase 6:** settings screens (prices, limits incl. expense caps, tanks/chart, nozzles, payment and expense types, shift times, companies), Dashboard with the **fuel trend** (D109), PostHog.
+4. **Phase 5a plan written** (`docs/plans/phase-5a.md`, D112-D115): 3 slices, over the air, migration 16 (adds columns + `settlement_pending`). **Waiting for the owner's MCQ answers (Q1-Q6) and "go".** Then 5b (owner loop + push, one reinstall).
+   - **Fill 06-19 Oct from the notebooks: paused** (owner, 20 Oct) until the owner sends the missing photos (`docs/plans/fill-6-to-19-oct.md`, read-only check ready).
+5. **Phase 6:** settings screens (limits incl. expense caps, payment and expense types, shift times, companies), Dashboard (today, 30-day calendar, flags), PostHog. Prices + fuel trend moved to 5a; tanks/chart upload to v2.
 6. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later). Re-run `restore-test.yml` monthly (next ~09 Nov).
 The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 
