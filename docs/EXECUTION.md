@@ -156,9 +156,16 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 - **Exit:** the owner changes every setting the pilot pump needs from the app; North Star visible; events in PostHog
 
 ### Phase 7: Hardening and go-live (~1-2 weeks, overlapping the end of the parallel run)
-- Cheap Android phone, sunlight, slow network; edge cases (midnight shift, meter reset, missed day, price change on the boundary date, tanker mid-shift)
+- **Low-end Android (D117):** works smoothly on older Android versions and cheap, slow phones with little memory (the boys' phones): find the oldest Android the app supports, test on a real cheap phone, keep the app small and screens light (fewer animations, long lists drawn lazily), check speed and memory, and offline saving on a weak network. Sunlight, slow network; edge cases (midnight shift, meter reset, missed day, price change on the boundary date, tanker mid-shift)
 - Backup **restore tested for real**; security re-check; internal APK distribution; web live on pumphisaab.com (Cloudflare)
 - **Exit:** 30 days where app and notebooks agree, zero data loss
+
+### Phase 7a: Shift boys enter their own shift (D116, owner 20 Oct; plan before building)
+- **Goal: a shift takes 10-15 minutes or less to fill.** Adoption is the risk: the boys found filling papers in parallel hard, so the answer is a faster app, not photo reading (OCR not planned, D116).
+- Measure first: time per shift from the audit log (first save → Done) on real days, then cut the slowest steps.
+- Attendant login (one per boy, or one pump phone with a PIN): sees only his shift and nozzles (D115); fills closing meters, 5 L test, his cash / Paytm / card totals, his slips. Manager checks and submits; owner sees flags and trends. Needs a third role (a hard-rule-level change: owner's yes).
+- Big-button screens, everything predictable prefilled; Odia/Hindi labels if the boys read them better.
+- Works well on the boys' phones (see Phase 7 low-end Android).
 
 ### Phase 8: Pilot and measure (30+ days, then v2 planning)
 - Notebooks retired, tolerances tuned on real data, baseline leakage measured
