@@ -157,7 +157,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 
 ### Phase 7: Hardening and go-live (~1-2 weeks, overlapping the end of the parallel run)
 - **Low-end Android (D117):** works smoothly on older Android versions and cheap, slow phones with little memory (the boys' phones): find the oldest Android the app supports, test on a real cheap phone, keep the app small and screens light (fewer animations, long lists drawn lazily), check speed and memory, and offline saving on a weak network. Sunlight, slow network; edge cases (midnight shift, meter reset, missed day, price change on the boundary date, tanker mid-shift)
-- Backup **restore tested for real**; security re-check; internal APK distribution; web live on pumphisaab.com (Cloudflare)
+- Backup **restore tested for real**; security re-check; internal APK distribution; **web live (D118):** a SaaS landing page at www.pumphisaab.com (what PumpHisaab does, for pump owners, how to get in touch) and the web app itself at app.pumphisaab.com (same login, same data as the phones), both on Cloudflare Pages; the owner's pump is the first customer
 - **Exit:** 30 days where app and notebooks agree, zero data loss
 
 ### Phase 7a: Shift boys enter their own shift (D116, owner 20 Oct; plan before building)
@@ -169,7 +169,7 @@ Each slice = its tables (migration) + SQL view part + screen + calc wiring + tes
 
 ### Phase 8: Pilot and measure (30+ days, then v2 planning)
 - Notebooks retired, tolerances tuned on real data, baseline leakage measured
-- v2 backlog: set up a new pump from the app (tanks, dip chart upload; D114), credit ledger and recovery, full owner dashboards, SaaS onboarding and billing, iOS, phone OTP login
+- v2 backlog: set up a new pump from the app (tanks, dip chart upload; D114), credit ledger and recovery, full owner dashboards, **SaaS (D118): a new pump signs up from the landing page, sets itself up from the app (D114), pays a monthly plan; the pilot pump stays customer no. 1,** iOS, phone OTP login
 
 ## Phase 0 exit criteria
 Phase 0 is done when every "Still open" item above (except the deferred ones, the cash question and the notebook photos) is checked off, the repo contains `CLAUDE.md`, `docs/PRD-PumpHisaab-v1.1.md`, `docs/EXECUTION.md` (this file), `docs/data/DipChart_20KL_MS1_HSD1.xlsx`, and `docs/design-tokens.json`, and the Expo app runs on the owner's Android phone via Expo Go with no errors.
