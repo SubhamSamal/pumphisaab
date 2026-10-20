@@ -35,7 +35,16 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 - Anything different or confusing: send me a screenshot. It goes into the next phase's plan unless it stops the managers working.
 
 ## 3. When you're ready for the next phase
-- Phase 5a plan agreed (`docs/plans/phase-5a.md`, your answers 20 Oct). Say "go" to start Part 1.
+- Phase 5a plan agreed (`docs/plans/phase-5a.md`, your answers 20 Oct).
+
+## 3a. Phase 5a Part 1 — prices, fuel trend, time per shift (built 20 Oct)
+- [ ] **Paste migration 16 first:** Supabase › SQL editor › New query › paste the whole of `supabase/migrations/20261020120000_price_requests.sql` › Run. It should say "Success. No rows returned". It only adds; nothing is deleted or changed.
+- [ ] **PumpHisaab Preview:** close and reopen twice; Profile shows a new "update …" line.
+- [ ] **Profile › Fuel prices:** you see diesel and petrol prices with "Now". Tap **Add new price** and look (don't save a real price unless it really changed).
+- [ ] **Today:** the price strip has a **Price is different** button. Tap it, look at the box (today's prices filled in), then close it **without sending** — the Preview app uses the real database, and as owner a sent price is used at once. Use it for real only when IOCL changes the price.
+- [ ] **Dashboard › Fuel trend:** 30 days of petrol and diesel Difference, with "This month" on top. Tap a day: its Review opens.
+- [ ] **Time per shift:** Supabase › SQL editor › New query › paste `supabase/fixes/2026-10-20-read-time-per-shift.sql` › Run › click the one cell › copy › paste it to Claude. It only reads.
+- [ ] All good → tell Claude "Part 1 OK, send to production". The managers then get the "Price is different" button (they close and reopen twice).
 - Ask the managers which they read best: English, Odia or Hindi (for later).
 
 ## Reminders

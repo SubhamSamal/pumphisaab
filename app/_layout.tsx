@@ -73,6 +73,7 @@ function Screens() {
         <Stack.Screen name="profile/add-manager" />
         <Stack.Screen name="profile/staff" />
         <Stack.Screen name="profile/nozzles" />
+        <Stack.Screen name="profile/prices" />
       </Stack.Protected>
       <Stack.Protected guard={status === "signedOut"}>
         <Stack.Screen name="sign-in" />

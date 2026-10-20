@@ -27,7 +27,7 @@ PumpHisaab ("Sara hisaab ek jagah"): a mobile-first app for Indian petrol pumps.
 ```
 app/                    Expo Router screens: sign-in, (tabs)/index (Today), sales, tanker, dashboard, profile; day/* entry screens
 src/components/ui/      Design system components only (no business logic)
-src/features/<name>/    Feature hooks, queries, pure models (day, session, setup, shell)
+src/features/<name>/    Feature hooks, queries, pure models (day, prices, dashboard, session, setup, shell)
 src/calc/               Pure calculation engine (no React, no Supabase imports)
 src/lib/                supabase client, formatting (₹, L, cm), dates/business day, analytics
 supabase/migrations/    SQL migrations (only way to change the database)

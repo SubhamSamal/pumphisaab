@@ -21,7 +21,11 @@ export type EventName =
   | "day_unlocked"
   | "tanker_receipt_added"
   | "credit_sale_added"
-  | "expense_added";
+  | "expense_added"
+  | "fuel_price_added"
+  | "price_requested"
+  | "price_request_answered"
+  | "fuel_trend_opened";
 
 type Props = Record<string, string | number | boolean | null | undefined>;
 

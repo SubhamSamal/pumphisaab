@@ -54,6 +54,12 @@ export default function ProfileScreen() {
           {isOwner ? (
             <ListItem title="Nozzles" detail="Which nozzles are in use" icon="gauge" onPress={() => router.push("/profile/nozzles")} />
           ) : null}
+          <ListItem
+            title="Fuel prices"
+            detail={isOwner ? "Add a price, answer the managers" : "Prices and their start dates"}
+            icon="rupee"
+            onPress={() => router.push("/profile/prices")}
+          />
         </View>
 
         <View className="gap-8">

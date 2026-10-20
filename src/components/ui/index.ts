@@ -20,7 +20,7 @@ export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./N
 export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";
 export { NozzleColumnHeader, NozzleGroupHeader, NozzleRow, type NozzleRowProps, type OpeningState } from "./NozzleRow";
 export { BottomSheet, Toast } from "./Overlay";
-export { PriceStrip, type PriceStripItem, type PriceStripProps } from "./PriceStrip";
+export { PriceStrip, type PriceStripItem, type PriceStripProps, type PriceStripWaiting } from "./PriceStrip";
 export { ProgressBar } from "./ProgressBar";
 export { SaveIndicator, type SaveState } from "./SaveIndicator";
 export { KeyboardSafeScroll, ScreenBody, useAndroidKeyboard, useIsWide, WIDE_MIN } from "./Screen";

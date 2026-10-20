@@ -60,6 +60,7 @@ import {
   type IconName,
   type NavItem,
 } from "@/components/ui";
+import { TrendDayRow } from "@/features/dashboard/TrendDayRow";
 import { fmtRupees } from "@/lib/format";
 import { useTheme } from "@/theme/ThemeProvider";
 
@@ -274,6 +275,54 @@ function GalleryContent() {
             ]}
           />
           <PriceStrip state="confirmed" items={[{ product: "HSD", price: "₹90.00" }, { product: "MS", price: "₹101.00" }]} />
+          <PriceStrip
+            state="toConfirm"
+            note="Same as yesterday"
+            items={[{ product: "HSD", price: "₹101.74" }, { product: "MS", price: "₹110.07" }]}
+            onConfirm={() => {}}
+            onDifferent={() => {}}
+          />
+          <PriceStrip state="confirmed" items={[{ product: "HSD", price: "₹101.74" }]} onDifferent={() => {}} />
+          <PriceStrip
+            state="waiting"
+            items={[]}
+            waiting={[{ id: "w1", product: "HSD", price: "₹102.10", now: "₹101.74", askedBy: "Ravi" }]}
+            onDifferent={() => {}}
+          />
+          <PriceStrip
+            state="waiting"
+            items={[]}
+            waiting={[{ id: "w2", product: "MS", price: "₹110.50", now: "₹110.07", askedBy: "Ravi" }]}
+            onApprove={() => {}}
+            onKeep={() => {}}
+          />
+        </Section>
+
+        <Section title="Fuel trend day (Dashboard)">
+          <TrendDayRow
+            row={{
+              dayId: "g1",
+              date: "2026-10-01",
+              submitted: true,
+              cells: [
+                { product: "HSD", soldAsPerTank: "9000.00", soldAsPerMeters: "8990.00", difference: "-10.00", rupees: "-1017.40", withinLimit: true },
+                { product: "MS", soldAsPerTank: "385.89", soldAsPerMeters: "359.31", difference: "-26.58", rupees: "-2925.66", withinLimit: false },
+              ],
+            }}
+            onPress={() => {}}
+          />
+          <TrendDayRow
+            row={{
+              dayId: "g2",
+              date: "2026-10-20",
+              submitted: false,
+              cells: [
+                { product: "HSD", soldAsPerTank: null, soldAsPerMeters: "4200.00", difference: null, rupees: null, withinLimit: null },
+                { product: "MS", soldAsPerTank: "250.00", soldAsPerMeters: "254.00", difference: "4.00", rupees: "440.28", withinLimit: false },
+              ],
+            }}
+            onPress={() => {}}
+          />
         </Section>
 
         <Section title="Date stepper">

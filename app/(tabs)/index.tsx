@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import {
   Banner,
@@ -47,12 +47,15 @@ import {
 import { useOutbox } from "@/features/day/Outbox";
 import { useSaveState } from "@/features/day/saveState";
 import { useSelectedDay } from "@/features/day/SelectedDay";
+import { waitingForDay, waitingRequests } from "@/features/prices/model";
+import { PriceDifferentSheet } from "@/features/prices/PriceDifferentSheet";
+import { useAnswerPriceRequest, usePriceRequests, useRequestPrice } from "@/features/prices/queries";
 import { useMembership } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
 import { track } from "@/lib/analytics";
 import { addDays } from "@/lib/businessDay";
 import { friendlyError } from "@/lib/errors";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtRupees } from "@/lib/format";
 
 /** How far back the owner can go; managers: the pump's rules.managerDaysBack (10 days, D101). */
 const OWNER_DAYS_BACK = 366;
@@ -84,6 +87,10 @@ export default function TodayScreen() {
   const confirm = useConfirmPrices(pumpId);
   const lock = useLockDay(pumpId);
   const unlock = useUnlockDay(pumpId);
+  const priceRequests = usePriceRequests(pumpId);
+  const requestPrice = useRequestPrice(pumpId);
+  const answerPrice = useAnswerPriceRequest(pumpId);
+  const [priceSheet, setPriceSheet] = useState(false);
 
   const dayId = day.data?.id;
   useEffect(() => {
@@ -129,6 +136,15 @@ export default function TodayScreen() {
       router.push({ pathname: "/day/shift", params: { date, code: s.key.slice(-1) } });
     }
   };
+
+  // "Price is different" (D119): this day's waiting prices, and (owner) any other day's.
+  const waiting = dayId ? waitingForDay(priceRequests.data ?? [], dayId) : {};
+  const waitingHere = Object.values(waiting);
+  const waitingElsewhere = isOwner ? waitingRequests(priceRequests.data ?? []).filter((r) => r.dayId !== dayId) : [];
+  const canAskPrice = Boolean(day.data && !day.data.isLocked && day.data.status === "DRAFT");
+  const priceNow = day.data ? { ...day.data.now, ...Object.fromEntries(waitingHere.map((w) => [w.product, w.perLitre])) } : {};
+  const answer = (requestId: string, approve: boolean) =>
+    answerPrice.mutate({ requestId, approve }, { onSuccess: () => track("price_request_answered", { approve }) });
 
   const openReview = () => router.push({ pathname: "/day/review", params: { date } });
 
@@ -227,9 +243,18 @@ export default function TodayScreen() {
                 {isOwner ? "Add the price with its start date before the day can be matched." : "Ask the owner to add it."}
               </Banner>
             ) : null}
+            {waitingElsewhere.length > 0 ? (
+              <Banner
+                tone="warning"
+                title="New price waiting for your OK"
+                action={<Button label="Open prices" size="M" variant="secondary" onPress={() => router.push("/profile/prices")} />}
+              >
+                {`Typed for ${[...new Set(waitingElsewhere.map((r) => fmtDate(r.startsOn, "short")))].join(", ")}. Until you answer, that day's money check and Submit wait.`}
+              </Banner>
+            ) : null}
             {model.price.items.length > 0 && !(day.data.isLocked && model.price.state !== "confirmed") ? (
               <PriceStrip
-                state={model.price.state}
+                state={waitingHere.length > 0 ? "waiting" : model.price.state}
                 note={model.price.note}
                 items={model.price.items}
                 loading={confirm.isPending}
@@ -237,9 +262,44 @@ export default function TodayScreen() {
                 onConfirm={() =>
                   confirm.mutate(day.data.id, { onSuccess: () => track("price_confirmed", { date, changed: model.price.state === "changed" }) })
                 }
+                onDifferent={canAskPrice ? () => setPriceSheet(true) : undefined}
+                waiting={waitingHere.map((w) => ({
+                  id: w.id,
+                  product: w.product,
+                  price: fmtRupees(w.perLitre, "input"),
+                  ...(day.data.now[w.product] ? { now: fmtRupees(day.data.now[w.product] as string, "input") } : {}),
+                  ...(w.askedBy ? { askedBy: w.askedBy } : {}),
+                }))}
+                onApprove={isOwner ? (id) => answer(id, true) : undefined}
+                onKeep={isOwner ? (id) => answer(id, false) : undefined}
+                answering={answerPrice.isPending}
               />
             ) : null}
             {confirm.error ? <Banner tone="danger" title={confirm.error.message} /> : null}
+            {answerPrice.error ? <Banner tone="danger" title={answerPrice.error.message} /> : null}
+            <PriceDifferentSheet
+              visible={priceSheet}
+              onClose={() => {
+                setPriceSheet(false);
+                requestPrice.reset();
+              }}
+              date={date}
+              current={priceNow}
+              isOwner={isOwner}
+              sending={requestPrice.isPending}
+              error={requestPrice.error?.message ?? null}
+              onSend={(prices) =>
+                requestPrice.mutate(
+                  { dayId: day.data.id, prices },
+                  {
+                    onSuccess: () => {
+                      setPriceSheet(false);
+                      track("price_requested", { date, fuels: prices.map((p) => p.product).join(","), owner: isOwner });
+                    },
+                  },
+                )
+              }
+            />
 
             <ProgressBar
               done={model.done}
