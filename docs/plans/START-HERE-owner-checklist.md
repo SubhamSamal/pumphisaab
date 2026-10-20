@@ -35,7 +35,7 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 - Anything different or confusing: send me a screenshot. It goes into the next phase's plan unless it stops the managers working.
 
 ## 3. When you're ready for the next phase
-- Phase 5a plan is ready (`docs/plans/phase-5a.md`): answer Q1-Q6, then say "go".
+- Phase 5a plan agreed (`docs/plans/phase-5a.md`, your answers 20 Oct). Say "go" to start Part 1.
 - Ask the managers which they read best: English, Odia or Hindi (for later).
 
 ## Reminders

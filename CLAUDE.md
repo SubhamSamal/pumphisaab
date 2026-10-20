@@ -48,7 +48,7 @@ tools/                  Developer-only helpers, not part of the app (tools/db-lo
 7. **No reason prompts anywhere.** Soft checks save and create a row in `flags`. Unlock request and unlock have no reason field.
 8. **Sign rule:** Difference is shown so that negative = loss (red, true minus sign), positive = excess (amber), zero = Matched (green). Stock Difference = sold as per meters minus sold as per tank. Money Difference = received minus should have.
 9. **Business day, not calendar day.** Use `src/lib/businessDay.ts` for every date decision. Shift C after midnight belongs to the day it started. Time zone is Asia/Kolkata.
-10. **Prices:** only the owner adds prices (with start date). Price for a day = latest price with effective_from <= business date. Managers only confirm.
+10. **Prices:** the owner adds prices (with start date); a manager can enter a new price only as a request that is used after the owner approves (D119). Price for a day = latest price with effective_from <= business date. Managers confirm the day's price.
 11. **Secrets** live in `.env` files, never in code or commits. Only the anon key goes in the app; the service role key is used only inside Edge Functions.
 12. **UI uses only `src/components/ui/`** components and theme tokens. No hard-coded colours, font sizes or spacing. If a new component is needed, add it to the gallery screen and tell the owner.
 13. **Words in the UI:** Should have, Received, Sold as per tank, Sold as per meters, Difference, Flag. Never "debit/credit/variance/reconciliation" in the UI.
