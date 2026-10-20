@@ -1,6 +1,6 @@
 # Your checklist
 
-**Start at step 1 and go down.** Updated 13 Oct 2026.
+**Start at step 1 and go down.** Updated 20 Oct 2026.
 Done so far: nightly backup is on (09 Oct); the app is live with both managers since 1 Oct; round 1 of fixes is in the real app; "Cash deposited in bank" removed from customer payments in the real app 13 Oct (Profile line "update 01a1347").
 
 ---
@@ -14,6 +14,20 @@ Runs every night at 2 AM; GitHub emails you if a night fails. The first restore 
 - [x] Preview check passed: "Cash deposited in bank" is gone from customer payments. Sent to the managers' app 13 Oct (update 01a1347).
 - [ ] Each manager: close and reopen PumpHisaab twice; Profile should show "update 01a1347".
 - [ ] Send Claude the formula for "Sold as per sales amount" (with one worked day) if you want it in the next phase.
+
+## 1c. Days 6-19 Oct (from the notebooks) — plan: `docs/plans/fill-6-to-19-oct.md`
+**Now (before "go"):**
+- [ ] Answer Claude's 7 questions (Q1-Q7), e.g. "1A 2A 3A 4A (nozzles …) 5A 6A 7A".
+- [ ] Send photos of the missing pages (one photo per page, flat and in daylight):
+  - Shift book: 06-12 Oct (all shifts), 13 A, 14 (all), 15 (all), 16 C, 17 (all), 18 (all), 19 A.
+  - Summary book: 15, 16, 17, 18, 19 Oct.
+  - Tanker register: the 07, 09/10, 12, 15/16 Oct tankers (and 19 Oct if there was one).
+  - Stock register: 18 and 19 Oct.
+
+**After you say "go":**
+- [ ] Step 1: Supabase › SQL editor › New query › paste the whole of `supabase/fixes/2026-10-20-read-days-6-to-19-oct.sql` › Run. It only reads. Click the one cell › copy › paste it to Claude.
+- [ ] Step 2: when Claude sends the fill file, paste it the same way › Run. Send Claude the table at the bottom.
+- [ ] Step 3: in the app, open Review for 06 Oct, compare with the notebook, Submit. Then 07 Oct, and so on in order (3-4 days at a sitting is fine).
 
 ## 2. Every day
 - Managers fill the day in **PumpHisaab**; the notebook continues for now.
