@@ -1,6 +1,6 @@
 # Phase 5a: daily fixes from the pilot (plan, 20 Oct 2026)
 
-Status: **Part 1 in production 21 Oct (01a15e4). Part 2 built 21 Oct** (migration 17 + Check for update, D122-D123; on Preview). **Part 1 built 20 Oct** (migration 16 + app; on Preview for the owner to check; real-day golden cases 02-05 Oct still to add, 01 Oct needs a read-only export). Parts 2-3 next. Decisions D112-D121.
+Status: **Part 1 in production 21 Oct (01a15e4). Part 2 in production 21 Oct (01a15e9)** (migration 17 + Check for update, D122-D123). **Part 1 built 20 Oct** (migration 16 + app; on Preview for the owner to check; real-day golden cases 02-05 Oct still to add, 01 Oct needs a read-only export). Parts 2-3 next. Decisions D112-D121.
 
 **Why 5a first:** these are the things the managers and the owner feel every day. All of 5a goes **over the air** (Preview → owner checks → production), **no reinstall**. Three parts, in this order (owner, Q6), each with its own small migration, pasted by the owner before the update that needs it. 5b (owner loop + push, one reinstall) comes after.
 
