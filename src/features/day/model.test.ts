@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES, type DayResult } from "@/calc";
 import { Decimal } from "@/lib/decimal";
-import { customerPayMethods, reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections, whoSoldWhat } from "./model";
+import { customerPayMethods, reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections, settlesLater, whoSoldWhat } from "./model";
 import type { Day, DaySetup, ExpenseRow, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
@@ -604,5 +604,16 @@ describe("customerPayMethods (D111)", () => {
       return { name: name!, kind: kind! };
     });
     expect(customerPayMethods(types).map((t) => t.name)).toEqual(["Cash", "Paytm", "PhonePe", "Bank transfer"]);
+  });
+});
+
+describe("not settled yet (D103)", () => {
+  it("applies to Paytm, PhonePe, XtraPower and cards, not cash, credit, bank transfer or bank deposit", () => {
+    const yes = ["Paytm", "PhonePe", "XtraPower", "Debit card", "Credit card"].map((name) => settlesLater({ kind: "OTHER", name }));
+    expect(yes.every(Boolean)).toBe(true);
+    expect(settlesLater({ kind: "OTHER", name: "Bank transfer" })).toBe(false);
+    expect(settlesLater({ kind: "OTHER", name: "Cash deposited in bank" })).toBe(false);
+    expect(settlesLater({ kind: "CASH", name: "Cash" })).toBe(false);
+    expect(settlesLater({ kind: "CREDIT", name: "Credit" })).toBe(false);
   });
 });

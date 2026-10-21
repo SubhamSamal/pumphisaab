@@ -419,7 +419,7 @@ function ShiftForm({
             <Divider />
             {day.priceConfirmed ? (
               <KeyValueRow
-                label="Should have"
+                label="Should have (by meters)"
                 big
                 value={fmtRupees(
                   FUELS.reduce((sum, f) => (priceOf(f) ? sum.plus(litres.soldAsPerMeters[f].times(priceOf(f) as string)) : sum), new Decimal(0)),
@@ -580,7 +580,7 @@ function TestingCard({
 
   return (
     <Card>
-      <ToggleRow label="Testing done this shift?" helper="5 L measure check" value={tests.length > 0} onChange={locked ? () => {} : toggle} />
+      <ToggleRow label="Was any nozzle tested (5 L check)?" helper="Fuel poured back into the tank" value={tests.length > 0} onChange={locked ? () => {} : toggle} />
       {tests.length > 0 ? (
         <FieldHint>Pour the test into the 5 L measure and type what it got. It shows if a nozzle gives more or less than its meter.</FieldHint>
       ) : null}
@@ -657,7 +657,7 @@ function TestingCard({
           </View>
         );
       })}
-      {tests.length > 0 && !locked ? <Button label="Add another nozzle" icon="plus" size="M" variant="ghost" onPress={add} /> : null}
+      {tests.length > 0 && !locked ? <Button label="Add another nozzle" icon="plus" size="M" variant="secondary" onPress={add} /> : null}
       {tests.length > 0 ? (
         <Text variant="label" weight="400" tone="muted">
           Tested fuel is taken off the sale, so it isn&apos;t counted as money due. Pour it back into the tank.

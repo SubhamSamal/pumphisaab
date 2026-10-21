@@ -40,7 +40,7 @@ import { readTypedNumber } from "@/lib/numberInput";
 
 const FUEL_NAME = { HSD: "Diesel", MS: "Petrol" } as const;
 
-/** Opening dip (canvas F3, PRD F3): per tank, IOCL report stock (optional, D48) and dip cm → litres. */
+/** Opening dip (canvas F3, PRD F3): per tank, dip cm → litres first, then the optional IOCL stock (DSR, D48; UI audit 1). */
 export default function OpeningDipScreen() {
   const me = useMembership();
   const router = useRouter();
@@ -266,15 +266,6 @@ function TankCard({
           {FUEL_NAME[tank.product]} tank {tank.label}
         </Text>
       </View>
-      <NumericInput
-        label="IOCL report stock (optional)"
-        value={value.book}
-        onChangeText={(t) => onChange({ ...value, book: t })}
-        onBlur={onBlur}
-        unit="L"
-        disabled={locked}
-        error={book.kind === "bad" ? book.message : undefined}
-      />
       <DipInput
         cm={value.dip}
         onChangeCm={(t) => onChange({ ...value, dip: t })}
@@ -282,6 +273,15 @@ function TankCard({
         litres={litres ? fmtLitres(litres) : undefined}
         reference={yesterday?.closingDipCm ? `Last night's closing dip: ${fmtDip(yesterday.closingDipCm)}` : undefined}
         error={dipError}
+      />
+      <NumericInput
+        label="IOCL stock (DSR), optional"
+        value={value.book}
+        onChangeText={(t) => onChange({ ...value, book: t })}
+        onBlur={onBlur}
+        unit="L"
+        disabled={locked}
+        error={book.kind === "bad" ? book.message : undefined}
       />
       {gap ? (
         <AutoValueRow

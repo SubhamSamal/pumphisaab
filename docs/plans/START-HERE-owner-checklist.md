@@ -1,40 +1,49 @@
-# Owner's manual: Phase 5a Part 2
+# Owner's manual: Phase 5a Part 3
 
-**21 Oct 2026.** Steps 1-4 checked by you; **sent to the managers 21 Oct (update 01a15e9)**. Only step 5.2 is left: tell the managers.
+**21 Oct 2026.** Do the steps in order. If something looks different, send Claude a screenshot.
 
-## Step 1. Paste database update 17
-1. Open https://github.com/SubhamSamal/pumphisaab/blob/main/supabase/migrations/20261021120000_nozzle_checks_and_attendants.sql
+## Step 1. Paste database update 18
+1. Open https://github.com/SubhamSamal/pumphisaab/blob/main/supabase/migrations/20261021130000_settlement_pending.sql
 2. Click **Raw**. Press **Ctrl/Cmd + A**, then **Ctrl/Cmd + C**.
 3. In Supabase, open the project **pumphisaab** › **SQL Editor** › **+ New query**. Paste, then click **Run**.
 4. You should see **"Success. No rows returned"**. Any other red message: send it to Claude and don't run it again.
-- [x] Done
+- [ ] Done
 
 ## Step 2. Update PumpHisaab Preview
-1. Open **PumpHisaab Preview**, close it fully, then open it again. Do this twice.
-2. **Profile** should show **"update 01a15e5"**, with a **Check for update** button under it.
-3. Tap **Check for update**. It should say **"You have the latest version."**
-- [x] Done
+1. **Profile** › **Check for update**. The app reopens by itself.
+2. **Profile** should show **"update UPDATE_ID"**.
+- [ ] Done
 
-## Step 3. Shift screen
-Use today's real shift with real numbers. Preview uses the real database.
-1. **Today** › **Shift A readings**.
-2. **Who was on each nozzle:** tap each nozzle and pick the person. If only one person is ticked, tap **"Put [name] on all nozzles"**.
-3. **Testing** › **The 5 L measure got:** type what the measure really had, e.g. 5.02.
-   - **Green "measure OK":** the nozzle is within ±0.5%.
-   - **Red:** the nozzle gives more than its meter (the pump loses).
-   - **Amber:** it gives less (customers get less).
-- [x] Done
+## Step 3. Today
+1. The first card not done has a teal **Next** tag.
+2. Done cards are one short line.
+- [ ] Done
 
-## Step 4. Review and Dashboard
-1. **Review and submit** › step 1 ends with **"Who sold what"**: each person's litres and about ₹.
-2. **Dashboard** › **"Nozzle checks (5 L measure)"** is below the chart.
-- [x] Done
+## Step 4. A shift's Sales
+1. **Sales** › open a shift.
+2. Parts are numbered **1 Cash · 2 Paytm, card… · 3 Credit slips · 4 Payments from customers**. Each turns into a green tick when filled.
+3. The bottom bar always shows **Received** and the **Difference**.
+4. On the number pad, **Next** jumps from cash to each payment box.
+5. A small green **Saved** appears beside a box after you leave it.
+- [ ] Done
 
-## Step 5. Send to the managers
-1. Tell Claude: **"Part 2 OK, send to production"**.
-2. Tell the managers:
-   - Close PumpHisaab and reopen it twice. This is the last time; after this, **Profile › Check for update** does it.
-   - In each shift, pick who was on each nozzle.
-   - When testing, pour into the 5 L measure and type what it got.
-   - Then check: **Profile** shows **"update 01a15e9"**.
-- [ ] Managers told
+## Step 5. Not settled yet
+1. **Sales** › **By type**.
+2. Paytm, PhonePe, XtraPower and cards each have a **Not settled yet (optional)** box. It never changes the money check.
+3. **Review** › step 2 (Money) shows them under **Not settled yet**.
+- [ ] Done
+
+## Step 6. Tanker
+1. **Tanker** › **Add tanker** (look only; don't save unless a tanker really came).
+2. **Step 1 Challan:** tanker number, invoice amount, invoice no., litres ordered and short. The invoice date shows **today · Change**.
+3. **Next: Chambers** › **Step 2 Chambers:** chambers and dips. The price chips are in the totals at the bottom.
+- [ ] Done
+
+## Step 7. Opening dip
+1. **Opening dip:** the dip box comes first, then **IOCL stock (DSR), optional**.
+- [ ] Done
+
+## Step 8. Send to the managers
+1. Tell Claude: **"Part 3 OK, send to production"**.
+2. Tell the managers: **Profile › Check for update**.
+- [ ] Done

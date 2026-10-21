@@ -17,6 +17,7 @@ import {
   InfoChip,
   KeyValueRow,
   NumericInput,
+  PartHeader,
   ProductTag,
   ScreenBody,
   ScreenHeader,
@@ -193,6 +194,11 @@ function TankerForm({
   const [invoiceAmount, setInvoiceAmount] = useState(start.invoiceAmount);
   const [invoiceDate, setInvoiceDate] = useState(start.invoiceDate);
   const [tried, setTried] = useState(false);
+  // Two steps (D106): 1 Challan (tanker, invoice, litres ordered and short) → 2 Chambers (litres and dips).
+  const [step, setStep] = useState<1 | 2>(1);
+  const [triedChallan, setTriedChallan] = useState(false);
+  // Invoice date is today on almost every challan: shown as "today · Change" (D106).
+  const [showDate, setShowDate] = useState(start.invoiceDate !== day.businessDate);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [marginFor, setMarginFor] = useState<Product | null>(null);
   const [forms, setForms] = useState<Record<string, LineForm>>(start.forms);
@@ -270,10 +276,10 @@ function TankerForm({
     const p: { ordered?: string; short?: string; chambers: (string | undefined)[]; total?: string } = { chambers: [] };
     const o = readTypedNumber(f.ordered, 2);
     if (o.kind === "bad") p.ordered = o.message;
-    else if (o.kind === "empty" && tried) p.ordered = "Type the litres ordered.";
+    else if (o.kind === "empty" && (tried || triedChallan)) p.ordered = "Type the litres ordered.";
     const sh = readTypedNumber(f.short, 2);
     if (sh.kind === "bad") p.short = sh.message;
-    else if (sh.kind === "ok" && o.kind === "ok" && new Decimal(sh.value).gt(o.value)) p.short = "More than ordered.";
+    else if (sh.kind === "ok" && o.kind === "ok" && new Decimal(sh.value).gt(o.value)) p.short = `Short can't be more than Ordered (${fmtLitres(o.value)}).`;
     p.chambers = f.chambers.map((c) => {
       const l = readTypedNumber(c.litres, 2);
       if (l.kind === "bad") return l.message;
@@ -294,6 +300,18 @@ function TankerForm({
     return p.ordered || p.short || p.total || p.chambers.some(Boolean) || !ok(forms[t.id].ordered);
   });
   const canSave = !vehicleProblem && !invoiceProblem && onTanker.length > 0 && !anyLineProblem && Boolean(totals);
+  const challanOk =
+    !vehicleProblem &&
+    !invoiceProblem &&
+    open.length > 0 &&
+    open.every((t) => {
+      const p = lineProblems(t);
+      return ok(forms[t.id].ordered) && new Decimal(ok(forms[t.id].ordered) as string).gt(0) && !p.ordered && !p.short;
+    });
+  const toChambers = () => {
+    setTriedChallan(true);
+    if (challanOk) setStep(2);
+  };
 
   const submit = () => {
     setTried(true);
@@ -334,6 +352,18 @@ function TankerForm({
   const typedInvoice = ok(invoiceAmount);
   const gap = worked && typedInvoice ? new Decimal(typedInvoice).minus(worked) : null;
 
+  const challanLine = [
+    vehicle,
+    typedInvoice ? fmtRupees(typedInvoice, "input") : null,
+    ...open.map((t) => {
+      const o = ok(forms[t.id].ordered);
+      const sh = ok(forms[t.id].short);
+      return o ? `${t.product} ${fmtLitres(o)}${sh && !new Decimal(sh).isZero() ? ` (short ${fmtLitres(sh)})` : ""}` : null;
+    }),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <>
       <ScreenBody
@@ -341,14 +371,24 @@ function TankerForm({
           locked ? undefined : (
             <StickyActionBar
               note={
-                tried && !canSave ? (
+                step === 1 ? (
+                  triedChallan && !challanOk ? (
+                    <Text variant="label" tone="danger" className="text-center">
+                      Fix the red boxes to go on
+                    </Text>
+                  ) : undefined
+                ) : tried && !canSave ? (
                   <Text variant="label" tone="danger" className="text-center">
                     Fix the red boxes to save
                   </Text>
                 ) : undefined
               }
             >
-              <Button label="Save tanker" loading={save.isPending} onPress={submit} />
+              {step === 1 ? (
+                <Button label="Next: Chambers" icon="chevronRight" onPress={toChambers} />
+              ) : (
+                <Button label="Save tanker" loading={save.isPending} onPress={submit} />
+              )}
             </StickyActionBar>
           )
         }
@@ -366,199 +406,240 @@ function TankerForm({
         ) : null}
         {save.error ? <Banner tone="danger" title={formSaveError(save.error.message)} /> : null}
 
-        <TextField
-          label="Tanker number"
-          value={vehicle}
-          onChangeText={setVehicle}
-          vehicle
-          placeholder="e.g. OD02CD9087"
-          disabled={locked}
-          error={tried || vehicle.length >= 4 ? vehicleProblem : undefined}
-        />
-        <View className="flex-row gap-8">
-          <View className="flex-1">
-            <TextField label="Invoice no. (optional)" value={invoiceNo} onChangeText={setInvoiceNo} disabled={locked} />
-          </View>
-          <View className="flex-1">
+        {step === 1 ? (
+          <>
+            <PartHeader number={1} title="Challan" />
+            <TextField
+              label="Tanker number"
+              value={vehicle}
+              onChangeText={setVehicle}
+              vehicle
+              placeholder="e.g. OD02CD9087"
+              disabled={locked}
+              error={tried || triedChallan || vehicle.length >= 4 ? vehicleProblem : undefined}
+            />
             <NumericInput
-              label="Invoice amount"
-              compact
+              label="Invoice amount (from the challan)"
               value={invoiceAmount}
               onChangeText={setInvoiceAmount}
               unit="₹"
               disabled={locked}
-              error={tried || amt.kind === "bad" ? invoiceProblem : undefined}
+              error={tried || triedChallan || amt.kind === "bad" ? invoiceProblem : undefined}
             />
-          </View>
-        </View>
-        <View className="gap-4">
-          <FieldLabel>Invoice date</FieldLabel>
-          <DateStepper
-            label={fmtDate(invoiceDate, "weekday")}
-            canNext={!locked && invoiceDate < day.businessDate}
-            canPrevious={!locked}
-            onPrevious={() => setInvoiceDate(addDays(invoiceDate, -1))}
-            onNext={() => setInvoiceDate(addDays(invoiceDate, 1))}
-          />
-        </View>
-
-        {tanks.map((t) => {
-          const f = forms[t.id];
-          if (!f.on) {
-            return locked ? null : (
-              <Button key={t.id} label={`Add ${FUEL_NAME[t.product].toLowerCase()}`} icon="plus" size="M" variant="secondary" onPress={() => setForm(t.id, { on: true })} />
-            );
-          }
-          const p = lineProblems(t);
-          const lineResult = totals?.lines.find((l) => l.tankId === t.id);
-          const flags = result.flags.filter((x) => x.code === "S6" && x.where?.tankId === t.id);
-          const sp = selling(t.product);
-          const margin = marginOf(t);
-          const row = priceRowFor(setup, t.product, day.businessDate);
-          const cost = costOf(t);
-          const warnPct = new Decimal(setup.rules.tanker.dipCheckFlagBeyondPercent);
-          return (
-            <Card key={t.id}>
-              <View className="flex-row items-center gap-8">
-                <ProductTag product={t.product} />
-                <Text variant="heading" className="flex-1">
-                  {FUEL_NAME[t.product]}
-                </Text>
-                {!locked && tanks.length > 1 ? (
-                  <Button label="Remove" size="M" variant="ghost" onPress={() => setForm(t.id, { on: false })} />
-                ) : null}
-              </View>
-              <View className="flex-row gap-8">
-                <View className="flex-1">
-                  <NumericInput label="Ordered" compact value={f.ordered} onChangeText={(v) => setForm(t.id, { ordered: v })} unit="L" disabled={locked} error={p.ordered} />
-                </View>
-                <View className="flex-1">
-                  <NumericInput label="Short" compact value={f.short} onChangeText={(v) => setForm(t.id, { short: v })} unit="L" placeholder="0" disabled={locked} error={p.short} />
-                </View>
-              </View>
-              {lineResult ? <KeyValueRow label="Received" value={fmtLitres(lineResult.receivedNetLitres)} /> : null}
-
-              {/* Price as chips (owner, 27 Sep): selling price from Today, margin set by the owner. */}
-              <View className="flex-row flex-wrap gap-8">
-                <InfoChip label="Selling" value={sp ? fmtRupees(sp, "input") : "not set"} tone={sp ? "neutral" : "warning"} />
-                <InfoChip
-                  label="Margin"
-                  value={margin ? fmtRupees(margin, "input") : "not set"}
-                  tone={margin ? "neutral" : "warning"}
-                  onPress={isOwner && row && !locked ? () => setMarginFor(t.product) : undefined}
+            <TextField label="Invoice no. (optional)" value={invoiceNo} onChangeText={setInvoiceNo} disabled={locked} />
+            {showDate ? (
+              <View className="gap-4">
+                <FieldLabel>Invoice date</FieldLabel>
+                <DateStepper
+                  label={fmtDate(invoiceDate, "weekday")}
+                  canNext={!locked && invoiceDate < day.businessDate}
+                  canPrevious={!locked}
+                  onPrevious={() => setInvoiceDate(addDays(invoiceDate, -1))}
+                  onNext={() => setInvoiceDate(addDays(invoiceDate, 1))}
                 />
-                {cost ? <InfoChip label="Invoice price" value={`${fmtRupees(cost, "input")}/L`} /> : null}
               </View>
-              {!margin && !isOwner ? (
-                <Text variant="label" weight="400" tone="warning">
-                  Ask the owner to set the margin.
-                </Text>
-              ) : null}
-              {flags.filter((x) => x.message.includes("short")).map((x) => (
-                <FlagNote key={x.message}>{x.message}</FlagNote>
-              ))}
+            ) : (
+              <View className="flex-row flex-wrap items-center justify-between gap-8">
+                <Text variant="body" tone="secondary">{`Invoice date: today (${fmtDate(invoiceDate, "short")})`}</Text>
+                {!locked ? <Button label="Change" size="M" variant="secondary" onPress={() => setShowDate(true)} /> : null}
+              </View>
+            )}
 
-              <Divider />
-              <ChamberHeader />
-              {f.chambers.map((c, k) => {
-                const cr = lineResult?.chambers[k];
-                const short = cr?.shortLitres;
-                const warn = short && cr ? short.abs().gt(cr.litres.times(warnPct).div(100)) : false;
-                return (
-                  <ChamberRow
-                    key={k}
-                    no={k + 1}
-                    litres={c.litres}
-                    onChangeLitres={(v) => setChamber(t.id, k, { litres: v })}
-                    dipBefore={c.before}
-                    onChangeBefore={(v) => setChamber(t.id, k, { before: v })}
-                    dipAfter={c.after}
-                    onChangeDip={(v) => setChamber(t.id, k, { after: v })}
-                    rise={cr?.riseLitres ? fmtLitres(cr.riseLitres) : undefined}
-                    short={short ? (short.isNegative() ? `over ${fmtLitres(short.abs())}` : `short ${fmtLitres(short)}`) : undefined}
-                    shortWarn={warn}
-                    error={p.chambers[k]}
-                    editable={!locked}
-                    note={f.nextFrom && k + 1 >= f.nextFrom ? "Next day" : undefined}
-                  />
+            {tanks.map((t) => {
+              const f = forms[t.id];
+              if (!f.on) {
+                return locked ? null : (
+                  <Button key={t.id} label={`Add ${FUEL_NAME[t.product].toLowerCase()}`} icon="plus" size="M" variant="secondary" onPress={() => setForm(t.id, { on: true })} />
                 );
-              })}
-              {!locked ? (
-                <View className="flex-row gap-8">
-                  {f.chambers.length < 12 ? (
-                    <Button
-                      label="Add chamber"
-                      icon="plus"
-                      size="M"
-                      variant="ghost"
-                      // The next chamber usually starts where the last one ended; change it if fuel was sold in between.
-                      onPress={() => setForm(t.id, { chambers: [...f.chambers, { litres: "", before: f.chambers[f.chambers.length - 1]?.after ?? "", after: "" }] })}
-                    />
-                  ) : null}
-                  {f.chambers.length > 1 ? (
-                    <Button label="Remove last" size="M" variant="ghost" onPress={() =>
-                        setForm(t.id, {
-                          chambers: f.chambers.slice(0, -1),
-                          // Keep "next day from chamber" inside the chambers that are left.
-                          nextFrom: f.nextFrom ? (f.chambers.length - 1 >= 2 ? Math.min(f.nextFrom, f.chambers.length - 1) : null) : null,
-                        })
-                      }
-                    />
-                  ) : null}
-                </View>
-              ) : null}
-              {/* Unloading paused overnight and finished after 6 AM (D97): those chambers count on the next day. */}
-              {f.chambers.length > 1 ? (
-                <View className="gap-8">
-                  <ToggleRow
-                    label="Unloading finished next day"
-                    helper="Some chambers were unloaded after 6 AM the next day"
-                    value={Boolean(f.nextFrom)}
-                    onChange={locked ? () => {} : (v) => setForm(t.id, { nextFrom: v ? f.chambers.length : null })}
-                  />
-                  {f.nextFrom ? (
-                    <SelectField
-                      label="Which chambers were unloaded the next day?"
-                      value={String(f.nextFrom)}
-                      options={f.chambers.slice(1).map((_, k) => ({
-                        value: String(k + 2),
-                        label: k + 2 === f.chambers.length ? `Only chamber ${k + 2}` : `Chambers ${k + 2} to ${f.chambers.length}`,
-                      }))}
-                      onChange={(v) => setForm(t.id, { nextFrom: Number(v) })}
-                      disabled={locked}
-                    />
-                  ) : null}
-                </View>
-              ) : null}
-              {p.total ? <FieldError message={p.total} /> : null}
-              {lineResult?.dipRiseLitres ? (
-                <KeyValueRow label="Tank went up in all" value={`${fmtLitres(lineResult.dipRiseLitres)} of ${fmtLitres(lineResult.receivedNetLitres)}`} />
-              ) : null}
-              {flags.filter((x) => x.message.includes("went up")).map((x) => (
-                <FlagNote key={x.message}>{x.message}</FlagNote>
-              ))}
-            </Card>
-          );
-        })}
-
-        {totals && totals.lines.length > 0 ? (
-          <Card tone="summary">
-            <KeyValueRow label="Invoice amount" value={typedInvoice ? fmtRupees(typedInvoice, "input") : "—"} />
-
-            <KeyValueRow
-              label="Short amount"
-              value={totals.totalShortAmount ? (totals.totalShortAmount.isZero() ? "₹0" : `${MINUS}${fmtRupees(totals.totalShortAmount, "input")}`) : "—"}
-            />
-            <Divider />
-            <KeyValueRow label="To pay" big value={totals.toPay ? fmtRupees(totals.toPay, "input") : "—"} />
-            <KeyValueRow label="Margin earned" value={totals.totalMargin ? fmtRupees(totals.totalMargin) : "—"} />
-            {gap && !gap.isZero() ? (
-              <Text variant="label" weight="400" tone="secondary">
-                {`The challan is ${fmtRupees(gap.abs(), "input")} ${gap.isNegative() ? "less" : "more"} than litres × invoice price (${fmtRupees(worked as Decimal, "input")}).`}
+              }
+              const p = lineProblems(t);
+              const lineResult = totals?.lines.find((l) => l.tankId === t.id);
+              return (
+                <Card key={t.id}>
+                  <View className="flex-row items-center gap-8">
+                    <ProductTag product={t.product} />
+                    <Text variant="heading" className="flex-1">
+                      {FUEL_NAME[t.product]}
+                    </Text>
+                    {!locked && tanks.length > 1 ? (
+                      <Button label="Remove" size="M" variant="secondary" onPress={() => setForm(t.id, { on: false })} />
+                    ) : null}
+                  </View>
+                  <View className="flex-row gap-8">
+                    <View className="flex-1">
+                      <NumericInput label="Ordered" compact value={f.ordered} onChangeText={(v) => setForm(t.id, { ordered: v })} unit="L" disabled={locked} error={p.ordered} />
+                    </View>
+                    <View className="flex-1">
+                      <NumericInput label="Short" compact value={f.short} onChangeText={(v) => setForm(t.id, { short: v })} unit="L" placeholder="0" disabled={locked} error={p.short} />
+                    </View>
+                  </View>
+                  {lineResult ? <KeyValueRow label="Received" value={fmtLitres(lineResult.receivedNetLitres)} /> : null}
+                </Card>
+              );
+            })}
+            {locked ? <Button label="See the chambers" size="M" variant="secondary" onPress={() => setStep(2)} /> : null}
+          </>
+        ) : (
+          <>
+            {/* The challan in one line, with a way back (D106). */}
+            <Card tone="summary">
+              <PartHeader number={1} title="Challan" done right={<Button label={locked ? "See it" : "Change"} size="M" variant="secondary" onPress={() => setStep(1)} />} />
+              <Text variant="body" tone="secondary">
+                {challanLine}
               </Text>
+            </Card>
+            <PartHeader number={2} title="Chambers" />
+
+            {open.map((t) => {
+              const f = forms[t.id];
+              const p = lineProblems(t);
+              const lineResult = totals?.lines.find((l) => l.tankId === t.id);
+              const flags = result.flags.filter((x) => x.code === "S6" && x.where?.tankId === t.id);
+              const warnPct = new Decimal(setup.rules.tanker.dipCheckFlagBeyondPercent);
+              return (
+                <Card key={t.id}>
+                  <View className="flex-row items-center gap-8">
+                    <ProductTag product={t.product} />
+                    <Text variant="heading" className="flex-1">
+                      {`${FUEL_NAME[t.product]} · ${ok(f.ordered) ? fmtLitres(ok(f.ordered) as string) : ""}`}
+                    </Text>
+                  </View>
+                  {flags.filter((x) => x.message.includes("short")).map((x) => (
+                    <FlagNote key={x.message}>{x.message}</FlagNote>
+                  ))}
+                  <ChamberHeader />
+                  {f.chambers.map((c, k) => {
+                    const cr = lineResult?.chambers[k];
+                    const short = cr?.shortLitres;
+                    const warn = short && cr ? short.abs().gt(cr.litres.times(warnPct).div(100)) : false;
+                    return (
+                      <ChamberRow
+                        key={k}
+                        no={k + 1}
+                        litres={c.litres}
+                        onChangeLitres={(v) => setChamber(t.id, k, { litres: v })}
+                        dipBefore={c.before}
+                        onChangeBefore={(v) => setChamber(t.id, k, { before: v })}
+                        dipAfter={c.after}
+                        onChangeDip={(v) => setChamber(t.id, k, { after: v })}
+                        rise={cr?.riseLitres ? fmtLitres(cr.riseLitres) : undefined}
+                        short={short ? (short.isNegative() ? `over ${fmtLitres(short.abs())}` : `short ${fmtLitres(short)}`) : undefined}
+                        shortWarn={warn}
+                        error={p.chambers[k]}
+                        editable={!locked}
+                        note={f.nextFrom && k + 1 >= f.nextFrom ? "Next day" : undefined}
+                      />
+                    );
+                  })}
+                  {!locked ? (
+                    <View className="flex-row flex-wrap gap-8">
+                      {f.chambers.length < 12 ? (
+                        <Button
+                          label="Add chamber"
+                          icon="plus"
+                          size="M"
+                          variant="secondary"
+                          // The next chamber usually starts where the last one ended; change it if fuel was sold in between.
+                          onPress={() => setForm(t.id, { chambers: [...f.chambers, { litres: "", before: f.chambers[f.chambers.length - 1]?.after ?? "", after: "" }] })}
+                        />
+                      ) : null}
+                      {f.chambers.length > 1 ? (
+                        <Button
+                          label="Remove last"
+                          size="M"
+                          variant="secondary"
+                          onPress={() =>
+                            setForm(t.id, {
+                              chambers: f.chambers.slice(0, -1),
+                              // Keep "next day from chamber" inside the chambers that are left.
+                              nextFrom: f.nextFrom ? (f.chambers.length - 1 >= 2 ? Math.min(f.nextFrom, f.chambers.length - 1) : null) : null,
+                            })
+                          }
+                        />
+                      ) : null}
+                    </View>
+                  ) : null}
+                  {/* Unloading paused overnight and finished after 6 AM (D97): those chambers count on the next day. */}
+                  {f.chambers.length > 1 ? (
+                    <View className="gap-8">
+                      <ToggleRow
+                        label="Unloading finished next day"
+                        helper="Some chambers were unloaded after 6 AM the next day"
+                        value={Boolean(f.nextFrom)}
+                        onChange={locked ? () => {} : (v) => setForm(t.id, { nextFrom: v ? f.chambers.length : null })}
+                      />
+                      {f.nextFrom ? (
+                        <SelectField
+                          label="Which chambers were unloaded the next day?"
+                          value={String(f.nextFrom)}
+                          options={f.chambers.slice(1).map((_, k) => ({
+                            value: String(k + 2),
+                            label: k + 2 === f.chambers.length ? `Only chamber ${k + 2}` : `Chambers ${k + 2} to ${f.chambers.length}`,
+                          }))}
+                          onChange={(v) => setForm(t.id, { nextFrom: Number(v) })}
+                          disabled={locked}
+                        />
+                      ) : null}
+                    </View>
+                  ) : null}
+                  {p.total ? <FieldError message={p.total} /> : null}
+                  {lineResult?.dipRiseLitres ? (
+                    <KeyValueRow label="Tank went up in all" value={`${fmtLitres(lineResult.dipRiseLitres)} of ${fmtLitres(lineResult.receivedNetLitres)}`} />
+                  ) : null}
+                  {flags.filter((x) => x.message.includes("went up")).map((x) => (
+                    <FlagNote key={x.message}>{x.message}</FlagNote>
+                  ))}
+                </Card>
+              );
+            })}
+
+            {totals && totals.lines.length > 0 ? (
+              <Card tone="summary">
+                {/* Price chips live with the totals now (D106): managers don't need them while typing. */}
+                {open.map((t) => {
+                  const sp = selling(t.product);
+                  const margin = marginOf(t);
+                  const row = priceRowFor(setup, t.product, day.businessDate);
+                  const cost = costOf(t);
+                  return (
+                    <View key={t.id} className="gap-4">
+                      <View className="flex-row flex-wrap items-center gap-8">
+                        <ProductTag product={t.product} />
+                        <InfoChip label="Selling" value={sp ? fmtRupees(sp, "input") : "not set"} tone={sp ? "neutral" : "warning"} />
+                        <InfoChip
+                          label="Margin"
+                          value={margin ? fmtRupees(margin, "input") : "not set"}
+                          tone={margin ? "neutral" : "warning"}
+                          onPress={isOwner && row && !locked ? () => setMarginFor(t.product) : undefined}
+                        />
+                        {cost ? <InfoChip label="Invoice price" value={`${fmtRupees(cost, "input")}/L`} /> : null}
+                      </View>
+                      {!margin && !isOwner ? (
+                        <Text variant="label" weight="400" tone="warning">
+                          Ask the owner to set the margin.
+                        </Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+                <Divider />
+                <KeyValueRow label="Invoice amount" value={typedInvoice ? fmtRupees(typedInvoice, "input") : "—"} />
+                <KeyValueRow
+                  label="Short amount"
+                  value={totals.totalShortAmount ? (totals.totalShortAmount.isZero() ? "₹0" : `${MINUS}${fmtRupees(totals.totalShortAmount, "input")}`) : "—"}
+                />
+                <Divider />
+                <KeyValueRow label="To pay" big value={totals.toPay ? fmtRupees(totals.toPay, "input") : "—"} />
+                <KeyValueRow label="Margin earned" value={totals.totalMargin ? fmtRupees(totals.totalMargin) : "—"} />
+                {gap && !gap.isZero() ? (
+                  <Text variant="label" weight="400" tone="secondary">
+                    {`The challan is ${fmtRupees(gap.abs(), "input")} ${gap.isNegative() ? "less" : "more"} than litres × invoice price (${fmtRupees(worked as Decimal, "input")}).`}
+                  </Text>
+                ) : null}
+              </Card>
             ) : null}
-          </Card>
-        ) : null}
+          </>
+        )}
 
         {existing && !locked ? <Button label="Remove this tanker" variant="ghost" onPress={() => setConfirmRemove(true)} /> : null}
       </ScreenBody>

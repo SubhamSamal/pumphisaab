@@ -20,7 +20,7 @@ import {
   useIsWide,
 } from "@/components/ui";
 import { reviewModel, whoSoldWhat, type ReviewModel, type ReviewTarget, type ShiftPeopleSales } from "@/features/day/model";
-import { useSetDayAnswer, useSubmitDay, type Day } from "@/features/day/queries";
+import { useSalesSetup, useSetDayAnswer, useSettlements, useSubmitDay, type Day } from "@/features/day/queries";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useWholeDay } from "@/features/day/useWholeDay";
 import { useMembership } from "@/features/session/SessionProvider";
@@ -43,12 +43,16 @@ export default function ReviewScreen() {
   const submit = useSubmitDay(me.pump.id);
   const answer = useSetDayAnswer(me.pump.id, whole.model?.day.id);
   const staff = useStaff(me.pump.id);
+  const salesSetup = useSalesSetup(me.pump.id);
+  const settlements = useSettlements(whole.model?.day.id);
   const [step, setStep] = useState<Step>(1);
   const [openedAt] = useState(() => Date.now());
 
   const m = whole.model;
   const review = m ? reviewModel(m.setup, m.day, m.result, m.sections, m.receipts, m.shifts.shifts) : null;
   const people = m ? whoSoldWhat(m.setup, m.shifts, m.day, staff.data ?? []) : [];
+  // Not settled yet (D103): shown to the owner; never part of the money check.
+  const notSettled = (settlements.data ?? []).map((x) => ({ name: salesSetup.data?.types.find((t) => t.id === x.typeId)?.name ?? "", amount: x.amount }));
 
   useEffect(() => {
     if (step === 3 && m) for (const e of m.result.hardErrors) track("hard_error_shown", { rule_code: e.code, section: "review" });
@@ -136,7 +140,7 @@ export default function ReviewScreen() {
             </Banner>
           ) : null}
           {step === 1 ? <FuelStep review={review} people={people} /> : null}
-          {step === 2 ? <MoneyStep review={review} /> : null}
+          {step === 2 ? <MoneyStep review={review} notSettled={notSettled} /> : null}
           {step === 3 ? (
             <SummaryStep
               review={review}
@@ -217,7 +221,7 @@ function WhoSoldCard({ people }: { people: ShiftPeopleSales[] }) {
   );
 }
 
-function MoneyStep({ review }: { review: ReviewModel }) {
+function MoneyStep({ review, notSettled }: { review: ReviewModel; notSettled: { name: string; amount: string }[] }) {
   return (
     <>
       <Text variant="heading">Money: should have vs received</Text>
@@ -227,7 +231,7 @@ function MoneyStep({ review }: { review: ReviewModel }) {
             <Text variant="heading">{`Shift ${s.shift}`}</Text>
             <DifferenceValue value={s.difference} unit="rupees" withinLimit={s.withinLimit} />
           </View>
-          <KeyValueRow label="Should have" value={fmtRupees(s.shouldHave)} />
+          <KeyValueRow label="Should have (by meters)" value={fmtRupees(s.shouldHave)} />
           <KeyValueRow label="Received" value={fmtRupees(s.received)} />
         </Card>
       ))}
@@ -242,6 +246,17 @@ function MoneyStep({ review }: { review: ReviewModel }) {
             <Text variant="heading">Day total</Text>
             <DifferenceValue value={review.dayTotal} unit="rupees" />
           </View>
+        </Card>
+      ) : null}
+      {notSettled.length ? (
+        <Card>
+          <Text variant="heading">Not settled yet</Text>
+          {notSettled.map((n) => (
+            <KeyValueRow key={n.name} label={n.name} value={fmtRupees(n.amount)} />
+          ))}
+          <Text variant="label" weight="400" tone="muted">
+            Not in the bank yet. Already counted in the shifts above; doesn&apos;t change the money check.
+          </Text>
         </Card>
       ) : null}
     </>

@@ -91,6 +91,8 @@ export type NumericInputProps = {
   inputRef?: React.Ref<TextInput>;
   /** Two boxes side by side (owner, 27 Sep): 18 px numbers so 14,000.00 fits half a phone screen. */
   compact?: boolean;
+  /** Just saved: a short green "Saved" tick next to the label (UI audit 1, item 6). */
+  justSaved?: boolean;
 };
 
 /**
@@ -145,6 +147,7 @@ export function NumericInput({
   onSubmitEditing,
   inputRef,
   compact,
+  justSaved,
 }: NumericInputProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
@@ -169,9 +172,17 @@ export function NumericInput({
   }
 
   const state: FieldState = error ? "error" : warning ? "warning" : "default";
+  const savedTick = justSaved ? (
+    <View className="flex-row items-center gap-[2px]" accessibilityLiveRegion="polite">
+      <Icon name="check" size="small" color="success" />
+      <Text variant="label" weight="600" tone="success">
+        Saved
+      </Text>
+    </View>
+  ) : null;
   return (
     <View className="gap-4">
-      {label ? <FieldLabel>{label}</FieldLabel> : null}
+      {label ? <FieldLabel extra={savedTick}>{label}</FieldLabel> : null}
       <FieldBox focused={focused} state={state} disabled={disabled}>
         <TextInput
           ref={inputRef}

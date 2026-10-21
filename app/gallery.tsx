@@ -35,6 +35,7 @@ import {
   NozzleGroupHeader,
   NozzleRow,
   NumericInput,
+  PartHeader,
   PriceChip,
   PriceStrip,
   ProductTag,
@@ -301,6 +302,14 @@ function GalleryContent() {
           />
         </Section>
 
+        <Section title="Numbered parts and Saved tick (Sales, Tanker)">
+          <PartHeader number={1} title="Cash" done />
+          <NumericInput label="Cash in the drawer now (notes + coins)" value="12885.60" unit="₹" justSaved />
+          <PartHeader number={2} title="Paytm, card, XtraPower, bank" />
+          <PartHeader number={3} title="Credit slips" right={<Text variant="number-inline">₹1,65,935</Text>} />
+          <NumericInput label="Not settled yet (optional)" value="" unit="₹" helper="Part of today's Paytm not in the bank yet. Doesn't change the money check." />
+        </Section>
+
         <Section title="Fuel trend chart (Dashboard)">
           <GalleryBars />
         </Section>
@@ -367,7 +376,7 @@ function GalleryContent() {
           <ProgressBar done={4} total={8} left={<StatusPill status="draft" />} save="saved" />
           <SectionCard title="Opening dip" subtitle="Done · 2 tanks" status="done" />
           <SectionCard title="Tanker" subtitle="Done · OD02CD9087" status="done" flags={1} />
-          <SectionCard title="Shift B readings" subtitle="6 of 8 nozzles" status="inProgress" />
+          <SectionCard title="Shift B readings" subtitle="6 of 8 nozzles" status="inProgress" next />
           <SectionCard title="Shift C readings" subtitle="To do · 10 PM to 6 AM" status="todo" />
           <SectionCard title="Closing dip" subtitle="1 reading outside the chart" status="inProgress" errors={1} />
           <SectionCard title="Sales" subtitle="View only" status="locked" />

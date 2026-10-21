@@ -733,3 +733,6 @@ export function whoSoldWhat(setup: DaySetup, data: ShiftData, day: Day, staff: {
   }
   return out;
 }
+
+/** Ways of payment that settle into the bank later (Paytm, PhonePe, XtraPower, cards), so "Not settled yet" applies (D103). Not bank transfers or deposits. */
+export const settlesLater = (t: { kind: string; name: string }) => t.kind === "OTHER" && !t.name.toLowerCase().includes("bank");

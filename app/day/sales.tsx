@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import { View } from "react-native";
+import { useMemo, useRef, useState } from "react";
+import { View, type TextInput } from "react-native";
 import {
   Banner,
   BottomSheet,
@@ -14,6 +14,7 @@ import {
   KeyValueRow,
   ListItem,
   NumericInput,
+  PartHeader,
   SaveIndicator,
   ScreenBody,
   ScreenHeader,
@@ -46,6 +47,7 @@ import {
   type Shift,
   type ShiftData,
 } from "@/features/day/queries";
+import { useJustSaved } from "@/features/day/useJustSaved";
 import { useSaveState } from "@/features/day/saveState";
 import { useMembership } from "@/features/session/SessionProvider";
 import { track } from "@/lib/analytics";
@@ -143,6 +145,7 @@ function SalesForm({
   const [problem, setProblem] = useState<string | null>(null);
   const [paymentSheet, setPaymentSheet] = useState<CustomerPaymentRow | "new" | null>(null);
   const onError = (e: Error) => setProblem(e.message);
+  const justSaved = useJustSaved();
 
   const cashType = salesSetup.types.find((t) => t.kind === "CASH");
   const otherTypes = salesSetup.types.filter((t) => t.kind === "OTHER");
@@ -210,7 +213,10 @@ function SalesForm({
     const value = v.kind === "ok" ? v.value : null;
     const saved = rowOf(typeId)?.amount ?? null;
     if (value === saved || (value && saved && new Decimal(value).equals(saved))) return;
-    savePayment.mutate({ shiftId: shift.id, typeId, amount: value }, { onError, onSuccess: () => track("field_autosaved", { section: "sales" }) });
+    savePayment.mutate(
+      { shiftId: shift.id, typeId, amount: value },
+      { onError, onSuccess: () => (justSaved.mark(typeId), track("field_autosaved", { section: "sales" })) },
+    );
   };
   /** Saves the cash counted as one total (in the cash row), and clears old note counts for this shift. */
   const saveCash = () => {
@@ -218,7 +224,10 @@ function SalesForm({
     if (v.kind === "bad" || !cashType) return;
     const value = v.kind === "ok" ? v.value : null;
     if (value === savedCash || (value && savedCash && new Decimal(value).equals(savedCash))) return;
-    savePayment.mutate({ shiftId: shift.id, typeId: cashType.id, coins: value }, { onError, onSuccess: () => track("field_autosaved", { section: "sales" }) });
+    savePayment.mutate(
+      { shiftId: shift.id, typeId: cashType.id, coins: value },
+      { onError, onSuccess: () => (justSaved.mark("cash"), track("field_autosaved", { section: "sales" })) },
+    );
     for (const c of data.counts.filter((x) => x.shiftId === shift.id && x.count > 0)) {
       saveCount.mutate({ shiftId: shift.id, noteId: c.noteId, count: 0, cashTypeId: cashType.id }, { onError });
     }
@@ -230,6 +239,18 @@ function SalesForm({
     if (value === shift.openingCash || (value && shift.openingCash && new Decimal(value).equals(shift.openingCash))) return;
     setOpening.mutate({ shiftId: shift.id, value }, { onError });
   };
+  // Keyboard "Next" goes cash → each payment box → done (UI audit 1, item 15).
+  const refs = useRef<(TextInput | null)[]>([]);
+  const focusAt = (i: number) => refs.current[i]?.focus();
+  const typedOk = (v: string) => readTypedNumber(v, 2).kind === "ok";
+  const salesDone = Boolean(shift.salesDoneAt);
+  const parts = {
+    cash: typedOk(cash),
+    others: otherTypes.length > 0 && otherTypes.every((t) => typedOk(others[t.id] ?? "")),
+    slips: slips.length > 0 || salesDone,
+    payments: payments.length > 0 || salesDone,
+  };
+
   const finish = () => {
     if (locked) return onDone();
     const autofilled = salesSetup.types.filter((t) => t.kind !== "CREDIT" && !rowOf(t.id)).length;
@@ -251,9 +272,17 @@ function SalesForm({
         sticky={
           <StickyActionBar
             note={
-              <Text variant="label" tone="secondary" className="text-center">
-                {shift.salesDoneAt ? "Done. You can still fix a number; it's logged." : "Done fills every empty box with ₹0."}
-              </Text>
+              money ? (
+                // The money stays in sight while typing (D105): Received and the Difference.
+                <View className="flex-row flex-wrap items-center justify-between gap-8">
+                  <Text variant="body" weight="600">{`Received ${fmtRupees(money.received)}`}</Text>
+                  <DifferenceValue value={money.difference} unit="rupees" look="inline" withinLimit={money.withinLimit && !money.difference.isZero()} />
+                </View>
+              ) : (
+                <Text variant="label" tone="secondary" className="text-center">
+                  {shift.salesDoneAt ? "Done. You can still fix a number; it's logged." : "Done fills every empty box with ₹0."}
+                </Text>
+              )
             }
           >
             <Button label={locked ? "Back" : `Done · Shift ${shift.code} sales`} loading={done.isPending} onPress={finish} />
@@ -265,7 +294,7 @@ function SalesForm({
         {problem ? <Banner tone="danger" title={problem} /> : null}
 
         <Card>
-          <Text variant="heading">Cash</Text>
+          <PartHeader number={1} title="Cash" done={parts.cash} />
           {/* Cash already in the drawer: filled from the last count; changed only if cash was taken out (D46). */}
           {changeOpening ? (
             <NumericInput
@@ -297,12 +326,18 @@ function SalesForm({
             onBlur={saveCash}
             unit="₹"
             disabled={locked}
+            justSaved={justSaved.is("cash")}
+            inputRef={(el) => {
+              refs.current[0] = el;
+            }}
+            returnKeyType={otherTypes.length ? "next" : "done"}
+            onSubmitEditing={() => focusAt(1)}
           />
         </Card>
 
         <Card>
-          <Text variant="heading">Paytm, card, XtraPower, bank</Text>
-          {otherTypes.map((t) => (
+          <PartHeader number={2} title="Paytm, card, XtraPower, bank" done={parts.others} />
+          {otherTypes.map((t, i) => (
             <NumericInput
               key={t.id}
               label={t.name}
@@ -311,15 +346,23 @@ function SalesForm({
               onBlur={() => saveOther(t.id)}
               unit="₹"
               disabled={locked}
+              justSaved={justSaved.is(t.id)}
+              inputRef={(el) => {
+                refs.current[i + 1] = el;
+              }}
+              returnKeyType={i === otherTypes.length - 1 ? "done" : "next"}
+              onSubmitEditing={() => focusAt(i + 2)}
             />
           ))}
         </Card>
 
         <Card>
-          <View className="flex-row items-center justify-between">
-            <Text variant="heading">Credit slips</Text>
-            <Text variant="number-inline">{fmtRupees(slips.reduce((s, x) => s.plus(x.rupees), new Decimal(0)))}</Text>
-          </View>
+          <PartHeader
+            number={3}
+            title="Credit slips"
+            done={parts.slips}
+            right={<Text variant="number-inline">{fmtRupees(slips.reduce((s, x) => s.plus(x.rupees), new Decimal(0)))}</Text>}
+          />
           {slips.length === 0 ? null : (
             <View>
               {slips.map((x) => (
@@ -341,7 +384,7 @@ function SalesForm({
         </Card>
 
         <Card>
-          <Text variant="heading">Payments from customers</Text>
+          <PartHeader number={4} title="Payments from customers" done={parts.payments} />
           {payments.length > 0 ? (
             <View>
               {payments.map((p) => (
@@ -355,7 +398,7 @@ function SalesForm({
               ))}
             </View>
           ) : null}
-          {!locked ? <Button label="Add payment from customer" icon="plus" size="M" variant="ghost" onPress={() => setPaymentSheet("new")} /> : null}
+          {!locked ? <Button label="Add payment from customer" icon="plus" size="M" variant="secondary" onPress={() => setPaymentSheet("new")} /> : null}
         </Card>
 
         <Card tone="summary">
@@ -365,7 +408,7 @@ function SalesForm({
           </View>
           {money ? (
             <>
-              <KeyValueRow label="Should have (meters)" value={fmtRupees(money.shouldHave, "input")} />
+              <KeyValueRow label="Should have (by meters)" value={fmtRupees(money.shouldHave, "input")} />
               {explainReceived(money).map((l) => (
                 <KeyValueRow key={l.label} label={l.label} value={l.amount} indent />
               ))}

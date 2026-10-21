@@ -122,6 +122,9 @@ export default function TodayScreen() {
     return { sections, done: sectionsDone(sections), price: priceStrip(setup.data, day.data), pendingMeter };
   }, [setup.data, day.data, tanks.data, shifts.data, tankers.data, salesSetup.data, sales.data, expenses.data, fromYesterday.data]);
 
+  // D104: the first section that's ready and not done gets the "Next" tag.
+  const nextKey = model?.sections.find((s) => s.ready && s.status !== "done")?.key;
+
   const late = isToday && setup.data && recent.data ? daysNotSubmitted(today, setup.data.firstBusinessDate, recent.data) : [];
 
   const openSection = (s: Section) => {
@@ -224,7 +227,7 @@ export default function TodayScreen() {
               <Banner
                 tone="warning"
                 icon="edit"
-                title={`${model.pendingMeter.length} meter change${model.pendingMeter.length === 1 ? "" : "s"} waiting for your approval`}
+                title={model.pendingMeter.length === 1 ? "A meter reading needs your OK" : `${model.pendingMeter.length} meter readings need your OK`}
                 action={
                   <Button
                     label={`Open Shift ${model.pendingMeter[0]}`}
@@ -317,6 +320,7 @@ export default function TodayScreen() {
                   status={s.status}
                   errors={s.errors}
                   flags={s.flags}
+                  next={!day.data.isLocked && s.key === nextKey}
                   onPress={s.ready ? () => openSection(s) : undefined}
                 />
               ))}

@@ -21,6 +21,7 @@ export { BellButton, BottomNav, ScreenHeader, SideRail, type NavItem } from "./N
 export { NoteCountRow, type NoteCountRowProps } from "./NoteCountRow";
 export { NozzleColumnHeader, NozzleGroupHeader, NozzleRow, type NozzleRowProps, type OpeningState } from "./NozzleRow";
 export { BottomSheet, Toast } from "./Overlay";
+export { PartHeader } from "./PartHeader";
 export { PriceStrip, type PriceStripItem, type PriceStripProps, type PriceStripWaiting } from "./PriceStrip";
 export { ProgressBar } from "./ProgressBar";
 export { SaveIndicator, type SaveState } from "./SaveIndicator";

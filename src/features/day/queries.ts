@@ -1174,3 +1174,43 @@ export function useSetNozzleInUse(pumpId: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: ["daySetup", pumpId] }),
   });
 }
+
+// ─── Not settled yet (D103, Phase 5a Part 3) ─────────────────────────────
+/** Per payment type, the part of the day's total not yet in the bank. Never part of the money check. */
+export type Settlement = { id: string; typeId: string; amount: string };
+
+export function useSettlements(dayId: string | undefined) {
+  return useQuery({
+    queryKey: ["settlements", dayId],
+    enabled: Boolean(dayId),
+    queryFn: async (): Promise<Settlement[]> => {
+      const { data, error } = await supabase.from("settlement_pending").select("id, payment_type_id, amount::text").eq("day_id", dayId as string);
+      // Database update 18 not pasted yet: nothing to show.
+      if (error) {
+        if (["42P01", "PGRST205", "PGRST204"].includes((error as { code?: string }).code ?? "")) return [];
+        throw error;
+      }
+      return (data as unknown as { id: string; payment_type_id: string; amount: string }[]).map((r) => ({ id: r.id, typeId: r.payment_type_id, amount: r.amount }));
+    },
+  });
+}
+
+/** Saves (or, when emptied, removes) one type's "Not settled yet" for the day. */
+export function useSaveSettlement(pumpId: string, dayId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["save", "settlement"],
+    mutationFn: async ({ typeId, amount }: { typeId: string; amount: string | null }) => {
+      if (amount === null) {
+        await check(supabase.from("settlement_pending").delete().eq("day_id", dayId as string).eq("payment_type_id", typeId));
+        return;
+      }
+      await check(
+        supabase
+          .from("settlement_pending")
+          .upsert({ pump_id: pumpId, day_id: dayId, payment_type_id: typeId, amount }, { onConflict: "day_id,payment_type_id" }),
+      );
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["settlements", dayId] }),
+  });
+}

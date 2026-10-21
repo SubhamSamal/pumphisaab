@@ -11,6 +11,7 @@ import {
   FieldHint,
   Icon,
   KeyValueRow,
+  NumericInput,
   ScreenBody,
   SegmentedControl,
   Skeleton,
@@ -18,8 +19,23 @@ import {
   Text,
 } from "@/components/ui";
 import { explainReceived } from "@/calc";
-import { customerPaymentInputs, expenseInputs, evaluate, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
-import { useDay, useDaySetup, useExpenses, useSalesData, useSalesSetup, useSaveShiftPayment, useShiftData, type PaymentType, type Shift } from "@/features/day/queries";
+import { customerPaymentInputs, expenseInputs, evaluate, settlesLater, shiftHours, shiftInputs, type SalesBundle } from "@/features/day/model";
+import {
+  useDay,
+  useDaySetup,
+  useExpenses,
+  useSalesData,
+  useSalesSetup,
+  useSaveSettlement,
+  useSaveShiftPayment,
+  useSettlements,
+  useShiftData,
+  type PaymentType,
+  type Settlement,
+  type Shift,
+} from "@/features/day/queries";
+import { useJustSaved } from "@/features/day/useJustSaved";
+import { readTypedNumber } from "@/lib/numberInput";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useMembership } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
@@ -40,6 +56,8 @@ export default function SalesScreen() {
   const sales = useSalesData(day.data?.id);
   const expenses = useExpenses(day.data?.id);
   const saveOther = useSaveShiftPayment(me.pump.id, day.data?.id);
+  const settlements = useSettlements(day.data?.id);
+  const saveSettlement = useSaveSettlement(me.pump.id, day.data?.id);
   const [view, setView] = useState<SalesView>("shift");
 
   const failed = setup.error ?? day.error ?? shifts.error ?? salesSetup.error ?? sales.error ?? expenses.error;
@@ -135,6 +153,8 @@ export default function SalesScreen() {
             bundle={bundle}
             received={received}
             locked={day.data.isLocked}
+            settlements={settlements.data ?? []}
+            onSettlement={(typeId, amount, done) => saveSettlement.mutate({ typeId, amount }, { onSuccess: done })}
             onNoneToday={(t) => {
               for (const s of list) {
                 const row = sales.data!.payments.find((p) => p.shiftId === s.id && p.typeId === t.id);
@@ -145,6 +165,7 @@ export default function SalesScreen() {
           />
         )}
         {saveOther.error ? <Banner tone="danger" title={saveOther.error.message} /> : null}
+        {saveSettlement.error ? <Banner tone="danger" title={saveSettlement.error.message} /> : null}
       </>
     );
   }
@@ -164,6 +185,8 @@ function ByType({
   bundle,
   received,
   locked,
+  settlements,
+  onSettlement,
   onNoneToday,
   onOpen,
 }: {
@@ -172,6 +195,8 @@ function ByType({
   bundle: SalesBundle;
   received: Decimal;
   locked: boolean;
+  settlements: Settlement[];
+  onSettlement: (typeId: string, amount: string | null, done: () => void) => void;
   onNoneToday: (t: PaymentType) => void;
   onOpen: (s: Shift) => void;
 }) {
@@ -215,9 +240,12 @@ function ByType({
                 perShift.map(({ s, v }) => `${s.code} ${v === null ? "—" : fmtRupees(v)}`).join(" · ")}
             </Text>
             {empty && t.kind === "OTHER" && !locked ? (
-              <Button label={`None today (₹0 in every shift)`} size="M" variant="ghost" onPress={() => onNoneToday(t)} />
+              <Button label={`None today (₹0 in every shift)`} size="M" variant="secondary" onPress={() => onNoneToday(t)} />
             ) : null}
             {empty && t.kind === "CREDIT" ? <FieldHint>No credit slips yet. Add them from a shift; Done on a shift with none counts as none.</FieldHint> : null}
+            {settlesLater(t) && !empty ? (
+              <NotSettledBox type={t} saved={settlements.find((x) => x.typeId === t.id)?.amount ?? null} locked={locked} onSave={onSettlement} />
+            ) : null}
           </Card>
         );
       })}
@@ -227,5 +255,48 @@ function ByType({
         ))}
       </View>
     </View>
+  );
+}
+
+/** "Not settled yet" for one way of payment, for the whole day (D103). Never changes the money check. */
+function NotSettledBox({
+  type,
+  saved,
+  locked,
+  onSave,
+}: {
+  type: PaymentType;
+  saved: string | null;
+  locked: boolean;
+  onSave: (typeId: string, amount: string | null, done: () => void) => void;
+}) {
+  const [value, setValue] = useState(saved ?? "");
+  const [lastSaved, setLastSaved] = useState(saved);
+  // Fill the box when the saved amount arrives or changes on another phone.
+  if (saved !== lastSaved) {
+    setLastSaved(saved);
+    setValue(saved ?? "");
+  }
+  const justSaved = useJustSaved();
+  const r = readTypedNumber(value, 2);
+  const save = () => {
+    if (r.kind === "bad") return;
+    const amount = r.kind === "ok" && !new Decimal(r.value).isZero() ? r.value : null;
+    if (amount === saved || (amount && saved && new Decimal(amount).equals(saved))) return;
+    onSave(type.id, amount, () => justSaved.mark("v"));
+  };
+  return (
+    <NumericInput
+      label="Not settled yet (optional)"
+      value={value}
+      onChangeText={setValue}
+      onBlur={save}
+      unit="₹"
+      returnKeyType="done"
+      disabled={locked}
+      helper={`Part of today's ${type.name} not in the bank yet. Doesn't change the money check.`}
+      error={r.kind === "bad" ? r.message : undefined}
+      justSaved={justSaved.is("v")}
+    />
   );
 }
