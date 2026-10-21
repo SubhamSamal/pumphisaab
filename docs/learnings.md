@@ -148,6 +148,7 @@ Full transcription: `docs/data/notebook/2026-09-15-transcription.md`. Comparison
 - **Method:** a one-off file in `supabase/fixes/` built from a transcription, totals checked in Python and then on a local copy rebuilt from the owner's 1 Oct data (read-only export query), refusing to run twice. Tankers left for the owner to type from the challans.
 
 ## 5. Product learnings (from the design walkthrough and PRD review)
+- **The owner reads trends as pictures first (21 Oct):** a day-by-day list is "raw data, not a trend". Show a chart of the whole period, then the tapped day's details, with the raw list folded away.
 - **No reasons, ever.** Asking a manager "why" slows them and reads as blame. Flags go to the owner, who calls (D3, hard rule 7).
 - **Pump words, not accounting words:** Should have / Received, Sold as per tank / Sold as per meters, Difference, Flag.
 - **Sign rule:** negative = loss (red, true minus sign), positive = excess (amber), zero = Matched (green).

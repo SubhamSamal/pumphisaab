@@ -5,7 +5,7 @@
 **Where we are today**
 - The app has been live with you and both managers since 01 Oct, beside the notebooks.
 - 01-05 Oct are checked and submitted. The managers carry on from 06 Oct.
-- **Phase 5a Part 1 is built and on PumpHisaab Preview** (your phone only). The managers' app is unchanged until you say OK.
+- **Phase 5a Part 1 is in the managers' app** (21 Oct, update 01a15e4): Price is different, Fuel prices, Fuel trend chart.
 - Filling 06-19 Oct from the notebooks is **paused** until you send the missing photos (section 4).
 
 ---
@@ -32,7 +32,7 @@ This adds the table where managers' price requests wait for you. It **only adds*
 8. **What you should see:** "Success. No rows returned" at the bottom.
    - If it says **"was already applied. Nothing was changed."**, it's already in. That's fine; go on.
    - Any other red message: don't run it again. Copy the message and send it to Claude.
-- [ ] Database update 16 pasted.
+- [x] Database update 16 pasted.
 
 ### Step 2. Get the new version on PumpHisaab Preview (2 minutes)
 1. On your Android phone, open **PumpHisaab Preview** (the one with "Preview" in its name, **not** the managers' PumpHisaab).
@@ -40,7 +40,7 @@ This adds the table where managers' price requests wait for you. It **only adds*
 3. Open it again, wait 10 seconds, and close it fully again. The first open downloads the update; the second one shows it.
 4. Open it a third time and go to **Profile**. At the bottom it should say **"update 01a1595 (over the air)"**.
    - If it still shows an older update, check the phone has internet, then close and reopen once more.
-- [ ] Preview shows update 01a1595.
+- [x] Preview shows update 01a1595 (fixes after your check: 01a15e4).
 
 ### Step 3. Profile › Fuel prices (3 minutes)
 1. In Preview, tap **Profile** (bottom bar), then **Fuel prices**.
@@ -50,7 +50,7 @@ This adds the table where managers' price requests wait for you. It **only adds*
    - Prices for later dates (if any) say **Starts later**.
 3. Tap **Add new price** at the bottom. A box opens with Diesel/Petrol, price per litre, dealer margin (filled with today's margin) and "Starts on" (today; the arrows move it to later days, never earlier).
 4. **Close the box without saving** (tap outside it or swipe it down). Only add a price when IOCL really changes it (section 3).
-- [ ] Fuel prices screen looks right.
+- [x] Fuel prices screen looks right.
 
 ### Step 4. Today: the "Price is different" button (3 minutes)
 1. Tap **Today**. Look at the price strip near the top.
@@ -59,7 +59,7 @@ This adds the table where managers' price requests wait for you. It **only adds*
 4. **Close it without sending.**
    - Preview uses the real database.
    - As owner, a price you send is used at once for today, for everyone.
-- [ ] I saw the button and the box, and closed it without sending.
+- [x] I saw the button and the box (layout straightened 21 Oct).
 
 ### Step 5. Dashboard › Fuel trend (5 minutes)
 1. Tap **Dashboard** (bottom bar).
@@ -71,7 +71,7 @@ This adds the table where managers' price requests wait for you. It **only adds*
      - "Dips not in yet" means the closing dip isn't typed yet.
 3. Check two days against the notebook's "Diff." column in the stock register. 01 Oct petrol should be about **−26.58 L** (the real short). The app's figures are a little more exact than the book (it keeps the decimals).
 4. Tap a day. Its **Review** opens. Go back with the arrow.
-- [ ] Fuel trend looks right against the notebook.
+- [x] Fuel trend redone as a bar chart with day details (21 Oct); finer graphs later.
 
 ### Step 6. Time per shift (3 minutes, only reads)
 This tells Claude how long each shift takes to fill and which part is slowest, so we can make it faster (goal: 10-15 minutes or less per shift).
@@ -86,7 +86,7 @@ This tells Claude how long each shift takes to fill and which part is slowest, s
    - "Close PumpHisaab fully and open it again, twice."
    - Then: Profile › bottom line shows a new "update …" number (Claude will tell you which).
 3. Tell them about the new button (section 3, the manager part).
-- [ ] Part 1 is on the managers' phones.
+- [x] Part 1 sent to the managers' phones (21 Oct, update 01a15e4). Each manager: close and reopen PumpHisaab twice; Profile shows "update 01a15e4".
 
 ---
 

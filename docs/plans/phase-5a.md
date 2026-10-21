@@ -34,6 +34,9 @@ Status: **Part 1 built 20 Oct** (migration 16 + app; on Preview for the owner to
 
 **Migration 18 — DATA SAFETY: ADDS ONLY.** New table `settlement_pending` (day, payment type, ₹) with standard columns, RLS and audit (D103). pgTAP tests.
 
+## Later (owner, 21 Oct)
+- Polish the fuel trend graphs (owner: "the graphs can be optimised later on").
+
 ## Moved to 5b (owner, 20 Oct)
 - **Other sales** (lubes, gas stove, cylinder refill): a per-shift "Other sales ₹" line that adds to Should have; formula change, golden cases in both places.
 - **"Sold as per sales amount"** per fuel: the owner sends the formula + one worked day.
