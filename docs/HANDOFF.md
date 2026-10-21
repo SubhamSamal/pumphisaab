@@ -9,7 +9,7 @@ Last updated: 20 Oct 2026. **This file is the one place for "where are we".** EX
 - `docs/learnings.md`: pump/notebook facts and build gotchas. Read section 6 (technical) before touching keyboard, text inputs, drafts, offline, EAS or Sentry.
 - `docs/PRD-PumpHisaab-v1.1.md`: behaviour source of truth (with decisions on top). Search the F-number (F6 Sales, F10 engine, F11 checks…).
 - `docs/design/canvas/*.dc.html` + `docs/design-tokens.json`: visual source of truth. Extract text with a small script rather than reading the HTML.
-- Planned next (not built, owner 09 Oct: build in the upcoming phases): `docs/plans/ui-audit-1.md`, `docs/plans/short-tracking.md`. Last shipped: `docs/plans/archive/pilot-fixes-1.md`. Owner's current tick-box list: `docs/plans/START-HERE-owner-checklist.md` (keep it up to date; it's the only list the owner follows). Finished plans are in `docs/plans/archive/`.
+- Planned next (not built, owner 09 Oct: build in the upcoming phases): `docs/plans/ui-audit-1.md`, `docs/plans/short-tracking.md`. Last shipped: `docs/plans/archive/pilot-fixes-1.md`. Owner's current tick-box list: `docs/plans/START-HERE-owner-checklist.md` (owner, 21 Oct: only the current step, short and to the point; keep everything else here in HANDOFF). Finished plans are in `docs/plans/archive/`.
 
 ## 2. Where we are
 | Phase | Status |
@@ -28,7 +28,8 @@ Last updated: 20 Oct 2026. **This file is the one place for "where are we".** EX
 4. **Phase 5a plan written** (`docs/plans/phase-5a.md`, D112-D115): 3 parts, over the air. **Part 1 built 20 Oct:** migration 16 `20261020120000_price_requests.sql` (written, **owner to paste**), "Price is different" → owner approves (D119-D120), Profile › Fuel prices, Dashboard › Fuel trend, read-only `supabase/fixes/2026-10-20-read-time-per-shift.sql`. Owner checked; fixes (straight price strip, trend as a bar chart with day details) and **production 21 Oct (update 01a15e4d)**. Graphs to be polished later (owner). Still in Part 1: golden cases from 02-05 Oct. **Part 2 built 21 Oct:** migration 17 `20261021120000_nozzle_checks_and_attendants.sql` (**owner to paste**): 5 L measure (S10, `v_nozzle_checks`, golden case day-26), who on each nozzle (`nozzle_attendants`), Review "Who sold what", Dashboard nozzle checks, Profile "Check for update" (D122-D123). On Preview. Then Part 3 (migration 18). Golden cases from 02-05 Oct still to add. Then 5b (owner loop + push, one reinstall).
    - **Fill 06-19 Oct from the notebooks: paused** (owner, 20 Oct) until the owner sends the missing photos (`docs/plans/fill-6-to-19-oct.md`, read-only check ready).
 5. **Phase 6:** settings screens (limits incl. expense caps, payment and expense types, shift times, companies), Dashboard (today, 30-day calendar, flags), PostHog. Prices + fuel trend moved to 5a; tanks/chart upload to v2.
-6. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later). Re-run `restore-test.yml` monthly (next ~09 Nov).
+6. **Waiting on the owner (the manual now shows only the current step, owner 21 Oct):** photos for the 06-19 Oct fill (list in `docs/plans/fill-6-to-19-oct.md`) and its 7 answers; 16 Oct Lingaraj slips 5650-5664 check; the time-per-shift query result (`supabase/fixes/2026-10-20-read-time-per-shift.sql`); the "Sold as per sales amount" formula; shift boys' phone models/Android versions; English/Odia/Hindi; whether the managers should catch up 16-21 Oct in the app.
+7. Owner to confirm D78 (what the offline outbox covers). Odia/Hindi labels: ask the managers (later). Re-run `restore-test.yml` monthly (next ~09 Nov).
 The owner's live list: `docs/plans/START-HERE-owner-checklist.md`.
 
 ## 3. Map of the code
