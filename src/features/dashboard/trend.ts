@@ -87,3 +87,33 @@ function monthName(yyyyMm: string): string {
   const [y, m] = yyyyMm.split("-");
   return `${MONTHS[Number(m) - 1]} ${y}`;
 }
+
+// ─── Bars for the chart (owner, 21 Oct: a picture of the trend, details on tap) ──────────
+/** loss = red, excess = amber, matched = green (sign rule); notSubmitted = grey; empty = no bar. */
+export type BarTone = "loss" | "excess" | "matched" | "notSubmitted" | "empty";
+export type TrendBar = { date: string; dayId: string | null; submitted: boolean; cell: TrendCell | null; tone: BarTone };
+
+/** One bar per business day of the window, oldest first (left) to today (right), for one fuel. */
+export function trendBars(trend: Trend, product: Product, today: string): TrendBar[] {
+  const out: TrendBar[] = [];
+  for (let i = TREND_DAYS - 1; i >= 0; i--) {
+    const date = addDays(today, -i);
+    const row = trend.rows.find((r) => r.date === date);
+    const cell = row?.cells.find((c) => c.product === product) ?? null;
+    let tone: BarTone = "empty";
+    if (row && cell && cell.difference !== null) {
+      const d = toDecimal(cell.difference);
+      if (!row.submitted) tone = "notSubmitted";
+      else if (cell.withinLimit || d.isZero()) tone = "matched";
+      else tone = d.isNegative() ? "loss" : "excess";
+    }
+    out.push({ date, dayId: row?.dayId ?? null, submitted: row?.submitted ?? false, cell, tone });
+  }
+  return out;
+}
+
+/** The day to show under the chart at first: the newest day that has a Difference. */
+export function latestWithDifference(bars: TrendBar[]): string | null {
+  for (let i = bars.length - 1; i >= 0; i--) if (bars[i].tone !== "empty") return bars[i].date;
+  return null;
+}

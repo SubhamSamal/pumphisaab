@@ -7,6 +7,7 @@ export { CalendarCell, CalendarLegend, type DayResult } from "./CalendarCell";
 export { Card, Divider, KeyValueRow } from "./Card";
 export { Chip, ChipGroup, SegmentedControl, Switch, ToggleRow } from "./Choice";
 export { DateStepper, type DateStepperProps } from "./DateStepper";
+export { DifferenceBars, type DifferenceBar, type DifferenceBarTone } from "./DifferenceBars";
 export { DifferenceValue, type DifferenceValueProps } from "./DifferenceValue";
 export { DipInput, type DipInputProps } from "./DipInput";
 export { AutoValueRow, FieldError, FieldHint, FieldLabel, NumericInput, TextField, type NumericInputProps, type TextFieldProps } from "./Field";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTrend, trendFrom, type TrendDay, type TrendMatch } from "./trend";
+import { buildTrend, latestWithDifference, trendBars, trendFrom, type TrendDay, type TrendMatch } from "./trend";
 
 const price = { HSD: "101.74", MS: "110.07" };
 const days: TrendDay[] = [
@@ -60,5 +60,33 @@ describe("fuel trend (D109)", () => {
 
   it("nothing submitted this month: no month total", () => {
     expect(buildTrend(days, matches, "2026-11-01").month).toEqual([]);
+  });
+});
+
+describe("trend bars (chart)", () => {
+  const t = buildTrend(days, matches, "2026-10-03");
+  const bars = trendBars(t, "MS", "2026-10-03");
+
+  it("one bar per day of the 30-day window, oldest on the left, today on the right", () => {
+    expect(bars).toHaveLength(30);
+    expect(bars[0].date).toBe("2026-09-04");
+    expect(bars[29].date).toBe("2026-10-03");
+  });
+
+  it("colours follow the sign rule; not submitted is grey; no dips or no day = no bar", () => {
+    const tone = (date: string) => bars.find((b) => b.date === date)?.tone;
+    expect(tone("2026-10-01")).toBe("loss"); // −26.58 L
+    expect(tone("2026-10-02")).toBe("excess"); // +1 L, beyond the limit
+    expect(tone("2026-10-03")).toBe("empty"); // dips not in yet
+    expect(tone("2026-09-29")).toBe("empty"); // no day at all
+    const withinLimit = trendBars(buildTrend(days, [{ ...matches[0], withinLimit: true }], "2026-10-03"), "MS", "2026-10-03");
+    expect(withinLimit.find((b) => b.date === "2026-10-01")?.tone).toBe("matched");
+    const draft = trendBars(buildTrend([{ ...days[0], status: "DRAFT" }], [matches[0]], "2026-10-03"), "MS", "2026-10-03");
+    expect(draft.find((b) => b.date === "2026-10-01")?.tone).toBe("notSubmitted");
+  });
+
+  it("starts on the newest day that has a Difference", () => {
+    expect(latestWithDifference(bars)).toBe("2026-10-02");
+    expect(latestWithDifference(trendBars(buildTrend([], [], "2026-10-03"), "MS", "2026-10-03"))).toBeNull();
   });
 });

@@ -127,8 +127,10 @@ export function PriceStrip({ items, state, note, onConfirm, onDifferent, loading
             </Text>
           </View>
         ))}
-        <Button label="Confirm new price" size="M" onPress={onConfirm} loading={loading} disabled={disabled} />
-        {onDifferent ? <Button label="Price is different" size="M" variant="secondary" onPress={onDifferent} disabled={loading} /> : null}
+        <View className="flex-row flex-wrap gap-8">
+          <Button label="Confirm new price" size="M" icon="check" onPress={onConfirm} loading={loading} disabled={disabled} />
+          {onDifferent ? <Button label="Price is different" size="M" variant="secondary" onPress={onDifferent} disabled={loading} /> : null}
+        </View>
       </View>
     );
   }
@@ -145,15 +147,16 @@ export function PriceStrip({ items, state, note, onConfirm, onDifferent, loading
           </Text>
         ) : null}
       </View>
-      <View className="flex-row items-center gap-8">
-        <View className="min-w-0 flex-1 flex-row flex-wrap gap-8">
-          {items.map((i) => (
-            <PriceChip key={i.product} product={i.product} price={i.price} />
-          ))}
-        </View>
-        <Button label="Confirm" size="M" onPress={onConfirm} loading={loading} disabled={disabled} />
+      <View className="flex-row flex-wrap gap-8">
+        {items.map((i) => (
+          <PriceChip key={i.product} product={i.product} price={i.price} />
+        ))}
       </View>
-      {onDifferent ? <Button label="Price is different" size="M" variant="secondary" onPress={onDifferent} disabled={loading} /> : null}
+      {/* Chips on one line, both buttons on the next (owner, 21 Oct: the old layout looked crooked). */}
+      <View className="flex-row flex-wrap gap-8">
+        <Button label="Confirm" size="M" icon="check" onPress={onConfirm} loading={loading} disabled={disabled} />
+        {onDifferent ? <Button label="Price is different" size="M" variant="secondary" onPress={onDifferent} disabled={loading} /> : null}
+      </View>
     </View>
   );
 }

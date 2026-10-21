@@ -17,6 +17,8 @@ import {
   Chip,
   ChipGroup,
   DateStepper,
+  DifferenceBars,
+  type DifferenceBar,
   DifferenceValue,
   DipInput,
   Divider,
@@ -298,6 +300,10 @@ function GalleryContent() {
           />
         </Section>
 
+        <Section title="Fuel trend chart (Dashboard)">
+          <GalleryBars />
+        </Section>
+
         <Section title="Fuel trend day (Dashboard)">
           <TrendDayRow
             row={{
@@ -482,4 +488,17 @@ function GalleryContent() {
       </BottomSheet>
     </>
   );
+}
+
+/** 30 sample days for the fuel trend chart: shorts, an excess, within-limit days, not submitted, gaps. */
+function GalleryBars() {
+  const values = ["-12.4", "-8", null, "-26.58", "3.2", "-1", "-0.5", null, null, "-15", "-9.8", "4", "-2", "-18", "-11", "0", "-6", "-30.1", null, "-7", "-3", "1.5", "-22", "-14", "-9", "-5", "-12", null, "-4", "-10"];
+  const bars: DifferenceBar[] = values.map((v, i) => ({
+    key: String(i),
+    value: v,
+    tone: v === null ? "empty" : i >= 27 ? "muted" : Math.abs(Number(v)) <= 1 ? "matched" : v.startsWith("-") ? "loss" : "excess",
+    label: `Day ${i + 1}`,
+  }));
+  const [picked, setPicked] = useState<string | null>("17");
+  return <DifferenceBars bars={bars} selectedKey={picked} onSelect={setPicked} startLabel="22 Sep" endLabel="Today" topLabel="+31 L" bottomLabel="−31 L" />;
 }
