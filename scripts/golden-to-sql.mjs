@@ -188,7 +188,7 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
       }
       for (const t of sh.tests) {
         lines.push(
-          `insert into public.nozzle_tests (pump_id, day_id, shift_id, nozzle_id, litres) values (${pump}, ${day}, ${shiftRef(day, sh.code)}, ${nozzle(t.nozzleId)}, ${t.litres});`,
+          `insert into public.nozzle_tests (pump_id, day_id, shift_id, nozzle_id, litres, measured_l) values (${pump}, ${day}, ${shiftRef(day, sh.code)}, ${nozzle(t.nozzleId)}, ${t.litres}, ${t.measuredLitres ?? "null"});`,
         );
       }
     }
@@ -428,6 +428,18 @@ insert into public.dip_chart_rows (pump_id, chart_id, dip_cm, volume_l)
     // Matched, as submit_day stores it: only for days with nothing that blocks (submit refuses those).
     if (c.expected.isMatched !== undefined && !(c.expected.hardErrors ?? []).length && c.kind === "day" && !twoDecimalDips) {
       tests.push(`select is(public.day_is_matched(${day}), ${c.expected.isMatched}, ${sqlText(`${c.file}: matched = ${c.expected.isMatched}`)});`);
+    }
+
+    // Nozzle checks (D110, S10) through v_nozzle_checks.
+    for (const k of c.expected.nozzleChecks ?? []) {
+      const from = `public.v_nozzle_checks where day_id = ${day} and nozzle_id = ${nozzle(k.nozzleId)} and meter_l = ${k.meterLitres} and measured_l = ${k.measuredLitres}`;
+      tests.push(`select is((select round(error_l, 2) from ${from}), ${k.error}::numeric, ${sqlText(`${c.file}: ${k.nozzleId} ${k.measuredLitres} L for ${k.meterLitres} L, error ${k.error} L`)});`);
+      tests.push(`select is((select round(error_pct, 2) from ${from}), ${k.errorPercent}::numeric, ${sqlText(`${c.file}: ${k.nozzleId} error ${k.errorPercent}%`)});`);
+      tests.push(`select is((select not s10_flag from ${from}), ${k.withinLimit}, ${sqlText(`${c.file}: ${k.nozzleId} within the measure limit = ${k.withinLimit}`)});`);
+    }
+    if (c.expected.flags) {
+      const want = c.expected.flags.filter((f) => f === "S10").length;
+      tests.push(`select is((select count(*)::int from public.v_nozzle_checks where day_id = ${day} and s10_flag), ${want}, ${sqlText(`${c.file}: nozzle measure flags (S10) = ${want}`)});`);
     }
 
     if (c.expected.flags) {

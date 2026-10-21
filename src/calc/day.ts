@@ -18,6 +18,7 @@ import {
   checkExpenseCaps,
   checkMeterReadings,
   checkNoNegatives,
+  checkNozzleMeasures,
   checkNozzleDaySales,
   checkOpeningStock,
   checkPrices,
@@ -27,6 +28,7 @@ import {
   checkStock,
   checkTanker,
   checkTests,
+  nozzleChecks,
   typedValues,
 } from "./checks";
 import { checkChart, type CheckedChart } from "./dipChart";
@@ -71,6 +73,10 @@ export function evaluateDay(day: DayInput, rules: Rules = DEFAULT_RULES): DayRes
     .map((shift, i) => shiftMoney(shift, litresPerShift[i], prices, day.expenses, day.customerPayments, rules))
     .filter((s): s is ShiftMoneyResult => s !== null);
 
+  // Nozzle checks (D110): every test with a measure.
+  const checks = nozzleChecks(day.shifts, rules);
+  const nozzleLabels = new Map(day.shifts.flatMap((s) => s.nozzles.map((n) => [n.nozzleId, n.label] as const)));
+
   // 4. Checks.
   const fuelsInUse = FUELS.filter((f) => day.tanks.some((t) => t.product === f));
   const hardErrors: Issue[] = [
@@ -91,6 +97,7 @@ export function evaluateDay(day: DayInput, rules: Rules = DEFAULT_RULES): DayRes
     ...checkNozzleDaySales(day.shifts, day.nozzleHistory, rules), // S4
     ...day.tankers.flatMap((t, i) => checkTanker(t, tankers[i], rules)), // S6
     ...checkExpenseCaps(day.expenses, rules), // S9
+    ...checkNozzleMeasures(checks, nozzleLabels), // S10
   ];
 
   // 5. Matched: every fuel and every shift worked out and within limits, and no hard errors.
@@ -103,5 +110,5 @@ export function evaluateDay(day: DayInput, rules: Rules = DEFAULT_RULES): DayRes
     products.every((p) => p.withinLimit) &&
     shifts.every((s) => s.withinLimit);
 
-  return { prices, products, shifts, tankers, hardErrors, flags, isMatched };
+  return { prices, products, shifts, tankers, nozzleChecks: checks, hardErrors, flags, isMatched };
 }

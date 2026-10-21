@@ -1,0 +1,136 @@
+{
+  "kind": "day",
+  "source": "Decision D110 (owner, 09 Oct 2026)",
+  "description": "S10: MS-A's 5 L test measured 5.25 L (+0.25 L, +5.00%) is beyond the 0.5% limit; MS-B's 4.98 L (−0.40%) and 10.05 L for 10 L (exactly +0.50%) are within it. Tests still take the meter's litres off the sale, so the day is Matched; S10 is a flag only.",
+  "input": {
+    "businessDate": "2026-10-01",
+    "priceConfirmed": true,
+    "prices": [
+      {
+        "product": "MS",
+        "perLitre": "101.00",
+        "startsOn": "2026-09-01"
+      },
+      {
+        "product": "HSD",
+        "perLitre": "90.00",
+        "startsOn": "2026-09-01"
+      }
+    ],
+    "tanks": [
+      {
+        "id": "MS-1",
+        "label": "MS-1",
+        "product": "MS",
+        "chart": "linear-100"
+      }
+    ],
+    "tankDays": [
+      {
+        "tankId": "MS-1",
+        "openingDipCm": "100.00",
+        "closingDipCm": "98.00"
+      }
+    ],
+    "tankers": [],
+    "shifts": [
+      {
+        "code": "A",
+        "nozzles": [
+          {
+            "nozzleId": "MS-A",
+            "label": "MS-A",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "1000.00",
+            "closing": "1110.00"
+          },
+          {
+            "nozzleId": "MS-B",
+            "label": "MS-B",
+            "product": "MS",
+            "tankId": "MS-1",
+            "inUse": true,
+            "opening": "2000.00",
+            "closing": "2110.00"
+          }
+        ],
+        "tests": [
+          {
+            "nozzleId": "MS-A",
+            "litres": "5",
+            "measuredLitres": "5.25"
+          },
+          {
+            "nozzleId": "MS-B",
+            "litres": "5",
+            "measuredLitres": "4.98"
+          },
+          {
+            "nozzleId": "MS-B",
+            "litres": "10",
+            "measuredLitres": "10.05"
+          }
+        ],
+        "openingCash": "0",
+        "otherPayments": [],
+        "creditSlips": [],
+        "cash": {
+          "total": "20200"
+        }
+      }
+    ],
+    "expenses": [],
+    "customerPayments": []
+  },
+  "expected": {
+    "products": {
+      "MS": {
+        "soldAsPerTank": "200.00",
+        "testLitres": "20.00",
+        "soldAsPerMeters": "200.00",
+        "difference": "0.00",
+        "withinLimit": true
+      }
+    },
+    "shifts": {
+      "A": {
+        "shouldHave": "20200.00",
+        "received": "20200.00",
+        "difference": "0.00"
+      }
+    },
+    "nozzleChecks": [
+      {
+        "nozzleId": "MS-A",
+        "meterLitres": "5.00",
+        "measuredLitres": "5.25",
+        "error": "0.25",
+        "errorPercent": "5.00",
+        "withinLimit": false
+      },
+      {
+        "nozzleId": "MS-B",
+        "meterLitres": "5.00",
+        "measuredLitres": "4.98",
+        "error": "-0.02",
+        "errorPercent": "-0.40",
+        "withinLimit": true
+      },
+      {
+        "nozzleId": "MS-B",
+        "meterLitres": "10.00",
+        "measuredLitres": "10.05",
+        "error": "0.05",
+        "errorPercent": "0.50",
+        "withinLimit": true
+      }
+    ],
+    "hardErrors": [],
+    "flags": [
+      "S10"
+    ],
+    "isMatched": true
+  }
+}

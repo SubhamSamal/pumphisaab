@@ -83,7 +83,13 @@ export type NozzleReading = {
   meterChangeApproved?: boolean;
 };
 
-export type TestPour = { nozzleId: string; litres: Num };
+export type TestPour = {
+  nozzleId: string;
+  /** What the meter showed for the test (taken off the sale). */
+  litres: Num;
+  /** "The 5 L measure got" (D110): what was really in the can. Optional; empty = not checked. */
+  measuredLitres?: Num;
+};
 
 /** Cash counted in the drawer at the end of the shift. */
 export type CashCount =
@@ -238,11 +244,26 @@ export type TankerResult = {
   totalMargin: Decimal | null;
 };
 
+/** A test with a measure (D110): how far off the nozzle is. Same as the database's v_nozzle_checks. */
+export type NozzleCheck = {
+  shift: ShiftCode;
+  nozzleId: string;
+  meterLitres: Decimal;
+  measuredLitres: Decimal;
+  /** Measure − meter. Positive = the nozzle gives more than it counts (a loss for the pump). */
+  error: Decimal;
+  /** Error as % of the meter. */
+  errorPercent: Decimal;
+  withinLimit: boolean;
+};
+
 export type DayResult = {
   prices: Partial<Record<Product, Decimal>>;
   products: ProductResult[];
   shifts: ShiftMoneyResult[];
   tankers: TankerResult[];
+  /** Every test with a measure (D110). */
+  nozzleChecks: NozzleCheck[];
   hardErrors: Issue[];
   flags: Issue[];
   /** Every fuel and every shift within the limits, and no hard errors. */

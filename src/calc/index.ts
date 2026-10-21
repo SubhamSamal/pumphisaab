@@ -2,6 +2,7 @@
 // Start with rules.ts (every limit) and day.ts (one whole day).
 export { checkChart, dipToLitres, type CheckedChart, type ChartProblem } from "./dipChart";
 export { slipAmounts } from "./credit";
+export { measureCheck } from "./checks";
 export { evaluateDay } from "./day";
 export { explainReceived, explainSoldAsPerMeters, explainSoldAsPerTank } from "./explain";
 export { nozzleSale, shiftLitres, missingReadings } from "./meters";

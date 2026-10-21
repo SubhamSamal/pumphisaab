@@ -26,7 +26,7 @@ import {
   ToggleRow,
   useIsWide,
 } from "@/components/ui";
-import { shiftLitres, type Product } from "@/calc";
+import { measureCheck, shiftLitres, type Product } from "@/calc";
 import { evaluate, inUseNozzles, lineKey, openingKey, openingOf, shiftHours, shiftInputs, shiftProgress, type TypedClosings } from "@/features/day/model";
 import {
   useApproveMeterChange,
@@ -37,10 +37,12 @@ import {
   useSaveNozzleReading,
   useSaveTest,
   useSetAttendant,
+  useSetNozzlePerson,
   useShiftData,
   type Day,
   type DaySetup,
   type NozzleLine,
+  type NozzlePerson,
   type SetupNozzle,
   type Shift,
   type ShiftData,
@@ -51,7 +53,7 @@ import { useMembership } from "@/features/session/SessionProvider";
 import { useStaff, type StaffMember } from "@/features/setup/queries";
 import { track } from "@/lib/analytics";
 import { Decimal } from "@/lib/decimal";
-import { fmtClock, fmtDate, fmtLitres, fmtMeter, fmtRupees, istDate } from "@/lib/format";
+import { fmtClock, fmtDate, fmtDifference, fmtLitres, fmtMeter, fmtRupees, istDate } from "@/lib/format";
 import { readTypedNumber } from "@/lib/numberInput";
 import { newId } from "@/lib/uuid";
 
@@ -387,6 +389,16 @@ function ShiftForm({
           );
         })}
 
+        <NozzlePeopleCard
+          pumpId={pumpId}
+          setup={setup}
+          day={day}
+          shift={shift}
+          ticked={staff.filter((s) => people.some((p) => p.staffId === s.id))}
+          picks={(data.nozzlePeople ?? []).filter((p) => p.shiftId === shift.id)}
+          locked={locked}
+        />
+
         <TestingCard pumpId={pumpId} setup={setup} day={day} shift={shift} tests={data.tests.filter((t) => t.shiftId === shift.id)} issues={issues} locked={locked} />
 
         {progress.typedCount === progress.total && progress.total > 0 ? (
@@ -553,6 +565,7 @@ function TestingCard({
   const deleteTest = useDeleteTest(day.id);
   const nozzles = inUseNozzles(setup);
   const [litres, setLitres] = useState<Record<string, string>>({});
+  const [measured, setMeasured] = useState<Record<string, string>>({});
   const defaultLitres = setup.rules.testing.defaultLitres;
   const problem = (saveTest.error ?? deleteTest.error)?.message;
 
@@ -568,6 +581,9 @@ function TestingCard({
   return (
     <Card>
       <ToggleRow label="Testing done this shift?" helper="5 L measure check" value={tests.length > 0} onChange={locked ? () => {} : toggle} />
+      {tests.length > 0 ? (
+        <FieldHint>Pour the test into the 5 L measure and type what it got. It shows if a nozzle gives more or less than its meter.</FieldHint>
+      ) : null}
       {tests.map((t) => {
         const typed = litres[t.id] ?? t.litres;
         const r = readTypedNumber(typed, 2);
@@ -576,6 +592,18 @@ function TestingCard({
           if (r.kind !== "ok" || new Decimal(r.value).isZero() || new Decimal(r.value).equals(t.litres)) return;
           saveTest.mutate({ id: t.id, shiftId: shift.id, nozzleId: t.nozzleId, litres: r.value });
         };
+        // "The 5 L measure got" (D110): optional; empty = not checked.
+        const typedMeasure = measured[t.id] ?? t.measured ?? "";
+        const m = readTypedNumber(typedMeasure, 2);
+        const saveMeasure = () => {
+          if (m.kind === "bad") return;
+          const value = m.kind === "ok" ? m.value : null;
+          const saved = t.measured ?? null;
+          if (value === saved || (value && saved && new Decimal(value).equals(saved))) return;
+          saveTest.mutate({ id: t.id, shiftId: shift.id, nozzleId: t.nozzleId, litres: t.litres, measured: value });
+        };
+        const label = nozzles.find((n) => n.id === t.nozzleId)?.label ?? "This nozzle";
+        const check = m.kind === "ok" && r.kind === "ok" ? measureCheck(r.value, m.value, setup.rules) : null;
         return (
           <View key={t.id} className="gap-8 border-t border-border pt-12">
             <SelectField
@@ -596,6 +624,29 @@ function TestingCard({
               error={r.kind === "bad" ? r.message : r.kind === "empty" || (r.kind === "ok" && new Decimal(r.value).isZero()) ? "Type the litres tested." : undefined}
             />
             {h8 ? <FieldError message={h8.message} /> : null}
+            <NumericInput
+              label="The 5 L measure got (optional)"
+              value={typedMeasure}
+              onChangeText={(v) => setMeasured((c) => ({ ...c, [t.id]: v }))}
+              onBlur={saveMeasure}
+              unit="L"
+              placeholder="Litres in the can"
+              returnKeyType="done"
+              disabled={locked}
+              error={m.kind === "bad" ? m.message : undefined}
+              warning={check ? !check.withinLimit : false}
+            />
+            {check ? (
+              check.withinLimit ? (
+                <FieldHint>{`${label} measure OK: ${check.error.isZero() ? "same as the meter" : fmtDifference(check.error, "litres").text} (${check.errorPercent.toFixed(2)}%).`}</FieldHint>
+              ) : (
+                <Text variant="label" weight="600" tone={check.error.isPositive() ? "danger" : "warning"}>
+                  {check.error.isPositive()
+                    ? `${label} gives ${fmtLitres(check.error)} more than the meter shows (${check.errorPercent.abs().toFixed(2)}%). The owner will see this.`
+                    : `${label} gives ${fmtLitres(check.error.abs())} less than the meter shows (${check.errorPercent.abs().toFixed(2)}%): customers get less. The owner will see this.`}
+                </Text>
+              )
+            ) : null}
             {!locked ? (
               <Pressable onPress={() => deleteTest.mutate(t.id)} accessibilityRole="button" className="self-start py-8">
                 <Text variant="body" weight="600" tone="danger">
@@ -613,6 +664,85 @@ function TestingCard({
         </Text>
       ) : null}
       {problem ? <Banner tone="danger" title={problem} /> : null}
+    </Card>
+  );
+}
+
+const NOBODY = "nobody";
+
+/**
+ * Who was on each nozzle this shift (D115, D121): one tap per nozzle, from the people ticked above.
+ * Optional; it lets the owner see which nozzle or person a short comes from.
+ */
+function NozzlePeopleCard({
+  pumpId,
+  setup,
+  day,
+  shift,
+  ticked,
+  picks,
+  locked,
+}: {
+  pumpId: string;
+  setup: DaySetup;
+  day: Day;
+  shift: Shift;
+  ticked: StaffMember[];
+  picks: NozzlePerson[];
+  locked: boolean;
+}) {
+  const setPerson = useSetNozzlePerson(pumpId, day.id);
+  const nozzles = FUELS.flatMap((f) => inUseNozzles(setup).filter((n) => n.product === f));
+  // The pick shows at once; the save runs behind it.
+  const [shown, setShown] = useState<Record<string, string>>({});
+  const pickOf = (nozzleId: string) => shown[nozzleId] ?? picks.find((p) => p.nozzleId === nozzleId)?.staffId ?? NOBODY;
+
+  const pick = (nozzleId: string, staffId: string) => {
+    const before = pickOf(nozzleId);
+    if (before === staffId) return;
+    setShown((c) => ({ ...c, [nozzleId]: staffId }));
+    setPerson.mutate(
+      { shiftId: shift.id, nozzleId, staffId: staffId === NOBODY ? null : staffId },
+      {
+        onSuccess: () => track("field_autosaved", { section: `shift${shift.code}`, field: "nozzle_person" }),
+        onError: () => setShown((c) => ({ ...c, [nozzleId]: before })),
+      },
+    );
+  };
+
+  const options = [...ticked.map((s) => ({ value: s.id, label: s.name })), { value: NOBODY, label: "Nobody picked" }];
+  const onlyOne = ticked.length === 1 ? ticked[0] : null;
+  const allSet = onlyOne ? nozzles.every((n) => pickOf(n.id) === onlyOne.id) : true;
+
+  return (
+    <Card>
+      <View className="gap-4">
+        <Text variant="heading">Who was on each nozzle</Text>
+        <Text variant="label" weight="400" tone="secondary">
+          Optional. Helps find which nozzle or person a short comes from.
+        </Text>
+      </View>
+      {ticked.length === 0 ? (
+        <FieldHint>Tick who worked this shift (above) first.</FieldHint>
+      ) : (
+        <>
+          {onlyOne && !allSet && !locked ? (
+            <Button label={`Put ${onlyOne.name} on all nozzles`} size="M" variant="secondary" onPress={() => nozzles.forEach((n) => pick(n.id, onlyOne.id))} />
+          ) : null}
+          {nozzles.map((n) => (
+            <SelectField
+              key={n.id}
+              label={n.label}
+              title={`Who was on ${n.label}?`}
+              value={pickOf(n.id)}
+              options={options}
+              disabled={locked}
+              onChange={(v) => pick(n.id, v)}
+            />
+          ))}
+        </>
+      )}
+      {setPerson.error ? <Banner tone="danger" title={setPerson.error.message} /> : null}
     </Card>
   );
 }

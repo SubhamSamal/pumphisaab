@@ -227,7 +227,9 @@ export function shiftInputs(setup: DaySetup, data: ShiftData, typed: TypedClosin
         ...(line?.meterChange === "APPROVED" ? { meterChangeApproved: true } : {}),
       };
     }),
-    tests: data.tests.filter((t) => t.shiftId === shift.id).map((t) => ({ nozzleId: t.nozzleId, litres: t.litres })),
+    tests: data.tests
+      .filter((t) => t.shiftId === shift.id)
+      .map((t) => ({ nozzleId: t.nozzleId, litres: t.litres, ...(t.measured ? { measuredLitres: t.measured } : {}) })),
     ...(sales ? shiftMoneyInput(shift, sales) : { openingCash: "0", otherPayments: [], creditSlips: [] }),
   }));
 }
@@ -694,4 +696,40 @@ export function reviewCard(day: Day, sectionsDoneCount: number): { subtitle: str
   if (!day.priceConfirmed) return { subtitle: "Confirm the price first", status: "todo" };
   if (sectionsDoneCount < 8) return { subtitle: `Finish ${8 - sectionsDoneCount} more section${8 - sectionsDoneCount === 1 ? "" : "s"} first`, status: "todo" };
   return { subtitle: "Ready: check the summary and submit", status: "inProgress" };
+}
+
+// ─── Who sold what (D115) ─────────────────────────────────────────────────
+export type PersonSale = { staffId: string | null; name: string; litres: Partial<Record<Product, Decimal>>; rupees: Decimal | null };
+export type ShiftPeopleSales = { shift: string; people: PersonSale[] };
+
+/**
+ * Per shift, the litres each person's nozzles sold (closing − opening − testing on that nozzle) and
+ * about ₹ at the confirmed price. Only shifts where someone was picked on a nozzle; nozzles nobody
+ * was picked on add up under "Nobody picked". Readings not in yet are left out.
+ */
+export function whoSoldWhat(setup: DaySetup, data: ShiftData, day: Day, staff: { id: string; name: string }[]): ShiftPeopleSales[] {
+  const out: ShiftPeopleSales[] = [];
+  for (const shift of data.shifts) {
+    const picks = (data.nozzlePeople ?? []).filter((p) => p.shiftId === shift.id);
+    if (picks.length === 0) continue;
+    const byPerson = new Map<string, PersonSale>();
+    for (const n of inUseNozzles(setup)) {
+      const line = data.lines.find((l) => l.shiftId === shift.id && l.nozzleId === n.id);
+      const opening = openingOf(line);
+      if (!line?.closing || !opening) continue;
+      const tested = data.tests.filter((t) => t.shiftId === shift.id && t.nozzleId === n.id).reduce((s, t) => s.plus(t.litres), new Decimal(0));
+      const sold = toDecimal(line.closing).minus(opening).minus(tested);
+      // One person per nozzle for now (D121 allows more later, with handover readings).
+      const staffId = picks.find((p) => p.nozzleId === n.id)?.staffId ?? null;
+      const key = staffId ?? "";
+      const person = byPerson.get(key) ?? { staffId, name: staffId ? (staff.find((s) => s.id === staffId)?.name ?? "Someone") : "Nobody picked", litres: {}, rupees: null };
+      person.litres[n.product] = (person.litres[n.product] ?? new Decimal(0)).plus(sold);
+      const price = day.priceConfirmed ? day.confirmed[n.product] : undefined;
+      if (price) person.rupees = (person.rupees ?? new Decimal(0)).plus(sold.times(price));
+      byPerson.set(key, person);
+    }
+    const people = [...byPerson.values()].sort((a, b) => (a.staffId === null ? 1 : b.staffId === null ? -1 : a.name.localeCompare(b.name)));
+    if (people.length) out.push({ shift: shift.code, people });
+  }
+  return out;
 }

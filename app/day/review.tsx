@@ -19,11 +19,12 @@ import {
   Text,
   useIsWide,
 } from "@/components/ui";
-import { reviewModel, type ReviewModel, type ReviewTarget } from "@/features/day/model";
+import { reviewModel, whoSoldWhat, type ReviewModel, type ReviewTarget, type ShiftPeopleSales } from "@/features/day/model";
 import { useSetDayAnswer, useSubmitDay, type Day } from "@/features/day/queries";
 import { useSelectedDay } from "@/features/day/SelectedDay";
 import { useWholeDay } from "@/features/day/useWholeDay";
 import { useMembership } from "@/features/session/SessionProvider";
+import { useStaff } from "@/features/setup/queries";
 import { track } from "@/lib/analytics";
 import { addDays } from "@/lib/businessDay";
 import { fmtDate, fmtLitres, fmtRupees } from "@/lib/format";
@@ -41,11 +42,13 @@ export default function ReviewScreen() {
   const whole = useWholeDay(me.pump.id, date);
   const submit = useSubmitDay(me.pump.id);
   const answer = useSetDayAnswer(me.pump.id, whole.model?.day.id);
+  const staff = useStaff(me.pump.id);
   const [step, setStep] = useState<Step>(1);
   const [openedAt] = useState(() => Date.now());
 
   const m = whole.model;
   const review = m ? reviewModel(m.setup, m.day, m.result, m.sections, m.receipts, m.shifts.shifts) : null;
+  const people = m ? whoSoldWhat(m.setup, m.shifts, m.day, staff.data ?? []) : [];
 
   useEffect(() => {
     if (step === 3 && m) for (const e of m.result.hardErrors) track("hard_error_shown", { rule_code: e.code, section: "review" });
@@ -132,7 +135,7 @@ export default function ReviewScreen() {
               Submit again after a fix to update the result. The first submit time is kept.
             </Banner>
           ) : null}
-          {step === 1 ? <FuelStep review={review} /> : null}
+          {step === 1 ? <FuelStep review={review} people={people} /> : null}
           {step === 2 ? <MoneyStep review={review} /> : null}
           {step === 3 ? (
             <SummaryStep
@@ -151,7 +154,7 @@ export default function ReviewScreen() {
   );
 }
 
-function FuelStep({ review }: { review: ReviewModel }) {
+function FuelStep({ review, people }: { review: ReviewModel; people: ShiftPeopleSales[] }) {
   return (
     <>
       <Text variant="heading">Fuel: tank vs meters</Text>
@@ -181,7 +184,36 @@ function FuelStep({ review }: { review: ReviewModel }) {
           Both dips are needed (opening and closing).
         </Banner>
       ) : null}
+      {people.length ? <WhoSoldCard people={people} /> : null}
     </>
+  );
+}
+
+/** Who sold what (D115): each person's nozzles per shift, litres after testing, about ₹. */
+function WhoSoldCard({ people }: { people: ShiftPeopleSales[] }) {
+  return (
+    <Card>
+      <Text variant="heading">Who sold what</Text>
+      {people.map((s, i) => (
+        <View key={s.shift} className="gap-4">
+          {i > 0 ? <Divider /> : null}
+          <Text variant="label" tone="secondary">{`Shift ${s.shift}`}</Text>
+          {s.people.map((p) => (
+            <KeyValueRow
+              key={p.staffId ?? "nobody"}
+              label={`${p.name} · ${(["HSD", "MS"] as const)
+                .filter((f) => p.litres[f])
+                .map((f) => `${f} ${fmtLitres(p.litres[f] as NonNullable<(typeof p.litres)[typeof f]>)}`)
+                .join(" · ")}`}
+              value={p.rupees ? fmtRupees(p.rupees) : ""}
+            />
+          ))}
+        </View>
+      ))}
+      <Text variant="label" weight="400" tone="muted">
+        From the meters of the nozzles each person was on, after testing. Pick who was on each nozzle in the shift screens.
+      </Text>
+    </Card>
   );
 }
 

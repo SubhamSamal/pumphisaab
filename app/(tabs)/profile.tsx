@@ -6,6 +6,7 @@ import { Pressable, View } from "react-native";
 import { Button, Card, ListItem, ScreenBody, SegmentedControl, Text } from "@/components/ui";
 import { useMembership, useSession } from "@/features/session/SessionProvider";
 import { MainHeader } from "@/features/shell/MainHeader";
+import { updateMessage, useAppUpdate } from "@/features/shell/useAppUpdate";
 import { sendTestReport } from "@/lib/crashReports";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { ThemePreference } from "@/theme/theme";
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
   // Tap the version line 5 times: a hidden button to prove crash reports arrive (4g).
   const [taps, setTaps] = useState(0);
   const [testSent, setTestSent] = useState<string | null>(null);
+  const update = useAppUpdate();
 
   return (
     <>
@@ -71,11 +73,19 @@ export default function ProfileScreen() {
 
         <Button label="Sign out" variant="secondary" icon="signOut" onPress={signOut} />
 
-        <Pressable onPress={() => setTaps((n) => n + 1)} accessibilityLabel="App version">
-          <Text variant="label" weight="400" tone="muted" className="text-center">
-            {versionLine()}
-          </Text>
-        </Pressable>
+        <View className="items-center gap-8">
+          <Pressable onPress={() => setTaps((n) => n + 1)} accessibilityLabel="App version">
+            <Text variant="label" weight="400" tone="muted" className="text-center">
+              {versionLine()}
+            </Text>
+          </Pressable>
+          <Button label="Check for update" size="M" variant="secondary" icon="retry" align="center" loading={update.busy} onPress={update.check} />
+          {updateMessage(update.state) ? (
+            <Text variant="label" weight="400" tone={update.state.kind === "failed" ? "danger" : "secondary"} className="text-center">
+              {updateMessage(update.state)}
+            </Text>
+          ) : null}
+        </View>
         {taps >= 5 ? (
           <View className="gap-8">
             <Button

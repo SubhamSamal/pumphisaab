@@ -403,6 +403,30 @@ write("day-22-canvas-sample", {
                               "MS": {"soldAsPerTank": "2912.00", "soldAsPerMeters": "2912.00", "difference": "0.00", "withinLimit": True}},
                  "shifts": exp_shifts, "hardErrors": [], "flags": ["S1", "S2", "S2", "S6"], "isMatched": False}})
 
+# S10 (D110): "the 5 L measure got". MS-A: 5 L on the meter, the measure got 5.25 L: +0.25 L, +5.00%,
+# beyond 0.5% → S10 (the nozzle gives more than it counts). MS-B: 4.98 L for 5 L, −0.40%: OK; and
+# 10.05 L for 10 L, exactly +0.50%: still OK ("beyond" means strictly more). The measure never
+# changes the stock maths: tests take the meter's litres off the sale (5 + 5 + 10 = 20 L).
+# Tank 100 → 98 cm = 200 L; meters 110 + 110 = 220 − 20 = 200 L: Matched. Money 200 L × ₹101.
+checks = [("MS-A", "5", "5.25"), ("MS-B", "5", "4.98"), ("MS-B", "10", "10.05")]
+expected_checks = []
+for nz, meter, got in checks:
+    err = D(got) - D(meter)
+    expected_checks.append({"nozzleId": nz, "meterLitres": q(meter), "measuredLitres": q(got), "error": q(err),
+                            "errorPercent": q(err / D(meter) * 100), "withinLimit": abs(err / D(meter) * 100) <= D("0.5")})
+assert [c["withinLimit"] for c in expected_checks] == [False, True, True]
+write("day-26-s10-nozzle-measure", {
+    "kind": "day", "source": "Decision D110 (owner, 09 Oct 2026)",
+    "description": "S10: MS-A's 5 L test measured 5.25 L (+0.25 L, +5.00%) is beyond the 0.5% limit; MS-B's 4.98 L (−0.40%) and 10.05 L for 10 L (exactly +0.50%) are within it. Tests still take the meter's litres off the sale, so the day is Matched; S10 is a flag only.",
+    "input": day([tank("MS")], [{"tankId": "MS-1", "openingDipCm": "100.00", "closingDipCm": "98.00"}],
+                 [shift("A", [nozzle("MS", "A", "1000.00", "1110.00"), nozzle("MS", "B", "2000.00", "2110.00")],
+                        cash_total="20200",
+                        tests=[{"nozzleId": nz, "litres": m, "measuredLitres": g} for nz, m, g in checks])]),
+    "expected": {"products": {"MS": {"soldAsPerTank": "200.00", "testLitres": "20.00", "soldAsPerMeters": "200.00", "difference": "0.00", "withinLimit": True}},
+                 "shifts": {"A": {"shouldHave": "20200.00", "received": "20200.00", "difference": "0.00"}},
+                 "nozzleChecks": expected_checks,
+                 "hardErrors": [], "flags": ["S10"], "isMatched": True}})
+
 # ─── 6. The real notebook day, 15 Sep 2026 ───────────────────────────────
 ms_price, hsd_price = D("110.07"), D("101.74")
 rupee_slips = [  # (slip, customer, vehicle, rupees)

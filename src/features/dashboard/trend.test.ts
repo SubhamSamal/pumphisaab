@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTrend, latestWithDifference, trendBars, trendFrom, type TrendDay, type TrendMatch } from "./trend";
+import { buildTrend, groupNozzleChecks, latestWithDifference, trendBars, trendFrom, type NozzleCheckRow, type TrendDay, type TrendMatch } from "./trend";
 
 const price = { HSD: "101.74", MS: "110.07" };
 const days: TrendDay[] = [
@@ -88,5 +88,39 @@ describe("trend bars (chart)", () => {
   it("starts on the newest day that has a Difference", () => {
     expect(latestWithDifference(bars)).toBe("2026-10-02");
     expect(latestWithDifference(trendBars(buildTrend([], [], "2026-10-03"), "MS", "2026-10-03"))).toBeNull();
+  });
+});
+
+describe("nozzle checks (D110)", () => {
+  const row = (over: Partial<NozzleCheckRow>): NozzleCheckRow => ({
+    date: "2026-10-20",
+    shift: "A",
+    nozzleId: "ms3",
+    label: "MS-3",
+    product: "MS",
+    meterLitres: "5.00",
+    measuredLitres: "5.25",
+    error: "0.25",
+    errorPercent: "5.00",
+    flagged: true,
+    who: "Ramesh",
+    ...over,
+  });
+
+  it("groups per nozzle, diesel first, newest check first, counting the flagged ones", () => {
+    const groups = groupNozzleChecks([
+      row({}),
+      row({ date: "2026-10-21", flagged: false, measuredLitres: "5.02", error: "0.02", errorPercent: "0.40" }),
+      row({ nozzleId: "hsd4", label: "HSD-4", product: "HSD", flagged: false }),
+    ]);
+    expect(groups.map((g) => g.label)).toEqual(["HSD-4", "MS-3"]);
+    expect(groups[1].checks.map((c) => c.date)).toEqual(["2026-10-21", "2026-10-20"]);
+    expect(groups[1].flaggedCount).toBe(1);
+  });
+
+  it("keeps at most 5 checks per nozzle", () => {
+    const many = Array.from({ length: 8 }, (_, i) => row({ date: `2026-10-${String(10 + i).padStart(2, "0")}` }));
+    expect(groupNozzleChecks(many)[0].checks).toHaveLength(5);
+    expect(groupNozzleChecks(many)[0].flaggedCount).toBe(8);
   });
 });

@@ -62,6 +62,7 @@ import {
   type IconName,
   type NavItem,
 } from "@/components/ui";
+import { NozzleChecks } from "@/features/dashboard/NozzleChecks";
 import { TrendDayRow } from "@/features/dashboard/TrendDayRow";
 import { fmtRupees } from "@/lib/format";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -302,6 +303,32 @@ function GalleryContent() {
 
         <Section title="Fuel trend chart (Dashboard)">
           <GalleryBars />
+        </Section>
+
+        <Section title="Nozzle checks (Dashboard)">
+          <NozzleChecks
+            groups={[
+              {
+                nozzleId: "ms3",
+                label: "MS-3",
+                product: "MS",
+                flaggedCount: 1,
+                checks: [
+                  { date: "2026-10-21", shift: "A", nozzleId: "ms3", label: "MS-3", product: "MS", meterLitres: "5.00", measuredLitres: "5.25", error: "0.25", errorPercent: "5.00", flagged: true, who: "Ramesh" },
+                  { date: "2026-10-20", shift: "B", nozzleId: "ms3", label: "MS-3", product: "MS", meterLitres: "5.00", measuredLitres: "5.02", error: "0.02", errorPercent: "0.40", flagged: false, who: "Suresh" },
+                ],
+              },
+              {
+                nozzleId: "hsd3",
+                label: "HSD-3",
+                product: "HSD",
+                flaggedCount: 1,
+                checks: [
+                  { date: "2026-10-21", shift: "A", nozzleId: "hsd3", label: "HSD-3", product: "HSD", meterLitres: "5.00", measuredLitres: "4.90", error: "-0.10", errorPercent: "-2.00", flagged: true, who: null },
+                ],
+              },
+            ]}
+          />
         </Section>
 
         <Section title="Fuel trend day (Dashboard)">

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_RULES, type DayResult } from "@/calc";
 import { Decimal } from "@/lib/decimal";
-import { customerPayMethods, reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections } from "./model";
+import { customerPayMethods, reviewCard, reviewModel, sectionFor, customerPaymentInputs, daysNotSubmitted, evaluate, expenseInputs, expensesSection, expenseTotals, paidFromLabel, shiftNow, lastPrices, priceRowFor, salesSection, openingOf, priceStrip, sectionsDone, shiftInputs, shiftProgress, tankDays, tankerInputs, tankerSection, todaySections, whoSoldWhat } from "./model";
 import type { Day, DaySetup, ExpenseRow, NozzleLine, Receipt, SalesData, SalesSetup, ShiftData, TankReading } from "./queries";
 
 const chart = (JSON.parse(readFileSync(join(__dirname, "../../../tests/golden/charts/iocl-20kl.json"), "utf8")).rows as [string, string][]).map(
@@ -195,6 +195,32 @@ describe("shift meters (slice 4b)", () => {
     expect(inputs[0].tests).toEqual([{ nozzleId: "hsd3", litres: "10" }]);
     const approved = shiftInputs(setup, data([line("B", "hsd3", { opening: "1300", openingTyped: true, closing: "1400", previousClosing: "1100", meterChange: "APPROVED" })]));
     expect(evaluate(setup, day(), [], approved).hardErrors.filter((e) => e.code === "H2")).toEqual([]);
+  });
+
+  it("who sold what (D115): each person's nozzles, testing taken off, about ₹; unpicked nozzles under 'Nobody picked'", () => {
+    const d = data(
+      [
+        line("A", "hsd3", { opening: "1000", closing: "1100", hasPrevious: false }),
+        line("A", "hsd4", { opening: "5000", closing: "5040", hasPrevious: false }),
+      ],
+      {
+        tests: [{ id: "t", shiftId: "A", nozzleId: "hsd3", litres: "5", measured: "5.25", version: 1 }],
+        nozzlePeople: [{ id: "p", shiftId: "A", nozzleId: "hsd3", staffId: "ramesh" }],
+      },
+    );
+    const sales = whoSoldWhat(setup, d, day({ priceConfirmed: true, confirmed: { HSD: "101.74", MS: "110.07" } }), [{ id: "ramesh", name: "Ramesh" }]);
+    expect(sales).toHaveLength(1);
+    expect(sales[0].shift).toBe("A");
+    const [ramesh, nobody] = sales[0].people;
+    expect(ramesh.name).toBe("Ramesh");
+    expect(ramesh.litres.HSD?.toFixed(2)).toBe("95.00"); // 100 − 5 tested
+    expect(ramesh.rupees?.toFixed(2)).toBe("9665.30"); // 95 × 101.74
+    expect(nobody.name).toBe("Nobody picked");
+    expect(nobody.litres.HSD?.toFixed(2)).toBe("40.00");
+    // The 5 L measure goes to the engine as measuredLitres.
+    expect(shiftInputs(setup, d)[0].tests).toEqual([{ nozzleId: "hsd3", litres: "5", measuredLitres: "5.25" }]);
+    // No one picked on any nozzle: nothing to show.
+    expect(whoSoldWhat(setup, data(d.lines), day(), [])).toEqual([]);
   });
 
   it("is done when every in-use nozzle has both readings and someone is ticked", () => {
@@ -445,6 +471,7 @@ describe("review and submit (slice 4f)", () => {
       withinLimit: i === 0,
     })),
     tankers: [],
+    nozzleChecks: [],
     hardErrors: [],
     flags: [
       { code: "S1", severity: "soft", message: "Diesel short 42 L (0.52%): tank vs meters. The owner will see this." },

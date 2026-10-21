@@ -89,6 +89,11 @@ export type Rules = {
   testing: {
     /** Litres suggested for a new test row. */
     defaultLitres: string;
+    /**
+     * S10 (D110): flag a nozzle whose measure differs from its meter by more than this % of the
+     * meter. IOCL's measure tolerance is ±25 mL per 5 L = 0.5%.
+     */
+    measureFlagBeyondPercent: string;
   };
 };
 
@@ -113,7 +118,7 @@ export const DEFAULT_RULES: Rules = {
 
   creditSlip: { litreDecimals: 2, litreRounding: "up" },
 
-  testing: { defaultLitres: "5" },
+  testing: { defaultLitres: "5", measureFlagBeyondPercent: "0.5" },
 
   managerDaysBack: 10,
 };

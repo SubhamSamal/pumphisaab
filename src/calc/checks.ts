@@ -22,6 +22,7 @@ import type {
   CustomerPayment,
   Expense,
   Issue,
+  NozzleCheck,
   Product,
   ProductResult,
   ShiftInput,
@@ -407,6 +408,49 @@ export function checkExpenseCaps(expenses: Expense[], rules: Rules): Issue[] {
   return issues;
 }
 
+/**
+ * The nozzle checks (D110): every test with a measure, its error (measure − meter) and whether it's
+ * within the pump's limit. Same as the database's v_nozzle_checks.
+ */
+export function nozzleChecks(shifts: ShiftInput[], rules: Rules): NozzleCheck[] {
+  return shifts.flatMap((s) =>
+    s.tests.flatMap((t) => {
+      if (t.measuredLitres === undefined || t.measuredLitres.trim() === "") return [];
+      const check = measureCheck(t.litres, t.measuredLitres, rules);
+      return check ? [{ shift: s.code, nozzleId: t.nozzleId, ...check }] : [];
+    }),
+  );
+}
+
+/** One test's measure against its meter (D110): error = measure − meter, as % of the meter, and S10's limit. */
+export function measureCheck(meter: string, measured: string, rules: Rules) {
+  const meterLitres = num(meter);
+  if (meterLitres.isZero()) return null;
+  const measuredLitres = num(measured);
+  const error = measuredLitres.minus(meterLitres);
+  const errorPercent = percentOf(error, meterLitres) as Decimal;
+  return { meterLitres, measuredLitres, error, errorPercent, withinLimit: !isBeyond(errorPercent, num(rules.testing.measureFlagBeyondPercent)) };
+}
+
+/** S10: a nozzle's measure is off by more than the limit (D110). */
+export function checkNozzleMeasures(checks: NozzleCheck[], labels: Map<string, string>): Issue[] {
+  return checks
+    .filter((c) => !c.withinLimit)
+    .map((c) => {
+      const label = labels.get(c.nozzleId) ?? "A nozzle";
+      const more = c.error.isPositive();
+      return {
+        code: "S10",
+        severity: "soft" as const,
+        message: more
+          ? `${label}: the measure got ${fmtLitres(c.measuredLitres)} for ${fmtLitres(c.meterLitres)} on the meter, ${fmtLitres(c.error.abs())} more (${pct(c.errorPercent)}). The nozzle gives more than it counts.`
+          : `${label}: the measure got ${fmtLitres(c.measuredLitres)} for ${fmtLitres(c.meterLitres)} on the meter, ${fmtLitres(c.error.abs())} less (${pct(c.errorPercent)}). Customers get less than the meter shows.`,
+        where: { shift: c.shift, nozzleId: c.nozzleId },
+        numbers: { meterLitres: c.meterLitres, measuredLitres: c.measuredLitres, error: c.error, errorPercent: c.errorPercent },
+      };
+    });
+}
+
 /** The list of typed values H5 looks at. */
 export function typedValues(shifts: ShiftInput[], expenses: Expense[], payments: CustomerPayment[], tankDays: TankDay[], tankers: TankerReceipt[]) {
   const values: { what: string; value: string | undefined; where?: Issue["where"] }[] = [];
@@ -420,7 +464,10 @@ export function typedValues(shifts: ShiftInput[], expenses: Expense[], payments:
       values.push({ what: `${n.label} opening`, value: n.opening, where: { shift: s.code, nozzleId: n.nozzleId } });
       values.push({ what: `${n.label} closing`, value: n.closing, where: { shift: s.code, nozzleId: n.nozzleId } });
     }
-    for (const t of s.tests) values.push({ what: "Test litres", value: t.litres, where: { shift: s.code, nozzleId: t.nozzleId } });
+    for (const t of s.tests) {
+      values.push({ what: "Test litres", value: t.litres, where: { shift: s.code, nozzleId: t.nozzleId } });
+      values.push({ what: "Measure litres", value: t.measuredLitres, where: { shift: s.code, nozzleId: t.nozzleId } });
+    }
     values.push({ what: "Opening cash", value: s.openingCash, where: { shift: s.code } });
     if (s.cash && "byNotes" in s.cash) {
       for (const n of s.cash.byNotes) values.push({ what: `₹${n.noteValue} note count`, value: n.count, where: { shift: s.code } });

@@ -117,3 +117,30 @@ export function latestWithDifference(bars: TrendBar[]): string | null {
   for (let i = bars.length - 1; i >= 0; i--) if (bars[i].tone !== "empty") return bars[i].date;
   return null;
 }
+
+// ─── Nozzle checks (D110): each nozzle's recent 5 L measure checks, with who was on it ──────
+export type NozzleCheckRow = {
+  date: string;
+  shift: string;
+  nozzleId: string;
+  label: string;
+  product: Product;
+  meterLitres: string;
+  measuredLitres: string;
+  error: string;
+  errorPercent: string;
+  flagged: boolean;
+  who: string | null;
+};
+export type NozzleCheckGroup = { nozzleId: string; label: string; product: Product; checks: NozzleCheckRow[]; flaggedCount: number };
+
+/** Per nozzle (diesel first, then by label), newest check first, at most `perNozzle` each. */
+export function groupNozzleChecks(rows: NozzleCheckRow[], perNozzle = 5): NozzleCheckGroup[] {
+  const ids = [...new Set(rows.map((r) => r.nozzleId))];
+  return ids
+    .map((id) => {
+      const own = rows.filter((r) => r.nozzleId === id).sort((a, b) => b.date.localeCompare(a.date) || b.shift.localeCompare(a.shift));
+      return { nozzleId: id, label: own[0].label, product: own[0].product, checks: own.slice(0, perNozzle), flaggedCount: own.filter((r) => r.flagged).length };
+    })
+    .sort((a, b) => (a.product === b.product ? a.label.localeCompare(b.label) : a.product === "HSD" ? -1 : 1));
+}

@@ -25,7 +25,8 @@ export type EventName =
   | "fuel_price_added"
   | "price_requested"
   | "price_request_answered"
-  | "fuel_trend_opened";
+  | "fuel_trend_opened"
+  | "app_update_installed";
 
 type Props = Record<string, string | number | boolean | null | undefined>;
 

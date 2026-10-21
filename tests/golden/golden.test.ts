@@ -161,6 +161,16 @@ describe("golden cases", () => {
             }
           }
 
+          if (e.nozzleChecks) {
+            expect(result.nozzleChecks.length, "nozzle checks").toBe(e.nozzleChecks.length);
+            e.nozzleChecks.forEach((want: any, i: number) => {
+              const got: any = result.nozzleChecks[i];
+              expect(got.nozzleId, `check ${i + 1} nozzle`).toBe(want.nozzleId);
+              for (const key of ["meterLitres", "measuredLitres", "error", "errorPercent"]) expectNumber(got[key], want[key], `check ${i + 1} ${key}`);
+              expect(got.withinLimit, `check ${i + 1} within limit`).toBe(want.withinLimit);
+            });
+          }
+
           if (e.hardErrors) expect(sorted(result.hardErrors.map((i) => i.code)), "hard errors").toEqual(sorted(e.hardErrors));
           if (e.flags) expect(sorted(result.flags.map((i) => i.code)), "flags").toEqual(sorted(e.flags));
           if ("isMatched" in e) expect(result.isMatched, "matched").toBe(e.isMatched);

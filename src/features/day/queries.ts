@@ -322,8 +322,16 @@ export type NozzleLine = {
   previousClosing: string | null;
 };
 export type Attendant = { id: string; shiftId: string; staffId: string };
-export type Test = { id: string; shiftId: string; nozzleId: string; litres: string; version: number };
-export type ShiftData = { shifts: Shift[]; lines: NozzleLine[]; attendants: Attendant[]; tests: Test[] };
+/** A test: litres the meter showed, and (D110) what the 5 L measure really got, if typed. */
+export type Test = { id: string; shiftId: string; nozzleId: string; litres: string; measured?: string | null; version: number };
+/** Who worked a nozzle in a shift (D115, D121). One person per nozzle for now; the table allows more. */
+export type NozzlePerson = { id: string; shiftId: string; nozzleId: string; staffId: string };
+export type ShiftData = { shifts: Shift[]; lines: NozzleLine[]; attendants: Attendant[]; tests: Test[]; nozzlePeople?: NozzlePerson[] };
+
+/** The database isn't updated yet (migration 17 not pasted): treat the new parts as empty. */
+function isMissing(error: { code?: string } | null): boolean {
+  return Boolean(error && ["42P01", "42703", "PGRST204", "PGRST205"].includes(error.code ?? ""));
+}
 
 export function useShiftData(dayId: string | undefined) {
   const readings = useWaiting("nozzleReading", dayId);
@@ -334,7 +342,12 @@ export function useShiftData(dayId: string | undefined) {
     select: (data) => (readings.length || cash.length ? overlayShiftData(data, [...readings, ...cash]) : data),
     queryFn: async (): Promise<ShiftData> => {
       const id = dayId as string;
-      const [shifts, lines, attendants, tests] = await Promise.all([
+      const testsWithMeasure = async () => {
+        const r = await supabase.from("nozzle_tests").select("id, shift_id, nozzle_id, litres::text, measured_l::text, version").eq("day_id", id).order("created_at");
+        if (!isMissing(r.error)) return r;
+        return supabase.from("nozzle_tests").select("id, shift_id, nozzle_id, litres::text, version").eq("day_id", id).order("created_at");
+      };
+      const [shifts, lines, attendants, tests, people] = await Promise.all([
         supabase.from("shifts").select("id, shift_code, starts_at, ends_at, opening_cash::text, sales_done_at").eq("day_id", id).order("starts_at"),
         supabase
           .from("v_nozzle_readings")
@@ -343,9 +356,11 @@ export function useShiftData(dayId: string | undefined) {
           )
           .eq("day_id", id),
         supabase.from("shift_attendants").select("id, shift_id, staff_id").eq("day_id", id),
-        supabase.from("nozzle_tests").select("id, shift_id, nozzle_id, litres::text, version").eq("day_id", id).order("created_at"),
+        testsWithMeasure(),
+        supabase.from("nozzle_attendants").select("id, shift_id, nozzle_id, staff_id").eq("day_id", id).order("created_at"),
       ]);
       for (const r of [shifts, lines, attendants, tests]) if (r.error) throw r.error;
+      if (people.error && !isMissing(people.error)) throw people.error;
       return {
         shifts: shifts.data!.map((s) => ({
           id: s.id,
@@ -370,7 +385,15 @@ export function useShiftData(dayId: string | undefined) {
           }),
         ),
         attendants: attendants.data!.map((a) => ({ id: a.id, shiftId: a.shift_id, staffId: a.staff_id })),
-        tests: tests.data!.map((t) => ({ id: t.id, shiftId: t.shift_id, nozzleId: t.nozzle_id, litres: t.litres, version: t.version })),
+        tests: (tests.data as unknown as { id: string; shift_id: string; nozzle_id: string; litres: string; measured_l?: string | null; version: number }[]).map((t) => ({
+          id: t.id,
+          shiftId: t.shift_id,
+          nozzleId: t.nozzle_id,
+          litres: t.litres,
+          measured: t.measured_l ?? null,
+          version: t.version,
+        })),
+        nozzlePeople: (people.data ?? []).map((p) => ({ id: p.id, shiftId: p.shift_id, nozzleId: p.nozzle_id, staffId: p.staff_id })),
       };
     },
   });
@@ -447,7 +470,7 @@ export function useSetAttendant(pumpId: string, dayId: string | undefined) {
 
 /** Adds or changes one test (id made on the phone, so a retry never adds it twice). */
 export function useSaveTest(pumpId: string, dayId: string | undefined) {
-  return useShiftSave(dayId, "test", (input: { id: string; shiftId: string; nozzleId: string; litres: string; version?: number }) =>
+  return useShiftSave(dayId, "test", (input: { id: string; shiftId: string; nozzleId: string; litres: string; measured?: string | null; version?: number }) =>
     check(
       supabase.from("nozzle_tests").upsert(
         {
@@ -457,12 +480,35 @@ export function useSaveTest(pumpId: string, dayId: string | undefined) {
           shift_id: input.shiftId,
           nozzle_id: input.nozzleId,
           litres: input.litres,
+          ...(input.measured !== undefined ? { measured_l: input.measured } : {}),
           ...(input.version ? { version: input.version } : {}),
         },
         { onConflict: "id" },
       ),
     ),
   );
+}
+
+/**
+ * Who worked a nozzle this shift (D115): one person per nozzle for now, so the old one is taken off
+ * first. null = nobody picked. The database checks the person is ticked on the shift.
+ */
+export function useSetNozzlePerson(pumpId: string, dayId: string | undefined) {
+  return useShiftSave(dayId, "nozzlePerson", async (input: { shiftId: string; nozzleId: string; staffId: string | null }) => {
+    let del = supabase.from("nozzle_attendants").delete().eq("shift_id", input.shiftId).eq("nozzle_id", input.nozzleId);
+    if (input.staffId) del = del.neq("staff_id", input.staffId);
+    await check(del);
+    if (input.staffId) {
+      await check(
+        supabase
+          .from("nozzle_attendants")
+          .upsert(
+            { pump_id: pumpId, day_id: dayId, shift_id: input.shiftId, nozzle_id: input.nozzleId, staff_id: input.staffId },
+            { onConflict: "shift_id,nozzle_id,staff_id", ignoreDuplicates: true },
+          ),
+      );
+    }
+  });
 }
 
 export function useDeleteTest(dayId: string | undefined) {

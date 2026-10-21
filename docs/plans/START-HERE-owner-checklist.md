@@ -6,6 +6,7 @@
 - The app has been live with you and both managers since 01 Oct, beside the notebooks.
 - 01-05 Oct are checked and submitted. The managers carry on from 06 Oct.
 - **Phase 5a Part 1 is in the managers' app** (21 Oct, update 01a15e4): Price is different, Fuel prices, Fuel trend chart.
+- **Part 2 is built and on PumpHisaab Preview** (section 1b): 5 L measure, who on each nozzle, Check for update.
 - Filling 06-19 Oct from the notebooks is **paused** until you send the missing photos (section 4).
 
 ---
@@ -90,6 +91,50 @@ This tells Claude how long each shift takes to fill and which part is slowest, s
 
 ---
 
+## 1b. Now: check Phase 5a Part 2 (about 20 minutes)
+
+Part 2 brings three things:
+- **"The 5 L measure got"** in Testing (which nozzle gives more or less than its meter);
+- **"Who was on each nozzle"** in each shift, with **Who sold what** on Review and **Nozzle checks** on the Dashboard;
+- a **Check for update** button in Profile (no more "close and reopen twice").
+
+### Step 1. Paste database update 17 in Supabase (5 minutes)
+It **only adds** (a new box for the measure, a new list for who was on each nozzle). Nothing is deleted or changed.
+1. On the laptop, open: https://github.com/SubhamSamal/pumphisaab/blob/main/supabase/migrations/20261021120000_nozzle_checks_and_attendants.sql
+2. Click **Raw**, then **Ctrl/Cmd + A** and **Ctrl/Cmd + C**.
+3. Supabase › project **pumphisaab** › **SQL Editor** › **+ New query** › paste › **Run**.
+4. **What you should see:** "Success. No rows returned". ("Already applied" is fine too. Any other red message: send it to Claude, don't run it again.)
+- [ ] Database update 17 pasted.
+
+### Step 2. Get Part 2 on PumpHisaab Preview (2 minutes)
+1. Open **PumpHisaab Preview**, close it fully, open it again, close and open once more (the last time you need to do this).
+2. **Profile** › at the bottom you now see a **Check for update** button under the update line. Tap it: it should say **"You have the latest version."**
+- [ ] Preview has the Check for update button and says it's the latest.
+
+### Step 3. A shift screen (5 minutes)
+Preview uses the real database, so do this on **today's real shift** with real numbers (or put back what you change).
+1. **Today** › open **Shift A readings**.
+2. Below the nozzles there's a new card **"Who was on each nozzle"**. Each nozzle has a box; tap it and pick the person (only people ticked under "Who worked this shift" show). If only one person is ticked, a button **"Put [name] on all nozzles"** does it in one tap.
+3. In **Testing**, each test now has **"The 5 L measure got (optional)"**. Type what the measure really had (for example 5.02).
+   - Within ±0.5% it says **"measure OK"** in green.
+   - More than the meter (the nozzle gives extra, the pump loses): red line.
+   - Less than the meter (customers get less): amber line.
+- [ ] I saw both on the shift screen.
+
+### Step 4. Review and Dashboard (3 minutes)
+1. Open **Review and submit** for that day. Step 1 (Fuel) now ends with **"Who sold what"**: each person, litres per fuel (after testing) and about ₹, per shift.
+2. **Dashboard** › below the chart, **"Nozzle checks (5 L measure)"** shows each nozzle's last checks, with who was on it. (It appears once at least one measure is typed.)
+- [ ] Review and Dashboard look right.
+
+### Step 5. Send it to the managers
+1. Write to Claude: **"Part 2 OK, send to production"**.
+2. Tell the managers (this time they must close and reopen PumpHisaab twice; after that, the **Check for update** button in Profile does it):
+   - "In each shift, pick who was on each nozzle (one tap)."
+   - "When you test, pour into the 5 L measure and type what it got."
+- [ ] Part 2 is on the managers' phones.
+
+---
+
 ## 2. Every day
 
 **Managers**
@@ -153,10 +198,6 @@ After you say "go", Claude gives you a read-only query to paste (same way as sec
 
 ## 5. What comes next
 - **Phase 5a Part 1, last piece (Claude, no steps for you):** 02-05 Oct become test cases, so a future change can never quietly change those days' numbers.
-- **Part 2:**
-  - "The 5 L measure got" box in Testing (shows which nozzle is off).
-  - **"Who"** on each nozzle per shift.
-  - Database update 17 to paste.
 - **Part 3:**
   - Easier screens: a "Next" tag on Today, Sales in numbered parts with the money bar always visible, the tanker in two steps.
   - "Not settled yet" boxes.
@@ -198,7 +239,7 @@ After you say "go", Claude gives you a read-only query to paste (same way as sec
   1. Open the file's GitHub link, click **Raw**, select all and copy.
   2. In Supabase, open **SQL Editor › + New query**, paste, and click **Run**.
   3. Paste database updates (migrations) **before** Claude sends the matching app update, and only once. Each file refuses to run twice.
-- **Getting an app update:** close the app fully and open it again, twice. **Profile** › bottom line shows the update number. No reinstall unless Claude says so.
+- **Getting an app update:** from Part 2 on, **Profile › Check for update** (it reopens the app by itself). Before that: close the app fully and open it again, twice. No reinstall unless Claude says so.
 - **Preview first, always:** every change reaches **PumpHisaab Preview** first. You check it, then Claude sends it to the managers' **PumpHisaab**.
 - **Preview uses the real database.** Look and try, but don't send real prices, slips or submits from Preview unless you mean them.
 - **Something wrong:** take a screenshot (or copy the red message) and send it to Claude. Don't retry a database file that showed an error.

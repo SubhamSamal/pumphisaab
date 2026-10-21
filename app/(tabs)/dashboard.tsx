@@ -16,7 +16,8 @@ import {
   type DifferenceBar,
 } from "@/components/ui";
 import type { Product } from "@/calc";
-import { useFuelTrend } from "@/features/dashboard/queries";
+import { NozzleChecks } from "@/features/dashboard/NozzleChecks";
+import { useFuelTrend, useNozzleChecks } from "@/features/dashboard/queries";
 import { TREND_DAYS, latestWithDifference, trendBars, type TrendBar } from "@/features/dashboard/trend";
 import { TrendDayRow } from "@/features/dashboard/TrendDayRow";
 import { useSelectedDay } from "@/features/day/SelectedDay";
@@ -48,6 +49,7 @@ function OwnerDashboard() {
   const router = useRouter();
   const { today, serverKnown, setDate } = useSelectedDay();
   const trend = useFuelTrend(me.pump.id, serverKnown ? today : undefined);
+  const checks = useNozzleChecks(me.pump.id, serverKnown ? today : undefined);
   const [fuel, setFuel] = useState<Product>("HSD");
   const [picked, setPicked] = useState<string | null>(null);
   const [showDays, setShowDays] = useState(false);
@@ -128,6 +130,8 @@ function OwnerDashboard() {
             </View>
           </>
         )}
+
+        {checks.data && checks.data.length > 0 ? <NozzleChecks groups={checks.data} /> : null}
 
         <ComingSoon icon="dashboard" line="Today's summary and the 30-day matched calendar arrive in Phase 6." />
       </ScreenBody>
