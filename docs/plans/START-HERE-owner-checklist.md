@@ -108,7 +108,7 @@ It **only adds** (a new box for the measure, a new list for who was on each nozz
 
 ### Step 2. Get Part 2 on PumpHisaab Preview (2 minutes)
 1. Open **PumpHisaab Preview**, close it fully, open it again, close and open once more (the last time you need to do this).
-2. **Profile** › at the bottom you now see a **Check for update** button under the update line. Tap it: it should say **"You have the latest version."**
+2. **Profile** › the update line shows **"update 01a15e5"**, and under it a **Check for update** button. Tap it: it should say **"You have the latest version."**
 - [ ] Preview has the Check for update button and says it's the latest.
 
 ### Step 3. A shift screen (5 minutes)
